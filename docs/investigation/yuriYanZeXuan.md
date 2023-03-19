@@ -42,3 +42,12 @@ RPC 执行过程总结：
 ......
 如此种种，都是一个优秀的RPC框架需要考虑的问题。
 
+## 分布式一致性算法应用场景 
+https://zhuanlan.zhihu.com/p/31727291
+
+## Paxos算法详解
+https://zhuanlan.zhihu.com/p/31780743
+
+## Raft算法详解
+https://zhuanlan.zhihu.com/p/32052223
+
