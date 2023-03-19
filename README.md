@@ -4,7 +4,7 @@ OSH-2023 team project repo, our chinese team name is "芝士猞猁".
 
 ## Topic
 
-分布式系统
+初拟题目：分布式系统
 
 ## Members
 
