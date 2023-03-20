@@ -45,8 +45,35 @@ RPC 执行过程总结：
 ## 分布式一致性算法应用场景 
 https://zhuanlan.zhihu.com/p/31727291
 
+- 分布式一致性(Consensus)
+  - 领导者选举：进程对leader达成一致
+  - 互斥：对于访问临界资源（不许同时读写）的进程达成一致
+  - 原子广播：进程对消息传递顺序达成一致
+
+- 典型应用场景：
+  - 主从同步
+  - 主从异步
+  - Paxos,Raft(提供一致性和可用性的平衡)
+  
+- CAP理论（一致性，可用性，容错性的不可能三角）
+- 多副本状态机：
+  - 多副本状态机是指多台机器具有完全相同的状态，并且运行完全相同的确定性状态机。
+  - 多副本状态机的每个副本上都保存有完全相同的操作日志，保证所有状态机副本按照相同的顺序执行相同的操作，这样由于状态机是确定性的，则会得到相同的状态。
+  - 保证复制到各个服务器上的日志的一致性正是分布式一致性算法的工作。一致性算法保证所有状态机副本上的操作日志具有完全相同的顺序，如果状态机的任何一个副本在本地状态机上执行了一个操作，则绝对不会有别的副本在操作序列相同位置执行一个不同的操作。
+
 ## Paxos算法详解
 https://zhuanlan.zhihu.com/p/31780743
+Paxos将系统中的角色分为提议者 (Proposer)，决策者 (Acceptor)，和最终决策学习者 (Learner):
+- Proposer: 提出提案 (Proposal)。Proposal信息包括提案编号 (Proposal ID) 和提议的值 (Value)。
+- Acceptor：参与决策，回应Proposers的提案。收到Proposal后可以接受提案，若Proposal获得多数
+Acceptors的接受，则称该Proposal被批准。
+- Learner：不参与决策，从Proposers/Acceptors学习最新达成一致的提案（Value）。
+
+Paxos算法通过一个决议分为两个阶段（Learn阶段之前决议已经形成）：
+- 第一阶段：Prepare阶段。Proposer向Acceptors发出Prepare请求，Acceptors针对收到的Prepare请求进行Promise承诺。
+- 第二阶段：Accept阶段。Proposer收到多数Acceptors承诺的Promise后，向Acceptors发出Propose请求，Acceptors针对收到的Propose请求进行Accept处理。
+- 第三阶段：Learn阶段。Proposer在收到多数Acceptors的Accept之后，标志着本次Accept成功，决议形成，将形成的决议发送给所有Learners。
+![paxos](src/paxos.jpg)
 
 ## Raft算法详解
 https://zhuanlan.zhihu.com/p/32052223
