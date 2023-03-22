@@ -78,3 +78,11 @@ Paxos算法通过一个决议分为两个阶段（Learn阶段之前决议已经�
 ## Raft算法详解
 https://zhuanlan.zhihu.com/p/32052223
 
+1. Raft算法概述
+Raft将系统中的角色分为领导者（Leader）、跟从者（Follower）和候选人（Candidate）：
+- Leader：接受客户端请求，并向Follower同步请求日志，当日志同步到大多数节点上后告诉Follower提交日志
+- Follower：接受并持久化Leader同步的日志，在Leader告之日志可以提交之后，提交日志。
+- Candidate：Leader选举过程中的临时角色。
+2. Leader选举
+3. 日志同步
+   Leader选出后，就开始接收客户端的请求。Leader把请求作为日志条目（Log entries）加入到它的日志中，然后并行的向其他服务器发起 AppendEntries RPC （RPC细节参见八、Raft算法总结）复制日志条目。当这条日志被复制到大多数服务器上，Leader将这条日志应用到它的状态机并向客户端返回执行结果。
