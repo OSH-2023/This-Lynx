@@ -4,7 +4,7 @@ OSH-2023 team project repo, our chinese team name is "芝士猞猁".
 
 ## Topic
 
-初拟题目：分布式系统
+初拟题目：使用已有的分布式文件，任务调度等系统，基于mapreduce对分布式计算框架进行改进。
 
 ## Members
 
@@ -16,8 +16,8 @@ OSH-2023 team project repo, our chinese team name is "芝士猞猁".
 
 ## Discussion Progress
 
-|日期|主题|记录|备注|
-|:-:|:-:|:-:|:-:|
-|3-11|首次讨论|[3-11First](./docs/discussion/3-11First.md)||
-|3-18|调研结果讨论|[3-18Pre](./docs/discussion/3-18Pre.md)||
-
+| 日期  |     主题     |                          记录                           | 备注  |
+| :---: | :----------: | :-----------------------------------------------------: | :---: |
+| 3-11  |   首次讨论   |       [3-11First](./docs/discussion/3-11First.md)       |       |
+| 3-18  | 调研结果讨论 |         [3-18Pre](./docs/discussion/3-18Pre.md)         |       |
+| 3-26  |   正式立项   | [3-26FormalTopic](./docs/discussion/3-26FormalTopic.md) |       |
