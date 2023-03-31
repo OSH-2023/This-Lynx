@@ -30,9 +30,8 @@
   MemLinear论文将项目开源在github上，优化了JVM的垃圾回收器，相较于G1 GC和Shenandoah GC有显著提升。
 - 重要性/前瞻性: C语言缺少垃圾回收器的弊病由来已久，增加GC实现影响重大，另外考虑垃圾回收机制作为当前高级语言的普遍机制，以及其作为拖累分布式系统中的远程内存共享效率的重要瓶颈，在广泛的应用场景下对其优化有显著意义。
 - 工业学术前沿:OSDI 2022 best paper，够前沿了吧。
-
-
 论文中观察到1.Application和GC的内存访问只是在时间上不一致，但对存活对象的访问是一致的2.改变GC的内存访问顺序并不会影响其正确性，提出了优化访问顺序的基本思路:
+
 
 [^1]:《MemLiner: Lining up Tracing and Application for a Far-Memory-Friendly Runtime》
 已知调研报告需要包括：项目背景、立项依据、前瞻性/重要性分析、相关工作
