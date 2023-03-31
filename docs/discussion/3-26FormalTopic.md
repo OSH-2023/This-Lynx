@@ -47,6 +47,12 @@
 [^1]:《MemLiner: Lining up Tracing and Application for a Far-Memory-Friendly Runtime》
 已知调研报告需要包括：项目背景、立项依据、前瞻性/重要性分析、相关工作
 
+### 数据混合批处理和流处理框架
+- 创新性:流处理框架和批处理框架都有其各自的优势，但是在实际应用中，往往需要同时使用这两种框架，但是这两种框架的数据处理方式不同，需要在两种框架之间进行数据转换，这样会增加系统的复杂度，同时也会增加系统的开销。因此，我们希望能够设计一种数据混合批处理和流处理框架，使得系统能够同时使用批处理和流处理框架，而不需要进行数据转换。
+- 可行性:动态调度，优先处理流数据达到低延迟，同时处理批数据达到高吞吐。利用微批次的思想，考虑数据本身特点和数据的速率，对数据进行分割。
+- 重要性/前瞻性:参考论文[^2][^3]
+  [^2]:Panagiotis Garefalakis, Konstantinos Karanasos, and Peter Pietzuch. 2019.Neptune: Scheduling Suspendable Tasks for Unified Stream/Batch Applications. In ACM Symposium on Cloud Computing (SoCC ’19), November 20–23, 2019, Santa Cruz, CA, USA. ACM, New York, NY, USA, 13 pages.https://doi.org/10.1145/3357223.3362724
+  [^3]:Ahmed S. Abdelhamid, Ahmed R. Mahmood, Anas Daghistani, Walid G. Aref. 2020. Prompt : Dynamic Data-Partitioning for Distributed Micro-batch Stream Processing Systems. In Proceedings of the 2020 ACM SIGMOD International Conference on Management of Data (SIGMOD’20), June 14–19, 2020, Portland, OR, USA. ACM, New York, NY, USA, 15 pages. https://doi.org/10.1145/3318464.3389713
 
 
 ## 调研报告的分工

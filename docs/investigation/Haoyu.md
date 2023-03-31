@@ -37,3 +37,20 @@ Belady's theoretically optimal paging algorithm
 主动更换分页 预读取，async eviction
 
 DSL
+
+# maphea
+
+已有的是profile-guided optimization (PGO) frameworks
+mainly focus on optimizing the layout of binaries; they overlook rich information provided by the PMU about data ccess behaviors over the memory hierarchy.
+
+MaPHeA guides and applies the optimized allocation of dynamically allocated heap objects with very low profiling overhead and without additional user intervention to improve application performance
+
+# workload-aware
+
+1. Heterogeneity of Hadoop cluster where nodes have different processing speed.
+2. Hadoop cluster shared between Interactive and Batch type jobs.
+3. The phenomena where application requests certain Data Blocks more often then others.
+
+1. In first phase,historical data access information is collected from the log file of Namenode to determine the frequently accessed set of data blocks,Task arrival rate in a cluster and to individual nodes requesting frequent data blocks and Task processing rate of nodes.
+2. In Second phase,percentage of frequent data blocks allocation to nodes and classification of frequent data blocks based on their requesting jobs are determined.
+3. In third phase,the data placement algorithm distributes the frequent data blocks.
