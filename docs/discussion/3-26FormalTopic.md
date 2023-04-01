@@ -55,6 +55,29 @@
   [^3]:Ahmed S. Abdelhamid, Ahmed R. Mahmood, Anas Daghistani, Walid G. Aref. 2020. Prompt : Dynamic Data-Partitioning for Distributed Micro-batch Stream Processing Systems. In Proceedings of the 2020 ACM SIGMOD International Conference on Management of Data (SIGMOD’20), June 14–19, 2020, Portland, OR, USA. ACM, New York, NY, USA, 15 pages. https://doi.org/10.1145/3318464.3389713
 
 
+### 基于全局词条分区二级索引的分布式数据系统
+- 背景及项目介绍：我们将基于教务系统选课模块的应用场景实现一个基于全局词条分区二级索引的分布式数据系统。我们知道教务系统选课模块、评课社区等应用场景都具有典型的写入负载小、查询负载大的特点，它们在平时只处理少量读写请求，而在选课的时间点附近要处理极高并发的读请求，而基于的词条分区的二级索引技术正好是一种以存储空间和写入速度为代价大幅优化查询速度的方案，它在构建索引项（涉及查询条件的，如任课老师）时开销较大，但在改变选课人数这样的非索引项时写开销小，读开销则会被优化得很小。同时，此技术专门用于适配分布式系统，可以令多台主机合力处理用户请求，非常适合在这种应用场景下使用。此系统应能够支持在运行过程中增减服务器节点数量，从而可以在高峰期增加节点数，日常提供服务时减少节点数。
+- 创新性：由于二级索引不符合数据库正则化的要求，所以许多数据库不支持，而全局的二级索引更是实现得很少，但它确实在选课这样的场景中有很显著的优势，我们希望能实现这样一个分布式数据系统，专门解决选课等应用场景的问题，并将基于此进行模拟测试。
+- 可行性：可行性主要有以下的考虑：
+    1. 发
+    2. 
+- 重要性/前瞻性：
+
+
+
+<img src="src/Partitioning%20Secondary%20Indexes%20by%20Term.png" width="90%" >
+
+
+
+
+
+
+
+
+
+
+
+
 ## 调研报告的分工
 
 [ ] 文件系统 - 李牧龙
