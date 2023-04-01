@@ -54,6 +54,24 @@
   [^2]:Panagiotis Garefalakis, Konstantinos Karanasos, and Peter Pietzuch. 2019.Neptune: Scheduling Suspendable Tasks for Unified Stream/Batch Applications. In ACM Symposium on Cloud Computing (SoCC ’19), November 20–23, 2019, Santa Cruz, CA, USA. ACM, New York, NY, USA, 13 pages.https://doi.org/10.1145/3357223.3362724
   [^3]:Ahmed S. Abdelhamid, Ahmed R. Mahmood, Anas Daghistani, Walid G. Aref. 2020. Prompt : Dynamic Data-Partitioning for Distributed Micro-batch Stream Processing Systems. In Proceedings of the 2020 ACM SIGMOD International Conference on Management of Data (SIGMOD’20), June 14–19, 2020, Portland, OR, USA. ACM, New York, NY, USA, 15 pages. https://doi.org/10.1145/3318464.3389713
 
+### 基于分布式计算的实时导航系统
+- 创新性：
+  1. 该选题本身是暂未实现的。
+  2. 该选题所基于的spark等分布式计算系统，可能需要进行融合与优化，才能更好地适应该问题。
+  3. 该选题虽然基于最短路径问题，但是与传统的最短路径问题存在差别与可优化的地方。
+- 可行性：
+  1. spark等分布式计算框架已具有良好的生态，便于搭建分布式计算系统，前人也有许多基于spark的项目开发经验可以借鉴。
+  2. spark自身也可兼容pregel图计算框架等，另有spark streaming这种应对流处理问题的版本，通过对他们的结合，可能较好地满足既定的需求。
+  3. 本问题是基于最短路径算法的一种延伸，而最短路径算法作为一个历史悠久的问题，已有充足的研究积淀。
+- 重要性/前瞻性：当今的导航系统大多没有实时导航的功能，而现实中路况千变万化，仅仅依靠出发时确定的路线可能无法适应用户的需求。（该功能可以作为用户的可选设置项）
+- 初拟思路与挑战：
+  1. 可将整个问题分解为建立合适的数据结构与查询两个步骤。
+  2. 要求能够根据路况实时更新数据结构，要求更新的时间尽量短（尽量在1~2秒内，防止延误查询），且尝试让数据结构的大小尽量小（如O(lgn)）。
+  3. 要求查询的时间尽量短（尽量在1~2秒内），并以较高概率(1-o(1))返回最短路径/最短时间/最短距离/当前最优的下一目的节点。
+  4. 如果查询的时间超过常数级别，是否可以优化并做到并发的查询。
+- 重要性/前瞻性:参考论文[^4][^5]
+  [^4]:Gallo, G., Pallottino, S. Shortest path algorithms. Ann Oper Res 13, 1–79 (1988).
+  [^5]:Stuart E. Dreyfus, (1969) An Appraisal of Some Shortest-Path Algorithms. Operations Research 17(3):395-412.
 
 ### 基于全局词条分区二级索引的分布式数据系统
 - 背景及项目介绍：我们将基于教务系统选课模块的应用场景实现一个基于全局词条分区二级索引的分布式数据系统。我们知道教务系统选课模块、评课社区等应用场景都具有典型的写入负载小、查询负载大的特点，它们在平时只处理少量读写请求，而在选课的时间点附近要处理极高并发的读请求，而基于的词条分区的二级索引技术正好是一种以存储空间和写入速度为代价大幅优化查询速度的方案，它在构建索引项（涉及查询条件的，如任课老师）时开销较大，但在改变选课人数这样的非索引项时写开销小，读开销则会被优化得很小。同时，此技术专门用于适配分布式系统，可以令多台主机合力处理用户请求，非常适合在这种应用场景下使用。此系统应能够支持在运行过程中增减服务器节点数量，从而可以在高峰期增加节点数，日常提供服务时减少节点数。
