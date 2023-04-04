@@ -89,23 +89,13 @@
 <img src="src/Partitioning%20Secondary%20Indexes%20by%20Term.png" width="90%" >
 
 
-
-
-
-
-
-
-
-
-
-
 ## 调研报告的分工
 
 [ ] 文件系统 - 李牧龙
 
 [ ] 任务调度 - 汤皓宇
 
-[ ] mapreduce原理+RPC - 闫泽轩
+~~[ ] mapreduce原理+RPC - 闫泽轩~~
 
 [ ] 一致性算法 - 罗浩铭
 
