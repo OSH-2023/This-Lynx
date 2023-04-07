@@ -1,9 +1,6 @@
 # 调研报告
 **注：相关调研内容要用与主题相关的语言叙述，不要大段copy，介绍背景知识时若与主题相关性低请使用引用，不要硬凑字数**
 ## 选题:基于Rust语言对Apache Spark性能瓶颈的优化
-## 立项依据
-1. Spark与MapReduce对比(by yzx)
-2. Rust与Scala语言比较（建议用表格,by xhy&lml）
 
 ## 小组成员
 
@@ -64,6 +61,8 @@ buffer中也包含了非常多的Object。无论是Cache的Object还是Shuffle B
 ## 立项依据
 
 <!-- 给出思路，给出需求分析，并说明该思路切合需求 -->
+1. Spark与MapReduce对比(by yzx)
+2. Rust与Scala语言比较（建议用表格,by xhy&lml）
 
 ## 前瞻性/重要性分析
 
