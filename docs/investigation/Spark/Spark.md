@@ -95,3 +95,40 @@ Spark当前实现了chkp的API但是将选择权留给了用户。
 ## 实现
 用Scala在大约10000行实现，系统可以使用任意的Hadoop资源来当作输入（eg hdfs）,使得很容易集成进入Hadoop环境中。
 论文中讨论了三个有趣的实现:Scala解释器，用于交互式使用Spark,缓存管理，以及调试工具。
+
+# Spark运行流程
+![运行流程](https://images2015.cnblogs.com/blog/1004194/201608/1004194-20160830094200918-1846127221.png)
+构建Spark Application的运行环境，启动SparkContext
+1. SparkContext向资源管理器（可以是Standalone，Mesos，Yarn）申请运行Executor资源，并启动StandaloneExecutorbackend，
+2. Executor向SparkContext申请Task
+3. SparkContext将应用程序分发给Executor
+4. SparkContext构建成DAG图，将DAG图分解成Stage、将Taskset发送给Task Scheduler，最后由Task Scheduler将Task发送给Executor运行
+5. Task在Executor上运行，运行完释放所有资源
+
+# Spark运行特点：
+
+每个Application获取专属的executor进程，该进程在Application期间一直驻留，并以多线程方式运行Task。这种Application隔离机制是有优势的，无论是从调度角度看（每个Driver调度他自己的任务），还是从运行角度看（来自不同Application的Task运行在不同JVM中），当然这样意味着Spark Application不能跨应用程序共享数据，除非将数据写入外部存储系统
+Spark与资源管理器无关，只要能够获取executor进程，并能保持相互通信就可以了
+提交SparkContext的Client应该靠近Worker节点（运行Executor的节点），最好是在同一个Rack里，因为Spark Application运行过程中SparkContext和Executor之间有大量的信息交换
+Task采用了数据本地性和推测执行的优化机制
+
+Spark架构介绍  https://www.cnblogs.com/tgzhu/p/5818374.html
+Spark示例     https://www.cnblogs.com/qingyunzong/p/8888080.html
+
+# Spark运行模式
+1. standalone:独立集群运行模式
+2. Yarn-client,SparkContext/DAGschdular位于Client上
+3. Yarn-cluster,SparkContext/DAGschdular位于第一个启动的Container上
+4. 区别：YARN-Cluster模式下，Driver运行在AM(Application Master)中，它负责向YARN申请资源，并监督作业的运行状况。当用户提交了作业之后，就可以关掉Client，作业会继续在YARN上运行，因而YARN-Cluster模式不适合运行交互类型的作业
+YARN-Client模式下，Application Master仅仅向YARN请求Executor，Client会和请求的Container通信来调度他们工作，也就是说Client不能离开
+
+
+# RDD运行流程
+
+RDD在Spark中运行大概分为以下三步：
+1. 创建RDD对象
+2. DAGScheduler模块介入运算，计算RDD之间的依赖关系，RDD之间的依赖关系就形成了DAG
+3. 每一个Job被分为多个Stage。划分Stage的一个主要依据是当前计算因子的输入是否是确定的，如果是则将其分在同一个Stage，避免多个Stage之间的消息传递开销
+
+![image](https://images2015.cnblogs.com/blog/1004194/201608/1004194-20160830112210980-1493673048.png)
+
