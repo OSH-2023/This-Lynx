@@ -129,6 +129,9 @@ RDD在Spark中运行大概分为以下三步：
 
 ### Rust相较于其他语言的优势（建议用表格,by xhy&lml）
 
+3. 利用协程的特点改进spark调度算法，默认情况下，spark使用的是FIFO即先进先出算法，这样如果先到的是批量的数据，自然会阻塞之后到来的数据，造成等待。而一些常用的调度算法如FAIR公平调度算法，有可能降低总的处理时间，但因为其把所有的任务当成一样的，没有考虑到流数据需要的低延迟，可能导致延迟相比最优解要高。而引入协程之后，可以实现随时将当前在进行处理的批数据暂停，切换到需要低延迟的流数据上去，在处理完流数据之后，再切换回来。这样，保证了流数据的低延迟，同时兼顾了批数据的处理。既使总的处理时间最低，又使延迟最低。当然，这只是最简单的表述，实际过程中，需要考虑到有可能有的批数据被多次延后，可以设定阈值，保证其被多次延后时保证可以持续不被打扰。[^11]
+[^11]:Panagiotis Garefalakis, Konstantinos Karanasos, and Peter Pietzuch. 2019. Neptune: Scheduling Suspendable Tasks for Unified Stream/Batch Applications.In ACM Symposium on Cloud Computing (SoCC ’19), November 20–23, 2019, Santa Cruz, CA, USA. ACM, New York, NY, USA, 13 pages. https://doi.org/10.1145/3357223.3362724
+
 ## 前瞻性/重要性分析
 
 <!-- 立足于趋势和现实回答本项目的价值 -->
@@ -140,7 +143,10 @@ spark得到重要且广泛的应用，提高其性能将惠及海量用户
 
 <!-- 对学术界和工业界的经典工作的前沿进展分类梳理，进一步提供各种轮子的信息 -->
 
+1. SnappyData[^10]是一个支持流处理分析的统一引擎，其在Apache Spark内部融合了一个混合数据库。为了实现低延迟，他绕过了Spark的调度器，实现为统一的分析工作负载提供高吞吐量、低延迟和高并发性。
+[^10]:Barzan Mozafari, Jags Ramnarayan, Sudhir Menon, Yogesh Mahajan, Soubhik Chakraborty, Hemant Bhanawat, and Kishor Bachhav. SnappyData: A Unified Cluster for Streaming, Transactions and Interactice Analytics. CIDR, 2017. https://github.com/TIBCOSoftware/snappydata
 
+2. coroutine 协程，这是一种类似python语言中的generator的概念。本质类似一个状态机，定义下这样的协程之后，每次使用，都进行`yield`一次，得到之后的状态。
 
 
 ## 参考资料
