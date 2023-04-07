@@ -12,13 +12,52 @@
 <!-- 领域：我们这里就是指spark性能瓶颈优化（解决的问题是spark性能瓶颈，用的方法是rust）-->
 <!-- 面临问题：spark性能瓶颈    设计思路与已有轮子：调研清楚spark的更新历程-->
 1. Rust语言介绍(by xhy)
-2. Spark计算模型框架(by yzx)
 3. 分布式文件系统调研(by lml)
 
 ### 分布式计算框架发展概述
 
 <!-- 偏批处理mapreduce，spark等 -->
+## MapReduce
+![MapReduceImg](../investigation/src/MapReduceOverview.png)
+- 介绍:
+  - MapReduce是一种编程模型和一种产生及处理大数据的实现方式。他的关键在于两个函数（由用户编写）：Map和Reduce
+- Types:
+  - map  (k1,v1)        ----> list(k2,v2)
+  - reduce(k2,list(v2)) --->list(v2)
+- Example(伪代码):
+  
+```C++
+  map(String key, String value):
+    // key: document name
+    // value: document contents
+    for each word w in value:
+    EmitIntermediate(w, "1");
 
+
+  reduce(String key, Iterator values):
+    // key: a word
+    // values: a list of counts
+    int result = 0;
+    for each v in values:
+    result += ParseInt(v);
+    Emit(AsString(result));
+```
+- 执行过程:
+
+1. MapReduce库先将输入文件分成M份（一般每份64MB，也可用可选参数控制），然后他在集群上启动多份程序
+2. 有一份特殊的程序拷贝--master，剩下的都是worker并且被master分配任务.共有M个map任务和R份Reduce任务去分配。master选择空闲的worker去分配map task或者reduce task
+3. 获得map任务的worker从对应的输入文件中读取内容。他从中解析出键值对并且将每一对传给Map函数。这些中间键值对被缓存在存储器中
+4. 周期性的，分区R份后，这些缓冲的中间键值文件的**位置**被传输给master,master负责把这些信息发给reduce worker
+5. 当reduce worker接受到来自master的中间键值文件的位置后，它就使用RPC从map worker的本地磁盘中读取缓存数据，并且根据key进行排序。这样所有出现的相同的key就能被合并到一个组。这个排序是必要的因为通常不同的键会被映射到同一个reduce task中。如果中间键值数据过于庞大的话，则应该使用外部排序
+6. reduce worker不断的在排序好的中间键值数据上进行迭代，对于遇到的特定的中间键值对，就将键和值集合传入reduce函数中，函数的输出结果就将加载到最终的输出文件中去（对于这个reduce部分）
+7. 当所有的map和reduce人物都被完成后，master就唤醒用户程序，这时MapReduce的调用完成，继续返回到用户的代码中
+
+- 容错性
+**Worker Failure**
+master会周期性的测试每一个worker，以此来判定是否执行失败，如果map失败就重新安排worker执行。这是因为由于ma过程的结果存储在本地，如果失败就无法取得结果。但是已经完成的Reduce工作不需要回滚，因为其结果存储在全局文件系统中。
+并且如果map失败，比如A失败后任务被B重新执行，那么还未读取A的reduce task就会切换到来自于B的数据输出。
+**Master Failure**
+由于Master只有一个节点，因此失败的可能性很低，如果失败就重新运行整个MapReduce
 
 
 #### Spark及其发展历史[^2]
@@ -52,17 +91,43 @@ buffer中也包含了非常多的Object。无论是Cache的Object还是Shuffle B
 
 
 
+
 ### rust语言的优势
 
-<!-- rust语言的优势 -->
+<!-- rust语言的优势 by xhy-->
 
 
 
 ## 立项依据
 
 <!-- 给出思路，给出需求分析，并说明该思路切合需求 -->
-1. Spark与MapReduce对比(by yzx)
-2. Rust与Scala语言比较（建议用表格,by xhy&lml）
+### Spark与MapReduce对比
+
+|         |MapReduce  | Spark |
+|---      |-----|-----|
+|提出时间  |2004 by Google  |  2011 by UCB|
+|数据存储方式|磁盘介质|内存缓存|
+|任务级别并行度|多进程模型|多线程模型|
+|流数据支持|不支持|部分支持|
+|算子|map&reduce|MR的超集，更加丰富|
+|容错机制|丢弃，重新执行|checkpointing|
+|速度|并行计算，速度一般|是MR的100倍|
+
+### RDD运行流程
+
+RDD在Spark中运行大概分为以下三步：
+1. 创建RDD对象
+2. DAGScheduler模块介入运算，计算RDD之间的依赖关系，RDD之间的依赖关系就形成了DAG
+3. 每一个Job被分为多个Stage。划分Stage的一个主要依据是当前计算因子的输入是否是确定的，如果是则将其分在同一个Stage，避免多个Stage之间的消息传递开销
+
+![image](https://images2015.cnblogs.com/blog/1004194/201608/1004194-20160830112210980-1493673048.png)
+
+- 创建 RDD  上面的例子除去最后一个 collect 是个动作，不会创建 RDD 之外，前面四个转换都会创建出新的 RDD 。因此第一步就是创建好所有 RDD( 内部的五项信息 )？
+- 创建执行计划 Spark 会尽可能地管道化，并基于是否要重新组织数据来划分 阶段 (stage) ，例如本例中的 groupBy() 转换就会将整个执行计划划分成两阶段执行。最终会产生一个 DAG(directed acyclic graph ，有向无环图 ) 作为逻辑执行计划
+
+- 调度任务  将各阶段划分成不同的 任务 (task) ，每个任务都是数据和计算的合体。在进行下一阶段前，当前阶段的所有任务都要执行完成。因为下一阶段的第一个转换一定是重新组织数据的，所以必须等当前阶段所有结果数据都计算出来了才能继续
+
+### Rust相较于其他语言的优势（建议用表格,by xhy&lml）
 
 ## 前瞻性/重要性分析
 
