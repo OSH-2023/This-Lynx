@@ -96,28 +96,30 @@ Spark的第一个版本仅支持批处理应用程序，但很快又出现了另
 read阶段需要用buffer保存所有处理的中间结果（ExternalSorter），然后再写入磁盘，因此Shuffle buffer中也包含了非常多的Object。无论是Cache的Object还是Shuffle Buffer中的Object，它们的生命周期都比较长。当对象数量增加时，有限的内存空间就会因为这些长生命周期的大对象显得非常有压力，最直接的影响就是频繁的触发JVM的垃圾回收机制，Full GC本身就会导致大量开销，频繁的触发Full GC会导致Spark性能急剧下降。这是所有自动内存管理机制都会面临的一个问题，提高了开发效率却面临着大数据处理时的低效内存管理。
 
 
-4. 利用协程的特点改进spark调度算法[^11]
+4. spark调度算法方面[^11]
 对于spark这样的混合型数据处理框架，即既可以处理批数据又可以处理流数据的框架，批数据和流数据是占用同样的运行时间的。但需要注意的是，流数据对于延迟的要求会更高。一种非常直接的想法是优先处理流数据，但同时也要考虑到不使批数据过多地被滞后处理。
 默认情况下，spark使用的是FIFO即先进先出算法，这样如果先到的是批数据，自然会阻塞之后到来的数据，造成后续数据等待，延迟增大。而一些常用的调度算法如FAIR公平调度算法，可以降低总的处理时间，但因为其把所有的任务当成一样的，没有考虑到流数据需要的低延迟，可能导致延迟依然相比最优解要高。而如果可以实现随时将当前在进行处理的批数据暂停，切换到需要低延迟的流数据上去，在处理完流数据之后，再切换回来，就做到在保证了流数据的低延迟的同时兼顾了批数据的处理。既使总的处理时间最低，又使延迟最低。当然，这只是最简单的表述，实际过程中，需要考虑到有可能有的批数据被多次延后，可以设定阈值，保证其被多次延后时保证可以持续不被打扰。
 在如下图的例子中，同时有推断(流)和训练(批)任务，随时间依次到来，且只有处理完前面的任务，才能处理之后的任务，即任务间存在先后依赖关系。其中，推断的任务是延迟敏感型的，我们的目标是找到一种调度算法，在最短的完成时间内处理完所有的任务，且做到使推断任务结束的时间点尽可能提前。可以看出，FIFO算法可能优先处理先到达的训练任务，而流任务就被滞后了；FAIR算法虽然在很短的时间内就处理掉了所有的任务，但因为批任务需要的时间过大，其流任务的延迟很高。而利用协程的算法，在流任务到来时，就把正在执行的批任务挂起，之后再恢复，达到了最短的完成时间和最短的流延迟。
 ![调度算法对比](../images/neptune.png)
 而这样的机制是通过协程(coroutine)实现的。协程本质类似一个状态机，定义下之后，每次使用，都进行`yield`一次，得到之后的状态。在rust语言中，也存在对应的机制，可以直接使用。
 
+5. spark有GC机制
+Spark的垃圾回收机制(Garbage Collection, GC)有可能影响到任务线程的执行速度，这会影响任务执行的效率。在这篇论文[^12]中，他们通过Spark的网络UI检测了GC的比例，发现在数据集比较小的时候，GC比例较小，但随着数据集规模的增大，GC比例随之增长，任务执行效率随之降低。其中也提到，当内存成为瓶颈时，会更容易增大GC的比例。而在rust语言中，没有GC机制，这样就直接减少了这一可能影响性能的因素。
 
 ## 立项依据
 
 <!-- 给出思路，给出需求分析，并说明该思路切合需求 -->
 ### Spark与MapReduce对比
 
-|         |MapReduce  | Spark |
-|---      |-----|-----|
-|提出时间  |2004 by Google  |  2011 by UCB|
-|数据存储方式|磁盘介质|内存缓存|
-|任务级别并行度|多进程模型|多线程模型|
-|流数据支持|不支持|部分支持|
-|算子|map&reduce|MR的超集，更加丰富|
-|容错机制|丢弃，重新执行|checkpointing|
-|速度|并行计算，速度一般|是MR的100倍|
+|                | MapReduce          | Spark              |
+| -------------- | ------------------ | ------------------ |
+| 提出时间       | 2004 by Google     | 2011 by UCB        |
+| 数据存储方式   | 磁盘介质           | 内存缓存           |
+| 任务级别并行度 | 多进程模型         | 多线程模型         |
+| 流数据支持     | 不支持             | 部分支持           |
+| 算子           | map&reduce         | MR的超集，更加丰富 |
+| 容错机制       | 丢弃，重新执行     | checkpointing      |
+| 速度           | 并行计算，速度一般 | 是MR的100倍        |
 
 ### RDD运行流程
 
@@ -188,6 +190,8 @@ spark得到重要且广泛的应用，提高其性能将惠及海量用户
 
 2.  Zookeeper, ZooKeeper主要服务于分布式系统，可以用ZooKeeper来做：统一配置管理、统一命名服务、分布式锁、集群管理。
 
+
+
 ## 参考资料
 
 [^1]:Zaharia, Matei, et al. “Spark: Cluster Computing With Working Sets.” IEEE International Conference on Cloud Computing Technology and Science, June 2010, p. 10. www2.eecs.berkeley.edu/Pubs/TechRpts/2010/EECS-2010-53.pdf.
@@ -202,6 +206,11 @@ spark得到重要且广泛的应用，提高其性能将惠及海量用户
 
 [^10]:Barzan Mozafari, Jags Ramnarayan, Sudhir Menon, Yogesh Mahajan, Soubhik Chakraborty, Hemant Bhanawat, and Kishor Bachhav. SnappyData: A Unified Cluster for Streaming, Transactions and Interactice Analytics. CIDR, 2017. https://github.com/TIBCOSoftware/snappydata
 
+[^11]:Panagiotis Garefalakis, Konstantinos Karanasos, and Peter Pietzuch. 2019.
+Neptune: Scheduling Suspendable Tasks for Unified Stream/Batch Applications.
+In ACM Symposium on Cloud Computing (SoCC ’19), November
+20–23, 2019, Santa Cruz, CA, USA. ACM, New York, NY, USA, 13 pages.
+https://doi.org/10.1145/3357223.3362724
 
-
+[^12]:Song, Y., Yu, J., Wang, J. et al. Memory management optimization strategy in Spark framework based on less contention. J Supercomput 79, 1504–1525 (2023). https://doi.org/10.1007/s11227-022-04663-5
 
