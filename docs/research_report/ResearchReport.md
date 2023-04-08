@@ -111,6 +111,30 @@ read阶段需要用buffer保存所有处理的中间结果（ExternalSorter）�
 |容错机制|丢弃，重新执行|checkpointing|
 |速度|并行计算，速度一般|是MR的100倍|
 
+### Spark和其他主流流处理框架对比
+![image](
+https://images2015.cnblogs.com/blog/1004194/201707/1004194-20170705141432487-820336058.png)
+
+### 容错性
+
+以下是流处理框架容错性处理方案：
+
+#### Apache Storm：
+Storm使用上游数据备份和消息确认的机制来保障消息在失败之后会重新处理。消息确认原理：每个操作都会把前一次的操作处理消息的确认信息返回。这保障了没有数据丢失，但数据结果会有重复，这就是at-least once传输机制。
+
+#### Storm
+采用对每个源数据记录仅仅要求几个字节存储空间来跟踪确认消息。纯数据记录消息确认架构，尽管性能不错，但不能保证exactly once消息传输机制，所有应用开发者需要处理重复数据。Storm存在低吞吐量和流控问题，因为消息确认机制在反压下经常误认为失败。
+
+#### Spark Streaming：
+Spark Streaming实现微批处理，容错机制的实现跟Storm不一样的方法。微批处理的想法相当简单。Spark在集群各worker节点上处理micro-batches。每个micro-batches一旦失败，重新计算就行。因为micro-batches本身的不可变性，并且每个micro-batches也会持久化，所以exactly once传输机制很容易实现。
+
+#### Samza：
+Samza的实现方法跟前面两种流处理框架完全不一样。Samza利用消息系统Kafka的持久化和偏移量。Samza监控任务的偏移量，当任务处理完消息，相应的偏移量被移除。消息的偏移量会被checkpoint到持久化存储中，并在失败时恢复。
+
+#### Apache Flink：
+Flink的容错机制是基于分布式快照实现的，这些快照会保存流处理作业的状态。Flink仍然是原生流处理框架，它与Spark Streaming在概念上就完全不同。Flink也提供exactly once消息传输机制。
+
+
 ### RDD运行流程
 
 RDD在Spark中运行大概分为以下三步：
