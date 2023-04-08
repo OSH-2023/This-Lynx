@@ -13,6 +13,26 @@
 <!-- 面临问题：spark性能瓶颈    设计思路与已有轮子：调研清楚spark的更新历程-->
 1. Rust语言介绍(by xhy)
 3. 分布式文件系统调研(by lml)
+Spark是一个分布式计算框架，本身不包括文件系统，因此需要选择合适的分布式文件系统供其使用。
+鉴于Spark可以在Hadoop集群上运行，且支持Hadoop InputFormat，HDFS是一个合适的选择。
+> 关于HDFS：
+> HDFS（Hadoop Distributed File System）是一个基于GFS的分布式文件系统，同时也是Hadoop的一部分。它具有GFS的许多特性，例如可靠性高，将文件分块存储，适合大文件存储，但延迟较高且无法高效存储小文件等。
+> HDFS架构：
+> ![HDFS_ARC.webp](../investigation/src/HDFS_ARC.webp)
+> 其中NameNode即GFS中的Master节点，负责整个分布式文件系统的元数据（MetaData）管理和响应客户端请求。
+> DataNode即为GFS中的chunkserver，负责存储数据块，通过心跳信息向NameNode报告自身状态。
+> 与客户端交互：
+> HDFS的通信协议全部建立在TCP/IP协议上，包括客户端、DataNode和NameNode之间的协议以及客户端和DataNode之间的协议。这些协议通过RPC模型进行抽象封装。
+> 读取方面，客户端先和NameNode交互，获取所需文件的位置，随后直接和对应的DataNode交互读取数据。NameNode会确保读取程序尽可能读取最近的副本。
+> 写入方面，HDFS只支持追加写入操作，不支持随机写入（修改）操作。同一文件同一时刻只能由一个写入者写入。
+> 删除文件时，文件不会马上被释放，而是被移入/trash目录中，随时可以恢复。移入/trash目录超过规定时间后文件才被彻底删除并释放空间。
+> 容错性：
+> HDFS的容错处理和GFS基本一致，可大致分为以下4点：
+> 1. 每一个数据块有多个副本（默认3个），副本的存放策略为：第一个副本会随机选择，但是不会选择存储过满的节点，第二个副本放在和第一个副本不同且随机选择的机架，第三个和第二个放在同一机架上的不同节点，剩余副本完全随机节点。
+> 2. 每一个数据块都使用checksum校验，客户端可以使用checksum检查获取的文件是否正确，若错误则从其他节点获取。
+> 3. DataNode宕机时，可能会导致部分文件副本数量低于要求。NameNode会检查副本数量，对缺失副本的数据块增加副本数量。
+> 4. 主从NameNode，主NameNode宕机时副NameNode成为主NameNode。
+
 
 ### 分布式计算框架发展概述
 
