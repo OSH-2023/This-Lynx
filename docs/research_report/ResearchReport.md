@@ -388,6 +388,6 @@ https://doi.org/10.1145/3357223.3362724
 
 [^14]:Ghemawat, Sanjay, Howard Gobioff, and Shun-Tak Leung. "The Google File System." Operating Systems Review (2003): 29-43. Web. https://ustc-primo.hosted.exlibrisgroup.com.cn/permalink/f/tp5o03/TN_cdi_proquest_miscellaneous_31620514
 
-[^15]:Apache Spark™ FAQ. https://Spark.apache.org/faq.html
+[^15]:Apache Spark™ FAQ. https://spark.apache.org/faq.html
 
 [^16]:Klabnik S, Nichols C. The Rust programming language[M]. No Starch Press, 2023. https://kaisery.github.io/trpl-zh-cn/title-page.html
