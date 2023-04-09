@@ -145,7 +145,7 @@ HDFS的容错处理和GFS基本一致，可大致分为以下4点：
 另外，可以选用Alluxio作为Spark和HDFS的中间层，从而加速数据的访问速度。
 
 #### 关于Alluxio
-Alluxio(曾名Tachyon)是一个虚拟分布式文件系统。它为数据驱动型应用和存储系统构建了桥梁, 将数据从存储层移动到距离数据驱动型应用更近的位置从而能够更容易被访问。
+Alluxio[^17](曾名Tachyon)是一个虚拟分布式文件系统。它为数据驱动型应用和存储系统构建了桥梁, 将数据从存储层移动到距离数据驱动型应用更近的位置从而能够更容易被访问。
 Spark 1.1或更高版本的Spark应用程序可以通过其与 HDFS 兼容的接口直接访问Alluxio集群，且Alluxio可以集成HDFS作为底层文件系统。
 **Alluxio架构**
 ![AlluxioArchitecture](https://docs.alluxio.io/os/user/stable/img/architecture-overview-simple-docs.png)
@@ -412,3 +412,5 @@ https://doi.org/10.1145/3357223.3362724
 [^15]:Apache Spark™ FAQ. https://spark.apache.org/faq.html
 
 [^16]:Klabnik S, Nichols C. The Rust programming language[M]. No Starch Press, 2023. https://kaisery.github.io/trpl-zh-cn/title-page.html
+
+[^17]:Jia, Calvin, and Haoyuan Li. “Virtual Distributed File System: Alluxio.” Springer eBooks, Springer Nature, Jan. 2019, pp. 1753–58. https://doi.org/10.1007/978-3-319-77525-8_321.
