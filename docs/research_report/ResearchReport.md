@@ -39,8 +39,21 @@ Spark是一个分布式计算框架，本身不包括文件系统，因此需要
 > 4. 主从NameNode，主NameNode宕机时副NameNode成为主NameNode。
 
 ### 分布式计算框架发展概述
+主流的分布式计算框架主要分为四类，即：MapReduce-like系统、Streaming系统、图计算系统、基于状态的系统。具体的：
+**MapReduce-like系统**
+以MapReduce(Hadoop)和Spark为代表。
+特点是将计算抽象成high-level operator，如map,reduce,filter这样的算子，然后将算子组合成DAG，然后由后端的调度引擎进行并行化调度。
+**Streaming系统**
+以flink,storm,Sprk streaming等为代表，专为流式数据提供服务的系统，强调实时性。
+**图计算系统**
+以Pregel框架等为代表，特点是将计算过程抽象为图，然后在不同节点分布式执行，适用于PageRank等任务。
+**基于状态的系统**
+以distbelief,Parameter Server架构等为代表，专为大型机器学习模型服务，将机器学习的模型存储上升为主要组件。
+
+近年来，不同分布式框架的融合已成为趋势，比如Spark作为MapReduce-like系统，同时也支持Pregel框架为基础的图计算，以及Spark Streaming为基础的流处理问题。
 
 <!-- 偏批处理mapreduce，spark等 -->
+
 ## MapReduce
 ![MapReduceImg](../investigation/src/MapReduceOverview.png)
 - 介绍:
@@ -161,7 +174,7 @@ RDD在Spark中运行大概分为以下三步：
 
 - 调度任务  将各阶段划分成不同的 任务 (task) ，每个任务都是数据和计算的合体。在进行下一阶段前，当前阶段的所有任务都要执行完成。因为下一阶段的第一个转换一定是重新组织数据的，所以必须等当前阶段所有结果数据都计算出来了才能继续
 
-### Rust 相较于其他语言的优势
+### Rust 相较于其他语言的优势[^16]
 #### 便于协作开发：
 Rust 是高效的协作工具，许多在其他语言的协作开发场景中容易出现而不易察觉的 bug ，在 Rust 中将以不被允许通过编译的方式，在编译期消除。在 Rust 的特性与其编译器的协助下，可以轻松地排查 bug ，也可以轻松重构代码且无需担心会引入新的 bug 。
 
@@ -282,3 +295,5 @@ https://doi.org/10.1145/3357223.3362724
 [^14]:Ghemawat, Sanjay, Howard Gobioff, and Shun-Tak Leung. "The Google File System." Operating Systems Review (2003): 29-43. Web. https://ustc-primo.hosted.exlibrisgroup.com.cn/permalink/f/tp5o03/TN_cdi_proquest_miscellaneous_31620514
 
 [^15]:Apache Spark™ FAQ. https://spark.apache.org/faq.html
+
+[^16]:Klabnik S, Nichols C. The Rust programming language[M]. No Starch Press, 2023. https://kaisery.github.io/trpl-zh-cn/title-page.html
