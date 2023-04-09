@@ -142,6 +142,28 @@ HDFS的容错处理和GFS基本一致，可大致分为以下4点：
 3. DataNode宕机时，可能会导致部分文件副本数量低于要求。NameNode会检查副本数量，对缺失副本的数据块增加副本数量。
 4. 主从NameNode，主NameNode宕机时副NameNode成为主NameNode。
 
+另外，可以选用Alluxio作为Spark和HDFS的中间层，从而加速数据的访问速度。
+
+#### 关于Alluxio
+Alluxio(曾名Tachyon)是一个虚拟分布式文件系统。它为数据驱动型应用和存储系统构建了桥梁, 将数据从存储层移动到距离数据驱动型应用更近的位置从而能够更容易被访问。
+Spark 1.1或更高版本的Spark应用程序可以通过其与 HDFS 兼容的接口直接访问Alluxio集群，且Alluxio可以集成HDFS作为底层文件系统。
+**Alluxio架构**
+![AlluxioArchitecture](https://docs.alluxio.io/os/user/stable/img/architecture-overview-simple-docs.png)
+Alluxio包含三种组件：master、worker和client。一个集群通常包含一个leading master，多个standby master，一个primary job master、多个standby job master，多个worker和多个job workers 。
+1. Masters：
+  Masters分为Master和Job Master这2种。Master负责管理整个集群的全局元数据和处理client发起的请求，以及通过心跳信息确认worker的工作状态。Master可以采用一个leading，多个standby的方式进行容错处理，当leading master宕机时，standby master选举产生新的leading master。Job Master是一个独立进程，负责进行在Alluxio中异步调度大量较为重量级文件的系统操作，将这些操作交给Job Master可以缓解Master的压力，从而服务更多client。
+1. Workers：
+  Workers也分为Workers和Job Workers2种。Workers负责管理被分配给Alluxio的本地的存储资源(即存储数据)。Job Workers负责运行Job Master分配的任务。
+1. Client：
+  Alluxio client为用户提供了一个可与Alluxio server交互的网关。client发起与leading master节点的通信，来执行元数据操作，并从worker读取和写入存储在Alluxio中的数据。
+
+**读写操作**
+1. 读操作：
+  读操作分为本地缓存命中、远程缓存命中和缓存未命中这3种情况。本地缓存命中时，client绕过worker直接从本地文件系统读取；本地缓存未命中但远程缓存命中时，client将从远端worker读取数据，当client完成数据读取后，会指示本地worker(如果存在的话)，在本地写入一个副本，以便后续访问；若都未命中，应用程序将必须从底层存储中读取数据：client会将读取请求委托给一个Alluxio worker(优先选择本地worker)，从底层存储中读取和缓存数据。
+1. 写操作：
+  写操作也分为仅写Alluxio缓存、同步写缓存与持久化存储、异步写回持久化存储和仅写持久化存储4种。仅写Alluxio缓存时，数据仅被写入RAM(数据可能因为崩溃而丢失)；同步写缓存与持久化存储时，client将写入委托给本地worker，而worker将同时写入本地内存和底层存储(速度较慢，与磁盘速度相当)；异步写回持久化存储时，数据将被先同步写入worker，再在后台持久化写入底层存储系统；仅写持久化存储即仅写入底层存储。
+
+
 ## 立项依据
 
 至于立项依据，我们将Spark与多种不同的分布式框架进行了对比，调研了流处理框架容错性处理的解决方案，Spark核心的RDD模型的运行流程，分析得出Spark框架的瓶颈以及Rust语言相比于其他语言的优势。
