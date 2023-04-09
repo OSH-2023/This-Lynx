@@ -42,12 +42,9 @@
 
 ### MapReduce
 ![MapReduceImg](../investigation/src/MapReduceOverview.png)
-- 介绍:
-  - MapReduce是一种编程模型和一种产生及处理大数据的实现方式。他的关键在于两个函数（由用户编写）：Map和Reduce
-- Types:
+MapReduce是一种编程模型和一种产生及处理大数据的实现方式。他的关键在于两个函数（由用户编写）：Map和Reduce
   - map  (k1,v1)        ----> list(k2,v2)
   - reduce(k2,list(v2)) --->list(v2)
-- Example(伪代码):
   
 ```C++
   map(String key, String value):
@@ -63,7 +60,7 @@
     result += ParseInt(v);
     Emit(AsString(result));
 ```
-- 执行过程:
+执行过程:
 
   1. MapReduce库先将输入文件分成M份（一般每份64MB，也可用可选参数控制），然后他在集群上启动多份程序
   2. 有一份特殊的程序拷贝--master，剩下的都是worker并且被master分配任务.共有M个map任务和R份Reduce任务去分配。master选择空闲的worker去分配map task或者reduce task
@@ -73,15 +70,15 @@
   6. reduce worker不断的在排序好的中间键值数据上进行迭代，对于遇到的特定的中间键值对，就将键和值集合传入reduce函数中，函数的输出结果就将加载到最终的输出文件中去（对于这个reduce部分）
   7. 当所有的map和reduce人物都被完成后，master就唤醒用户程序，这时MapReduce的调用完成，继续返回到用户的代码中
 
-- 容错性
+MapReduce的容错性基于简单但是有效的机制，分两种情况，如下所示:
 
-    **Worker Failure**
+**Worker Failure**
 
-    master会周期性的测试每一个worker，以此来判定是否执行失败，如果map失败就重新安排worker执行。这是因为由于ma过程的结果存储在本地，如果失败就无法取得结果。但是已经完成的Reduce工作不需要回滚，因为其结果存储在全局文件系统中。并且如果map失败，比如A失败后任务被B重新执行，那么还未读取A的reduce task就会切换到来自于B的数据输出。
+master会周期性的测试每一个worker，以此来判定是否执行失败，如果map失败就重新安排worker执行。这是因为由于ma过程的结果存储在本地，如果失败就无法取得结果。但是已经完成的Reduce工作不需要回滚，因为其结果存储在全局文件系统中。并且如果map失败，比如A失败后任务被B重新执行，那么还未读取A的reduce task就会切换到来自于B的数据输出。
 
-    **Master Failure**
+**Master Failure**
 
-    由于Master只有一个节点，因此失败的可能性很低，如果失败就重新运行整个MapReduce
+由于Master只有一个节点，因此失败的可能性很低，如果失败就重新运行整个MapReduce
 
 
 ### Spark简介
