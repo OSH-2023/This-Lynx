@@ -302,9 +302,6 @@ JVM 可以解读指令代码并与底层进行交互：包括操作系统平台�
 [^1]:Zaharia, Matei, et al. “Spark: Cluster Computing With Working Sets.” IEEE International Conference on Cloud Computing Technology and Science, June 2010, p. 10. www2.eecs.berkeley.edu/Pubs/TechRpts/2010/EECS-2010-53.pdf.
 [^2]:Chambers, Bill, and Matei Zaharia. Spark: The Definitive Guide. 2018.
 
-
-
-
 [^5]:张雄. “常见的Spark的性能瓶颈有哪些？.” 知乎, https://www.zhihu.com/question/28023548/answer/138249813.
 [^6]:一块小蛋糕. “超全spark性能优化总结.” 知乎专栏, https://zhuanlan.zhihu.com/p/108454557.
 
