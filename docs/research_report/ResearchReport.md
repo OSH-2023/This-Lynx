@@ -70,8 +70,6 @@ HDFS的容错处理和GFS基本一致，可大致分为以下4点：
     // value: document contents
     for each word w in value:
     EmitIntermediate(w, "1");
-
-
   reduce(String key, Iterator values):
     // key: a word
     // values: a list of counts
