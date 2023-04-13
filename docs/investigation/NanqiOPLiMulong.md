@@ -91,3 +91,23 @@ GFS是一个经典的分布式文件系统，是谷歌为海量搜索设计的�
 #### 备注：
    MooseFS不同于GFS和HDFS，后两者都是专用文件系统（GFS是给谷歌自己的搜索引擎用的，HDFS是Hadoop的一部分），MooseFS是一个商用的通用分布式文件系统，最初是闭源（且收费）的，后来才推出了开源的社区版，但功能有限制。因此官方给出了比较详细的关于如何部署该文件系统的文档，网络上也有教多这方面的教程，但关于技术方面的细节介绍比较少（鉴于我们重点不在存储系统，可能MooseFS比较适合我们）。
 
+## Spark Streaming
+
+### 简介：
+Spark Streaming是Spark API的一个扩展，它使得Spark可以支持可扩展、高吞吐量、容错的实时数据流处理。数据的来源可以是多种多样的（如Kafka, Kinesis和TCP sockets），数据可以使用通过map，reduce，join和window等高级函数描述的算法处理。结果可以输出到文件系统、数据库等。
+
+### 架构：
+Spark Streaming采用微批次的方式实现，即将流式计算当作一系列小规模的批处理来执行。
+Spark Streaming提供了表示连续数据流的，高度抽象的Dstream（discretized stream），Dstream可以由数据源产生的输入数据流创建，也可以由其它Dstream使用map，reduce等操作创建。Dstream本质上是RDD序列。
+Streaming Context
+
+### 运行过程：
+1. 初始化Streaming Context对象。在该对象的启动过程中实例化DStreamGraph和JobScheduler。DStreamGraph中包含DStream和它们之间的依赖关系；JobScheduler中包含ReceiverTracker和JobGenerator实例。
+2. ReceiverTracker启动时会通知ReceiverSupervisor启动，ReceiverSupervisor会启动流数据接收器Receiver。Receiver会不断接收实时流数据，交给ReceiverSupervisor存储为blocks，存储完毕后ReceiverSupervisor会将元数据发给ReceiverTracker，ReceiverTracker再将数据转发给ReceiverBlockTracker，由它管理元信息。
+3. JobGenerator中维护一个定时器，它在批处理时间到来时会生成作业，作业执行过程如下：
+(1)通知ReceiverTracker将接收到的数据进行提交，在提交时采用synchronized关键字进行处理，保证每条数据被划入一个且只被划入一个批次中。
+(2)要求DStreamGraph根据DSream依赖关系生成作业序列Seq[Job]。
+(3)从第一步中ReceiverTracker获取本批次数据的元数据。
+(4)把批处理时间time、作业序列Seq[Job]和本批次数据的元数据包装为JobSet，调用JobScheduler.submitJobSet(JobSet)提交给JobScheduler，JobScheduler将把这些作业发送给Spark核心进行处理，由于该执行为异步，因此本步执行速度将非常快。
+(5)只要提交结束（不管作业是否被执行），SparkStreaming对整个系统做一个检查点（Checkpoint）。
+4. Spark核心处理作业队数据，处理完毕输出到外部系统。
