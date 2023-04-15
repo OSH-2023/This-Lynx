@@ -23,3 +23,4 @@ OSH-2023 team project repo, our chinese team name is "芝士猞猁".
 | 3-26  |    正式立项    |        [3-26FormalTopic](./docs/discussion/3-26FormalTopic.md)        |              |
 |  4-2  |  选题最终方案  |          [4-2TopicFinal](./docs/discussion/4-2TopicFinal.md)          | 老师参会讨论 |
 |  4-9  | 可行性方案分工 | [4-9FeasibilityDivision](./docs/discussion/4-9FeasibilityDivision.md) |              |
+| 4-13  | 可行性报告讨论 | [4-13FeasibilityDiscussion](./docs/discussion/4-13FeasibilityDis2.md) |              |
