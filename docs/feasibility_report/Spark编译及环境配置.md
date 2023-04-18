@@ -74,7 +74,44 @@ https://github.com/cdarlint/winutils/tree/master/hadoop-3.2.2/bin
 
 > tip2: IDEA可以提供类型补全，或者说你可以调用Spark的函数后，继续键入
 `.var`然后回车就可以自动补全前面的一长串类型，然后命名变量后回车即可。但是如果你不是在他提示补全的红色框内命名变量的话，回车就会把整行回退到原来的未补全状态，就很烦。
+## 在这里附上代码
+``` scala
+package com.testCore
 
+import org.apache.spark.rdd.RDD
+import org.apache.spark.{SparkConf, SparkContext}
+object Test {
+  def main(args:Array[String]):Unit={
+    //TODO 建立和Spark框架的连接
+    val sparkConf = new SparkConf().setMaster("local").setAppName("WordCount")
+    val sc=new SparkContext(sparkConf)
+    //TODO 执行业务操作
+    val lines: RDD[String] = sc.textFile(path="datas")
+    val words: RDD[String] = lines.flatMap(_.split(" "))
+    val wordGroup: RDD[(String, Iterable[String])] = words.groupBy(word => word)
+    val wordToCount=wordGroup.map{
+      case(word,list)=>{
+        (word,list.size)
+      }
+    }
+
+    val array: Array[(String, Int)] = wordToCount.collect()
+    array.foreach(println)
+
+    
+    //TODO 关闭连接
+    sc.stop()
+  }
+}
+
+```
+在根目录下datas文件夹下有两个txt文件，内容分别为
+1.txt:
+Hello Spark
+Hello Text
+2.txt:
+Hello YZX
+Hello Spark
 ## 重要注意事项
 JDK1.8!!!
 Scala2.12!!!
