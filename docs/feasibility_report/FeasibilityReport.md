@@ -57,9 +57,71 @@
 
 由于Rust语言的诸多优点，用Rust重写Spark是一个非常有诱惑力的方案。此前，就已经有一个较为粗浅的基于Rust的Spark项目：vega（[Github仓库](https://github.com/rajasekarv/vega)）。这一项目完全使用Rust从零写起，构建完成了一个较为简单的Spark内核。不过，这一项目已经有两三年没有维护，项目里还有不少算法没有实现，特别是Spark后来的诸多优化更新，这些都可以是我们的改进空间。
 
-优势：vega总代码量较少，修改起来较方便。且为原生Rust项目，不需要回调。
+## 技术依据
+### Spark build
+#### Maven--用于Java项目的构建自动化工具
+
+**Maven**是用于Java项目的构建自动化工具，而Spark使用Scala编写，Scala与Java共享JVM生态，因此Spark可以使用Maven进行构建和编译.
+Maven解决了构建软件的两个方面:如何构建软件及其依赖关系。[^wiki](https://en.wikipedia.org/wiki/Apache_Maven)
+- 普通管用Maven项目的目录具有以下目录条目
+
+|目录名称	|目的|
+|---|---|
+|项目主页	| 包含 pom.xml 和所有子目录。|
+|src/main/java	| 包含项目的可交付结果 Java 源代码。
+|SRC/main/src	| 包含项目的可交付结果资源，例如属性文件。
+|src/test/java	| 包含项目的测试 Java 源代码（例如 JUnit 或 TestNG 测试用例）。|
+|src/test/resources |	包含测试所需的资源。|
+
+- Maven 常用命令
+    - mvn clean: 清理
+    - mvn compile: 编译主程序
+    - mvn test-compile: 编译测试程序
+    - mvn test: 执行测试
+    - mvn package: 打包
+    - mvn install: 安装
+-   下载源码
+    [SparkDownload](https://spark.apache.org/downloads.html)
+    注意:
+    1. Choose a Spark release:3.2.3(Nov 28,2022)
+    2. Choose a package type:Source Code
+    3. Download Spark:spark-3.2.3.tgz
+-   构建命令
+    > ./build/mvn -Phadoop-3.2 -Pyarn -Dhadoop.version=3.2.2 -Phive -Phive-thriftserver -DskipTests clean package
+    
+![SparkBuild](./src/SparkBuild.png)
+### JNI交互
+Scala是在JVM上运行的语言，和Java比较相似，二者可以无缝衔接。在与其他语言交互时，主要有JNI(Java Native Interface), JNA(Java Native Access), OpenJDK project Panama三种方式。其中最常用的即为JNI接口。借由JNI，Scala可以与Java代码无缝衔接，而Java可以与C也通过JNI来交互。而Rust可通过二进制接口的方式与其他语言进行交互，特别是可以通过Rust的extern语法，十分方便地与C语言代码交互，按照C的方式调用JNI。这一套机制的组合之下，Scala和Rust的各类交互得到了保障。
+同时，正如我们通常不会直接在Rust中通过二进制接口调用C的标准库函数，而是使用libc crate一样，直接使用JNI对C的接口会使得编程较为繁琐且不够安全，代码中的大量unsafe块使得程序稳定性大大下降，所以，我们将选择对JNI进行了安全的封装的接口：**jni[^1] crate**。
+#### Rust调用Scala
+**数据交互**
+两种语言在进行交互时，必须使用两边共有的数据类型。
+对于基础的参数类型，可以直接用`jni::sys::*`模块提供的系列类型来声明，对照表如下：
+| Scala 类型 | Native 类型 | 类型描述         |
+| ---------- | ----------- | ---------------- |
+| boolean    | jboolean    | unsigned 8 bits  |
+| byte       | jbyte       | signed 8 bits    |
+| char       | jchar       | unsigned 16 bits |
+| short      | jshort      | signed 16 bits   |
+| int        | jint        | signed 32 bits   |
+| long       | jlong       | signed 64 bits   |
+| float      | jfloat      | 32 bits          |
+| double     | jdouble     | 64 bits          |
+| void       | void        | not applicable   |
 
 缺陷：vega文档不够详细，且已经不再处于被维护状态，假如遇到问题，可能很难解决。
+对于复合类型，如对象等，则可以统一用`jni::objects::JObject`类型声明。该类型封装了由JVM返回的对象指针，并为该指针赋予了生命周期，以保证在Rust代码中的安全性。
+**方法交互**
+由于语言间对对象及其特性的实现不同，很难直接调用对方语言中的函数或方法。于是通常需要使用server-client模型，将执行函数或方法的任务交给sever语言，即：client传递所需的数据参数，并由server执行计算任务，并将最终结果返回给client。
+基于这种模型的设计，jni提供了调用scala中函数、对象方法以及获取对象数据域的方法。它们定义于`jni::JNIEnv`中，如接受对象、方法名和方法的签名与参数的`jni::JNIEnv::call_method`，接受对象、成员名、类型的`jni::JNIEnv::get_field`等
+此外，jni额外实现了一个`jni::objects::JString`接口，用以方便地实现字符串的传输。
+#### Scala调用Rust
+Rust可以通过`pub unsafe extern "C" fn{}`来创建导出函数，或通过jni封装的函数`JNIEnv::register_native_methods`动态注册native方法。
+导出函数会通过函数名为Scala的对应类提供一个native的静态方法。
+动态注册会在JNI_Onload这个导出函数里执行，jvm加载jni动态库时会执行这个函数，从而加载注册的函数。
+在Rust中定义这些函数时，同样需要遵循上面的那些交互方法和规范。
+
+### 优化RDD依赖关系
 
 ### 调度
 
@@ -154,6 +216,54 @@ ShuffleManager中的shuffleBlockResolver是Shuffle的块解析器，该解析器
 
 #### 可改进的点
 ShuffleManager在生成依赖关系及RDD获取依赖关系过程中所需的计算使用频繁，可以在rust中得到优化。同时，Shuffle算法也极为关键，必须使用当前的SOTA算法，如在Vega中，只实现了最基础的HashShuffleManager，而没有实现性能更高的SortShuffleManager，这是极为明显的可以优化的点
+### 计算引擎核心类
+#### ExternalSorter
+![ExternalSorter](./src/ExternalSorter.png)
+构造参数:
+- aggregator 可选的聚合器，带有combine function
+- partitioner 可选的划分，partition ID用于排序,然后是key
+- ordering 在partition内部使用的排序顺序
+
+主要方法:
+1. `spillMemoryIteratorToDisk(WriteablePartitionedIterator[K,C])->SpilledFile`
+将溢出的内存里的迭代器对应的内容放到临时磁盘中
+2. `insertAll(Iterator[Product2[K,V]])->Unit`
+利用自定义的AppendOnlyMap将records进行更新（缓存聚合）
+3. 
+``` java
+    mergeWithAggregation(
+        iterators: Seq[Iterator[Product2[K, C]]],
+        mergeCombiners: (C, C) => C,
+        comparator: Comparator[K],
+        totalOrder: Boolean)
+    ->Iterator[Product2[K, C]]
+```
+
+将一系列(K,C)迭代器按照key进行聚合，假定每一个迭代器都已经按照key使用给定的比较器排序.
+
+#### AppendOnlyMap/ExternalAppendOnlyMap
+类型签名:
+`class AppendOnlyMap[K, V](initialCapacity: Int = 64) extends Iterable[(K, V)] with Serializable `
+
+功能介绍:
+本质上是一种简单的哈希表，对于append-only的情况进行了优化，也就是说keys不会被移除，但是每一种Key的value可能发生改变。
+这个实现使用了平方探测法，哈希表的大小是2^n，保证对于每一个key都能浏览所有的空间。
+hash的函数使用了Murmur3_32函数（外部库）
+空间上界:`375809638 (0.7 * 2 ^ 29)` elements.
+
+成员变量功能:
+- LOAD_FACTOR: 负载因子，常量值=0.7
+- initialCapacity: 初始容量值64
+- capacity: 容量，初始时=initialCapacity
+- curSize: 记录当前已经放入data的key与聚合值的数量
+- data: 数组，初始大小为2*capacity,data数组的实际大小之所以是capacity的2倍是因为key和聚合值各占一位
+- growThreshhold:data数组容量增加的阈值
+$growThreshold=LOAD\_FACTOR*capacity$
+- mask: 计算数据存放位置的掩码值，表达式为capacity-1
+- k: 要放入data的key
+- pos: k将要放入data的索引值
+- curKey: data[2*pos]位置的当前key
+- newValue: key的聚合值
 
 ### Spark Streaming
 Spark Streaming[^SparkStreamingStructure]是Spark的一个扩展模块，它使得Spark可以支持可扩展、高吞吐量、容错的实时数据流处理。
@@ -286,7 +396,7 @@ Rust可以通过`pub unsafe extern "C" fn{}`来创建导出函数，或通过jni
 动态注册会在JNI_Onload这个导出函数里执行，jvm加载jni动态库时会执行这个函数，从而加载注册的函数。
 在Rust中定义这些函数时，同样需要遵循上面的那些交互方法和规范。
 ### Cap'n Proto
-Cap'n Proto[^1]是一种速度极快的数据交换格式，以及能力强大的RPC系统.
+Cap'n Proto [^capnp] 是一种速度极快的数据交换格式，以及能力强大的RPC系统.
 ![capnp](./src/Capnp.png)
 #### 优势
 1. 递增读取:可以在整个Cap'n Proto 信息完全传递之前进行处理，这是因为外部对象完全出现在内部对象以前。
@@ -295,8 +405,9 @@ Cap'n Proto[^1]是一种速度极快的数据交换格式，以及能力强大�
 4. 跨语言通讯:避免了从脚本语言调用C++代码的痛苦。使用Cap'n Proto可以让多种语言轻松地在同一个内存中的数据结构上进行操作。
 5. 通过共享内存可以让在同一台机器上多线程共同访问。不需要通过内核来产生管道来传输数据。
 6. Arena Allocation:Cap'n Proto对象始终以"arena"或者"region"风格进行分配，因此更快并且提升了缓存局部性。
-7. 微小生成代码:Protobuf为每个消息类型产生专一的解析和序列化代码，这种代码会变得庞大无比。
-
+7. 微小生成代码:Protobuf为每个消息类型产生专一的解析和序列化代码，这种代码会变得庞大无比。但是Cap'n Proto 产生的代码要小一个级别.事实上，通常都只是一些内联访问器方法。
+8. 微小运行时库:得益于Cap'n的格式，运行时库可以变得很小
+9. 极快的运行时:Cap'np实现了极快的RPC调用以至于调用结果的返回可以快于请求发出。
 ## 创新点
 
 
