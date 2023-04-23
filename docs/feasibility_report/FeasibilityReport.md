@@ -146,6 +146,104 @@ Job --1 to N --> Stage --1 to N--> Task --N to 1 --> TaskSet --1 to 1 --> TaskSe
 
 [^spark]: IWBS. Spark. CSDN. [EB/OL]. [2023-04-20]. https://blog.csdn.net/asd491310/category_7797537.html
 
+### Spark Streaming
+Spark Streaming是Spark的一个扩展模块，它使得Spark可以支持可扩展、高吞吐量、容错的实时数据流处理。
+#### 架构
+**实现思想**
+![SparkStreamingStructure](http://spark.incubator.apache.org/docs/latest/img/streaming-flow.png)
+Spark Streaming采用微批次的思想，把输入的数据按时间间隔打包成作业提交（该时间间隔可以由用户指定），交由Spark核心进行计算。因此Spark Streaming本身并不进行计算任务。
+**组件**
+![SparkStreamingItems](./src/SparkStreamingItems.png)
+**StreamingContext类：** Spark Streaming的起始点，流式计算的启动和停止都通过它来完成（调用`context.start()` 和 `context.stop()`）。
+**DStreamGraph类：** 包含DStream和它们之间的依赖关系。
+**DStream类：** 意为离散化数据流，是用于封装流式数据的数据结构，其内部由一系列连续的RDDs构成，每个RDD代表特定时间间隔内的一批数据。这个类是一个抽象类，具体实现由继承它的具体的DStream（如InputDStream）完成。
+**JobScheduler类：** 负责调度在Spark上执行的作业，内部主要有JobGenerator和ReceiverTracker。
+**JobGenerator类：** JobGenerator负责从DStream产生jobs。其内部有一个定时器，会定时调用generateJobs方法。
+**ReceiverTracker类：** 负责管理和控制receiver的状态。
+#### 源码分析
+在对Spark Streaming源码的分析中，省略了大部分的变量、方法和所有方法的具体实现，只保留了关键的变量/常量和关键方法的声明。
+**StreamingContext**
+```scala
+class StreamingContext private[streaming] (
+_sc: SparkContext,
+_cp: Checkpoint,
+_batchDur: Duration
+) extends Logging {
+    //省略部分方法、变量以及具体实现。
+    private[streaming] val sc: SparkContext
+    private[streaming] val graph: DStreamGraph
+    private[streaming] val scheduler = new JobScheduler(this)
+    def start(): Unit
+    def stop(stopSparkContext: Boolean, stopGracefully: Boolean): Unit
+}
+```
+具体分析：
+SparkContext是Spark的上下文。
+DStreamGraph用来管理DStream和它们之间的依赖。
+JobScheduler用于调度在Spark上运行的任务。
+`start()`方法用于启动流式计算。这一方法中的关键部分在于，它注册了一个ProgressListener，用于监听所有Streaming Jobs的进度；并且启动了JobScheduler，它会对任务进行调度。
+`stop()`方法与`start()`相对应，它会注销/停止`start()`中启动的各种模块（如注销progressListener，停止scheduler等），另外还可以根据传入的参数额外执行停止SparkContext/等待所有接收到的数据处理完成等。
+**DStream**
+```scala
+abstract class DStream[T: ClassTag] (
+    @transient private[streaming] var ssc: StreamingContext
+  ) extends Serializable with Logging {
+    //省略部分方法、变量以及具体实现。
+    def dependencies: List[DStream[_]]
+    private[streaming] var generatedRDDs = new HashMap[Time, RDD[T]]()
+    private[streaming] var zeroTime: Time
+    private[streaming] final def getOrCompute(time: Time): Option[RDD[T]]
+    private[streaming] def generateJob(time: Time): Option[Job]
+}
+```
+具体分析：
+dependencies是该DStream依赖的父DStream列表。
+generatedRDDs是已经产生的RDD，按产生时间使用哈希表存储。
+zeroTime是DStream的时间零点，用于标识该DStream是否被初始化，以及检查传入的时间参数是否合法。
+`getOrCompute(time: Time)`方法用于取得或产生RDD。若传入的时间参数已有对应的RDD，则取出并返回该RDD；否则产生新的RDD并放入generatedRDDs中，并返回。
+`generateJob(time: Time)`方法用于取得指定时间产生的RDD，并用它们生成Job。
+**DStreamGraph**
+```scala
+final private[streaming] class DStreamGraph extends Serializable with Logging {
+    //省略部分方法、变量以及具体实现。
+    private var inputStreams = mutable.ArraySeq.empty[InputDStream[_]]
+    private var outputStreams = mutable.ArraySeq.empty[DStream[_]]
+    def start(time: Time): Unit
+    def stop()
+    def generateJobs(time: Time): Seq[Job]
+}
+```
+具体分析：
+inputStreams是输入数据源的集合。
+outputStreams是DStream的集合。
+`start()`方法用于启动DStreamGraph。该方法中设置zeroTime和startTime，初始化各个outputStream，计算Receiver的数量，记录inputStream，最后启动各个inputStream（这会让inputStream开始接收数据）。
+`stop()`方法只需停止所有inputStream
+`generateJobs(time: Time)`方法会对outputStream中的每一个DStream调用generateJob方法。每个DStream都会生成Job，因此会返回一个Job序列。
+**JobScheduler**
+```scala
+class JobScheduler(val ssc: StreamingContext) extends Logging {
+    //省略部分方法、变量以及具体实现。
+    private val jobSets: java.util.Map[Time, JobSet] = new ConcurrentHashMap[Time, JobSet]
+    private val jobExecutor =
+    ThreadUtils.newDaemonFixedThreadPool(numConcurrentJobs, "streaming-job-executor")
+    private[streaming] val jobGenerator = new JobGenerator(this)
+    private var eventLoop: EventLoop[JobSchedulerEvent] = null
+    def start(): Unit
+    def stop(processAllReceivedData: Boolean): Unit
+}
+```
+具体分析：
+jobSets按时间存放JobSet。
+jobExecutor是一个线程池，用于执行任务。
+jobGenerator负责生成作业。
+eventLoop则负责循环处理各种事件（如job的开始/完成）
+`start()`方法用于启动JobScheduler，它会创建并启动eventLoop、receiverTracker等组件，并启动jobGenerator。
+`stop()`方法则负责停止JobScheduler和它启动的各种组件。
+#### 可改进的内容
+Spark Streaming是一个扩展模块，不是Spark的核心组件，因此在我们项目中的优先级应该比较靠后。
+若采用在源码基础上重写的方案，由于Spark Streaming本身并不承担计算任务，因此对其进行优化不会带来较大性能提升，可选择将其忽略。
+但vega目前还未实现流计算相关功能。若在vega的基础上进行改进，在有余力的情况下可以尝试在其基础上实现Streaming模块。
+
 ## 创新点
 ## 概要设计报告
 ## 进度管理
