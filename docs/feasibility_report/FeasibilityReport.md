@@ -14,7 +14,6 @@
 由于rust语言的诸多优点，用rust重写spark是一个非常有诱惑力的方案。此前，就已经有一个较为粗浅的基于rust的spark项目：vega（[Github仓库](https://github.com/rajasekarv/vega)）。这一项目完全使用rust从零写起，构建完成了一个较为简单的spark内核。不过，这一项目已经有两三年没有维护，项目里还有不少算法没有实现，特别是Spark后来的诸多优化更新，这些都是我们的改进空间。
 
 
-
 ## 技术依据
 ### JNI交互
 Scala是在JVM上运行的语言，和Java比较相似。与其他语言交互时，主要有JNI(Java Native Interface), JNA(Java Native Access), OpenJDK project Panama三种方式。其中最常用的即为JNI接口。借由JNI，Scala可以与Java代码无缝衔接，而Java可以与C也通过JNI来交互。而Rust可通过二进制接口的方式与其他语言进行交互，特别是可以通过Rust的extern语法，十分方便地与C语言代码交互，按照C的方式调用JNI。这一套机制的组合之下，Scala和Rust的各类交互得到了保障。
