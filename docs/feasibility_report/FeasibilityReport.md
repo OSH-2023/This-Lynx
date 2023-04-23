@@ -7,6 +7,8 @@
     - [可行方案](#可行方案)
       - [源码基础上对Spark性能瓶颈的Rust重写](#源码基础上对spark性能瓶颈的rust重写)
       - [基于不完善的Rust版Spark开源项目vega的实现](#基于不完善的rust版spark开源项目vega的实现)
+    - [Spark build](#spark-build)
+      - [Maven--用于Java项目的构建自动化工具](#maven--用于java项目的构建自动化工具)
     - [调度](#调度)
       - [DAG调度的过程](#dag调度的过程)
       - [调度算法](#调度算法)
@@ -16,6 +18,9 @@
     - [ShuffleManager](#shufflemanager)
       - [ShuffleManager架构](#shufflemanager架构)
       - [可改进的点](#可改进的点)
+    - [计算引擎核心类](#计算引擎核心类)
+      - [ExternalSorter](#externalsorter)
+      - [AppendOnlyMap/ExternalAppendOnlyMap](#appendonlymapexternalappendonlymap)
     - [Spark Streaming](#spark-streaming)
       - [架构](#架构)
       - [源码分析](#源码分析)
@@ -25,7 +30,7 @@
       - [Rust调用Scala](#rust调用scala)
       - [Scala调用Rust](#scala调用rust)
     - [Cap'n Proto](#capn-proto)
-      - [优势:](#优势)
+      - [优势](#优势)
   - [创新点](#创新点)
   - [概要设计报告](#概要设计报告)
   - [进度管理](#进度管理)
@@ -57,7 +62,7 @@
 
 由于Rust语言的诸多优点，用Rust重写Spark是一个非常有诱惑力的方案。此前，就已经有一个较为粗浅的基于Rust的Spark项目：vega（[Github仓库](https://github.com/rajasekarv/vega)）。这一项目完全使用Rust从零写起，构建完成了一个较为简单的Spark内核。不过，这一项目已经有两三年没有维护，项目里还有不少算法没有实现，特别是Spark后来的诸多优化更新，这些都可以是我们的改进空间。
 
-## 技术依据
+
 ### Spark build
 #### Maven--用于Java项目的构建自动化工具
 
@@ -65,13 +70,13 @@
 Maven解决了构建软件的两个方面:如何构建软件及其依赖关系。[^wiki](https://en.wikipedia.org/wiki/Apache_Maven)
 - 普通管用Maven项目的目录具有以下目录条目
 
-|目录名称	|目的|
-|---|---|
-|项目主页	| 包含 pom.xml 和所有子目录。|
-|src/main/java	| 包含项目的可交付结果 Java 源代码。
-|SRC/main/src	| 包含项目的可交付结果资源，例如属性文件。
-|src/test/java	| 包含项目的测试 Java 源代码（例如 JUnit 或 TestNG 测试用例）。|
-|src/test/resources |	包含测试所需的资源。|
+| 目录名称           | 目的                                                          |
+| ------------------ | ------------------------------------------------------------- |
+| 项目主页           | 包含 pom.xml 和所有子目录。                                   |
+| src/main/java      | 包含项目的可交付结果 Java 源代码。                            |
+| SRC/main/src       | 包含项目的可交付结果资源，例如属性文件。                      |
+| src/test/java      | 包含项目的测试 Java 源代码（例如 JUnit 或 TestNG 测试用例）。 |
+| src/test/resources | 包含测试所需的资源。                                          |
 
 - Maven 常用命令
     - mvn clean: 清理
@@ -90,38 +95,6 @@ Maven解决了构建软件的两个方面:如何构建软件及其依赖关系�
     > ./build/mvn -Phadoop-3.2 -Pyarn -Dhadoop.version=3.2.2 -Phive -Phive-thriftserver -DskipTests clean package
     
 ![SparkBuild](./src/SparkBuild.png)
-### JNI交互
-Scala是在JVM上运行的语言，和Java比较相似，二者可以无缝衔接。在与其他语言交互时，主要有JNI(Java Native Interface), JNA(Java Native Access), OpenJDK project Panama三种方式。其中最常用的即为JNI接口。借由JNI，Scala可以与Java代码无缝衔接，而Java可以与C也通过JNI来交互。而Rust可通过二进制接口的方式与其他语言进行交互，特别是可以通过Rust的extern语法，十分方便地与C语言代码交互，按照C的方式调用JNI。这一套机制的组合之下，Scala和Rust的各类交互得到了保障。
-同时，正如我们通常不会直接在Rust中通过二进制接口调用C的标准库函数，而是使用libc crate一样，直接使用JNI对C的接口会使得编程较为繁琐且不够安全，代码中的大量unsafe块使得程序稳定性大大下降，所以，我们将选择对JNI进行了安全的封装的接口：**jni[^1] crate**。
-#### Rust调用Scala
-**数据交互**
-两种语言在进行交互时，必须使用两边共有的数据类型。
-对于基础的参数类型，可以直接用`jni::sys::*`模块提供的系列类型来声明，对照表如下：
-| Scala 类型 | Native 类型 | 类型描述         |
-| ---------- | ----------- | ---------------- |
-| boolean    | jboolean    | unsigned 8 bits  |
-| byte       | jbyte       | signed 8 bits    |
-| char       | jchar       | unsigned 16 bits |
-| short      | jshort      | signed 16 bits   |
-| int        | jint        | signed 32 bits   |
-| long       | jlong       | signed 64 bits   |
-| float      | jfloat      | 32 bits          |
-| double     | jdouble     | 64 bits          |
-| void       | void        | not applicable   |
-
-缺陷：vega文档不够详细，且已经不再处于被维护状态，假如遇到问题，可能很难解决。
-对于复合类型，如对象等，则可以统一用`jni::objects::JObject`类型声明。该类型封装了由JVM返回的对象指针，并为该指针赋予了生命周期，以保证在Rust代码中的安全性。
-**方法交互**
-由于语言间对对象及其特性的实现不同，很难直接调用对方语言中的函数或方法。于是通常需要使用server-client模型，将执行函数或方法的任务交给sever语言，即：client传递所需的数据参数，并由server执行计算任务，并将最终结果返回给client。
-基于这种模型的设计，jni提供了调用scala中函数、对象方法以及获取对象数据域的方法。它们定义于`jni::JNIEnv`中，如接受对象、方法名和方法的签名与参数的`jni::JNIEnv::call_method`，接受对象、成员名、类型的`jni::JNIEnv::get_field`等
-此外，jni额外实现了一个`jni::objects::JString`接口，用以方便地实现字符串的传输。
-#### Scala调用Rust
-Rust可以通过`pub unsafe extern "C" fn{}`来创建导出函数，或通过jni封装的函数`JNIEnv::register_native_methods`动态注册native方法。
-导出函数会通过函数名为Scala的对应类提供一个native的静态方法。
-动态注册会在JNI_Onload这个导出函数里执行，jvm加载jni动态库时会执行这个函数，从而加载注册的函数。
-在Rust中定义这些函数时，同样需要遵循上面的那些交互方法和规范。
-
-### 优化RDD依赖关系
 
 ### 调度
 
