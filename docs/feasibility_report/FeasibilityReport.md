@@ -5,7 +5,7 @@
 在Spark的Scala源码与rust代码间的交互是这一方案中需要特别关注的点，主要是由于scala基于JVM，而rust基于机器语言，其间交互较为复杂。我们将使用Scala的JNI(Java Native Interface)与Rust的FFI，可能还会借助中介语言的接口，来实现两种语言间的交互。
 
 ### 基于不完善的rust版spark开源项目vega的实现
-由于rust语言的诸多优点，用rust重写spark是一个非常有诱惑力的方案。此前，就已经有一个较为粗浅的基于rust的spark项目：vega（[Github仓库](https://github.com/rajasekarv/vega)）。这一项目完全使用rust从零写起，构建完成了一个较为简单的spark内核。不过，这一项目还有部分算法
+由于rust语言的诸多优点，用rust重写spark是一个非常有诱惑力的方案。此前，就已经有一个较为粗浅的基于rust的spark项目：vega（[Github仓库](https://github.com/rajasekarv/vega)）。这一项目完全使用rust从零写起，构建完成了一个较为简单的spark内核。不过，这一项目已经有两三年没有维护，项目里还有不少算法没有实现，特别是Spark后来的诸多优化更新，这些都是我们的改进空间。
 
 ## 理论依据
 ### 可优化性
