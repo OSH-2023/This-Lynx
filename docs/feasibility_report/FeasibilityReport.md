@@ -11,6 +11,9 @@
   - [ShuffleManager](#shufflemanager)
     - [ShuffleManager架构](#shufflemanager架构)
     - [可改进的点](#可改进的点)
+  - [计算引擎核心类](#计算引擎核心类)
+    - [ExternalSorter](#externalsorter)
+    - [AppendOnlyMap/ExternalAppendOnlyMap](#appendonlymapexternalappendonlymap)
   - [Spark Streaming](#spark-streaming)
     - [架构](#架构)
     - [源码分析](#源码分析)
@@ -131,6 +134,54 @@ ShuffleManager中的shuffleBlockResolver是Shuffle的块解析器，该解析器
 
 #### 可改进的点
 ShuffleManager在生成依赖关系及RDD获取依赖关系过程中所需的计算使用频繁，可以在rust中得到优化。同时，Shuffle算法也极为关键，必须使用当前的SOTA算法，如在Vega中，只实现了最基础的HashShuffleManager，而没有实现性能更高的SortShuffleManager，这是极为明显的可以优化的点
+### 计算引擎核心类
+#### ExternalSorter
+![ExternalSorter](./src/ExternalSorter.png)
+构造参数:
+- aggregator 可选的聚合器，带有combine function
+- partitioner 可选的划分，partition ID用于排序,然后是key
+- ordering 在partition内部使用的排序顺序
+
+主要方法:
+1. `spillMemoryIteratorToDisk(WriteablePartitionedIterator[K,C])->SpilledFile`
+将溢出的内存里的迭代器对应的内容放到临时磁盘中
+2. `insertAll(Iterator[Product2[K,V]])->Unit`
+利用自定义的AppendOnlyMap将records进行更新（缓存聚合）
+3. 
+``` java
+    mergeWithAggregation(
+        iterators: Seq[Iterator[Product2[K, C]]],
+        mergeCombiners: (C, C) => C,
+        comparator: Comparator[K],
+        totalOrder: Boolean)
+    ->Iterator[Product2[K, C]]
+```
+
+将一系列(K,C)迭代器按照key进行聚合，假定每一个迭代器都已经按照key使用给定的比较器排序.
+
+#### AppendOnlyMap/ExternalAppendOnlyMap
+类型签名:
+`class AppendOnlyMap[K, V](initialCapacity: Int = 64) extends Iterable[(K, V)] with Serializable `
+
+功能介绍:
+本质上是一种简单的哈希表，对于append-only的情况进行了优化，也就是说keys不会被移除，但是每一种Key的value可能发生改变。
+这个实现使用了平方探测法，哈希表的大小是2^n，保证对于每一个key都能浏览所有的空间。
+hash的函数使用了Murmur3_32函数（外部库）
+空间上界:`375809638 (0.7 * 2 ^ 29)` elements.
+
+成员变量功能:
+- LOAD_FACTOR: 负载因子，常量值=0.7
+- initialCapacity: 初始容量值64
+- capacity: 容量，初始时=initialCapacity
+- curSize: 记录当前已经放入data的key与聚合值的数量
+- data: 数组，初始大小为2*capacity,data数组的实际大小之所以是capacity的2倍是因为key和聚合值各占一位
+- growThreshhold:data数组容量增加的阈值
+$growThreshold=LOAD\_FACTOR*capacity$
+- mask: 计算数据存放位置的掩码值，表达式为capacity-1
+- k: 要放入data的key
+- pos: k将要放入data的索引值
+- curKey: data[2*pos]位置的当前key
+- newValue: key的聚合值
 
 ### Spark Streaming
 Spark Streaming[^SparkStreamingStructure]是Spark的一个扩展模块，它使得Spark可以支持可扩展、高吞吐量、容错的实时数据流处理。
@@ -235,7 +286,7 @@ Spark Streaming是一个扩展模块，不是Spark的核心组件，因此在我
 ## 技术依据
 ### JNI交互
 Scala是在JVM上运行的语言，和Java比较相似，二者可以无缝衔接。在与其他语言交互时，主要有JNI(Java Native Interface), JNA(Java Native Access), OpenJDK project Panama三种方式。其中最常用的即为JNI接口。借由JNI，Scala可以与Java代码无缝衔接，而Java可以与C也通过JNI来交互。而Rust可通过二进制接口的方式与其他语言进行交互，特别是可以通过Rust的extern语法，十分方便地与C语言代码交互，按照C的方式调用JNI。这一套机制的组合之下，Scala和Rust的各类交互得到了保障。
-同时，正如我们通常不会直接在Rust中通过二进制接口调用C的标准库函数，而是使用libc crate一样，直接使用JNI对C的接口会使得编程较为繁琐且不够安全，代码中的大量unsafe块使得程序稳定性大大下降，所以，我们将选择对JNI进行了安全的封装的接口：**jni[^1] crate**。
+同时，正如我们通常不会直接在Rust中通过二进制接口调用C的标准库函数，而是使用libc crate一样，直接使用JNI对C的接口会使得编程较为繁琐且不够安全，代码中的大量unsafe块使得程序稳定性大大下降，所以，我们将选择对JNI进行了安全的封装的接口：**jni[^jni] crate**。
 #### Rust调用Scala
 **数据交互**
 两种语言在进行交互时，必须使用两边共有的数据类型。
@@ -263,7 +314,7 @@ Rust可以通过`pub unsafe extern "C" fn{}`来创建导出函数，或通过jni
 动态注册会在JNI_Onload这个导出函数里执行，jvm加载jni动态库时会执行这个函数，从而加载注册的函数。
 在Rust中定义这些函数时，同样需要遵循上面的那些交互方法和规范。
 ### Cap'n Proto
-Cap'n Proto[^1]是一种速度极快的数据交换格式，以及能力强大的RPC系统.
+Cap'n Proto [^capnp] 是一种速度极快的数据交换格式，以及能力强大的RPC系统.
 ![capnp](./src/Capnp.png)
 #### 优势
 1. 递增读取:可以在整个Cap'n Proto 信息完全传递之前进行处理，这是因为外部对象完全出现在内部对象以前。
@@ -272,10 +323,24 @@ Cap'n Proto[^1]是一种速度极快的数据交换格式，以及能力强大�
 4. 跨语言通讯:避免了从脚本语言调用C++代码的痛苦。使用Cap'n Proto可以让多种语言轻松地在同一个内存中的数据结构上进行操作。
 5. 通过共享内存可以让在同一台机器上多线程共同访问。不需要通过内核来产生管道来传输数据。
 6. Arena Allocation:Cap'n Proto对象始终以"arena"或者"region"风格进行分配，因此更快并且提升了缓存局部性。
-7. 微小生成代码:Protobuf为每个消息类型产生专一的解析和序列化代码，这种代码会变得庞大无比。
+7. 微小生成代码:Protobuf为每个消息类型产生专一的解析和序列化代码，这种代码会变得庞大无比。但是Cap'n Proto 产生的代码要小一个级别.事实上，通常都只是一些内联访问器方法。
+8. 微小运行时库:得益于Cap'n的格式，运行时库可以变得很小
+9. 极快的运行时:Cap'np实现了极快的RPC调用以至于调用结果的返回可以快于请求发出。
 
 ## 创新点
-
+在对Spark的实现问题上，Rust与Scala（Spark所使用的语言）相比有诸多优势：
+**安全性**
+scala 所有的对象都是在堆中的，有 Head 的，生命周期由 GC 管控的。虽然有不用关心分配、释放的自由。却也导致了 STW 和更大的内存占用。
+Rust 通过静态内存安全管理和所有权系统，可以避免许多 Spark 运行时错误，例如内存泄漏、垂悬指针异常等。而与Scala相比，Rust的内存管理发生在编译期，其所有权和声明周期的计算与检查都在编译期执行，这使得它无需消耗较大性能的GC机制，就能保证内存安全。
+此外，Rust将运行时错误划分为两类，通过模式匹配的控制方式，在面对可恢复的错误时执行对应的错误处理代码，而面对不可恢复的错误时发生panic停止程序，既进一步保证了安全，又提高了用户的体验。
+在Spark的内存密集阶段，可以使用Rust改写，以减少内存占用、提高程序性能。
+**高性能**
+Rust 秉承零成本抽象原则，通过无运行时开销的特性，将许多其他语言的运行时开销（如GC）放置到了编译期，并将顶层的代码编译为较为高效的机器码，使得程序员在进行抽象时，不必担心性能的下降。
+使用 Rust 进行 Spark 的性能瓶颈优化可以提高数据处理速度和效率，减少资源浪费和计算成本。
+**并发性**
+Spark 是一个分布式计算框架，具有良好的并发性能。而 Rust 则通过所有权和类型系统，将许多并发错误转化为了编译时错误，从而避免在部署到生产环境后修复代码或出现竞争、死锁或其他难以复现和修复的 bug ，实现了高效而安全的并发设计。
+安全高效的并行与函数式编程息息相关。Scala正是由于其函数式编程的特性被Spark选中，而同样作为函数式的语言，Rust对并行的支持更好。使用 Rust 对 Spark 的高并发场景进行优化，可以进一步提高 Spark 的并发性能和安全性，从而提高整个应用程序的性能。
+Rust为了获取安全性和高性能，对程序员施加了较多的规则，在编译期进行了较为严格的检查（内存安全正），使得编程难度显著提高。但是如果熟悉了它的编程风格，就可以轻松写出安全而高效的代码。此外，用Rust编写的代码，只要能够通过编译，基本就可以正常运行，且在调试代码时，可以分模块测试而不用担心它们的互相影响————这提高了调试代码的效率，而且适于多人协作开发（在函数式编程方式下尤是如此）。
 
 ## 概要设计报告
 
@@ -306,3 +371,4 @@ Cap'n Proto[^1]是一种速度极快的数据交换格式，以及能力强大�
 
 
 [^spark_optimize]:王家林. Spark内核机制解析及性能调优. 2017.
+[^jni]:https://crates.io/crates/jni
