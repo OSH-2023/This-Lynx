@@ -16,12 +16,18 @@
 
 此外，还有缓存追踪机制以及清空机制。`DAGScheduler`判断哪个RDD被缓存，记忆哪些shuffle map 的`Stage`已经产生输出文件以避免重新计算或重复运行shuffle的map阶段。当相关的`Task`结束时，`DAGScheduler`会清空`Stage`，以避免内存泄露。
 
+`sumbitJob`
+
+`runJob`
+
+`submitStage`如果当前`Stage`没有
+
 ### 调度算法
 
 在`SchedulingAlgorithm.scala`中描述，只有两种继承算法`FIFOSchedulingAlgorithm`和`FairSchedulingAlgorithm`，其中的方法`comparator`，返回`boolean`值，用于在调度时进行排序。
 
 以下以`comparator(A,B)`为例.
-- FIFO方法，先比较优先级，小的优先，如果同级，则比较提交时间(通过``Stage`ID`判断，小的代表提交时间早)，早的优先。可以判断，`priority`越小，优先级越高。
+- FIFO方法，先比较优先级，小的优先，如果同级，则比较提交时间(通过`StageID`判断，小的代表提交时间早)，早的优先。可以判断，`priority`越小，优先级越高。
 - Fair方法，如果`A`满足`runningTasks`比`minShare`小，而`B`不满足，则先处理`A`，反之亦然。如果都满足，则比较`runningTasks/minShare`的比值，低的优先。如果都不满足，则比较`runningTasks/weight`的比值，低的优先。当这些比值相同时，比较`name`。总的来说，即资源使用率低的优先。
 
 ### 调度任务类
