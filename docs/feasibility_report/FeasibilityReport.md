@@ -6,12 +6,28 @@
 ## 引言
 
 ## 理论依据
-### 源码基础上对spark性能瓶颈的rust重写
-基于spark源码的改进是其中一种方案。在源代码上进行修改，特别是用rust重写其中的性能瓶颈模块，特别是内存密集型、CPU密集型的部分，同时保留源码的非关键部分，特别是spark中原生的丰富API，由此达到以小范围的修改达到较为显著的性能提升的效果。
-在Spark的Scala源码与rust代码间的交互是这一方案中需要特别关注的点，主要是由于scala基于JVM，与非JVM语言的Rust之间，有较大的交互困难。我们将使用Scala的JNI(Java Native Interface)与Rust进行交互，我们这里使用jni crate，来实现两种语言间的交互。
 
-### 基于不完善的rust版spark开源项目vega的实现
-由于rust语言的诸多优点，用rust重写spark是一个非常有诱惑力的方案。此前，就已经有一个较为粗浅的基于rust的spark项目：vega（[Github仓库](https://github.com/rajasekarv/vega)）。这一项目完全使用rust从零写起，构建完成了一个较为简单的spark内核。不过，这一项目已经有两三年没有维护，项目里还有不少算法没有实现，特别是Spark后来的诸多优化更新，这些都是我们的改进空间。
+### 可行方案
+
+为了实现对Spark瓶颈的优化，我们经过调研，找到了两条可行的路线，分别为直接在Apache Spark源码基础上进行重写，以及基于一个不完善的开源项目进行修改。
+
+#### 源码基础上对Spark性能瓶颈的Rust重写
+
+在源代码上进行修改，考虑使用Rust重写其中的性能瓶颈模块，特别是内存密集型、CPU密集型的部分，同时保留源码的非关键部分，尤其是Spark中原生的丰富API，以此达到以小范围的修改达到较为显著的性能提升的效果。
+
+在Spark的Scala源码与Rust代码间的交互是这一方案中需要特别关注的点，主要是由于scala基于JVM，与非JVM语言的Rust之间，有较大的交互困难。我们考虑使用Scala的JNI(Java Native Interface)与Rust进行交互，我们这里使用jni crate来实现两种语言间的交互。
+
+优势：Spark文档比较详细，编译相对较为方便，且没有无法使用的风险。
+
+缺陷：Spark代码庞杂，显然无法全部重写，只能考虑回调，但从Rust回调scala又极少有人进行尝试，需要自行探索。
+
+#### 基于不完善的Rust版Spark开源项目vega的实现
+
+由于Rust语言的诸多优点，用Rust重写Spark是一个非常有诱惑力的方案。此前，就已经有一个较为粗浅的基于Rust的Spark项目：vega（[Github仓库](https://github.com/rajasekarv/vega)）。这一项目完全使用Rust从零写起，构建完成了一个较为简单的Spark内核。不过，这一项目已经有两三年没有维护，项目里还有不少算法没有实现，特别是Spark后来的诸多优化更新，这些都可以是我们的改进空间。
+
+优势：vega总代码量较少，修改起来较方便。且为原生Rust项目，不需要回调。
+
+缺陷：vega文档不够详细，且已经不再处于被维护状态，假如遇到问题，可能很难解决。
 
 
 ## 技术依据
@@ -59,11 +75,11 @@ Cap'n Proto是一种速度极快的数据交换格式，以及能力强大的RPC
 
 ### 调度
 
-在Spark里，与调度相关的程序位于`spark-3.2.3/core/src/main/scala/org/apache/spark/scheduler/`目录下。
+在Spark里，与调度相关的程序位于`Spark-3.2.3/core/src/main/scala/org/apache/Spark/scheduler/`目录下。
 
 #### DAG调度的过程
 
-我们首先给出一个宏观的说法，其中的不同的名称会在后文进行解释。总的来说，调度由`DAGScheduler`控制，其通过RDD算子构建`DAG`，再基于RDD算子之间的依赖来切分所涉算子，最终得到一些`Stage`对象。每个`Stage`再基于`Partitioner`生成多个`Task`，每个`Stage`中的`Task`集合包装成一个`TaskSet`，生成一个`TaskSetManager`。这些`TaskSetManager`与其他的`Pool`被嵌套地放在`Pool`中，进行宏观的任务调度。[^spark]
+我们首先给出一个宏观的说法，其中的不同的名称会在后文进行解释。总的来说，调度由`DAGScheduler`控制，其通过RDD算子构建`DAG`，再基于RDD算子之间的依赖来切分所涉算子，最终得到一些`Stage`对象。每个`Stage`再基于`Partitioner`生成多个`Task`，每个`Stage`中的`Task`集合包装成一个`TaskSet`，生成一个`TaskSetManager`。这些`TaskSetManager`与其他的`Pool`被嵌套地放在`Pool`中，进行宏观的任务调度。[^Spark]
 
 ![submitJob](./src/submitjob.png)
 
@@ -129,11 +145,11 @@ Job --1 to N --> Stage --1 to N--> Task --N to 1 --> TaskSet --1 to 1 --> TaskSe
  - 添加新数据结构时，更新`DAGSchedulerSuite.assertDataStructuresEmpty`函数，这有助于找到内存泄露。
 
 
-[^schedulable]: Apache. Job Scheduling. Apache Spark Documents. [EB/OL]. [2023-04-20]. https://spark.apache.org/docs/latest/job-scheduling.html
+[^schedulable]: Apache. Job Scheduling. Apache Spark Documents. [EB/OL]. [2023-04-20]. https://Spark.apache.org/docs/latest/job-scheduling.html
 
 [^100]:https://zhuanlan.zhihu.com/p/163067566
 
-[^spark]: IWBS. Spark. CSDN. [EB/OL]. [2023-04-20]. https://blog.csdn.net/asd491310/category_7797537.html
+[^Spark]: IWBS. Spark. CSDN. [EB/OL]. [2023-04-20]. https://blog.csdn.net/asd491310/category_7797537.html
 
 [^neptune]:Panagiotis Garefalakis, Konstantinos Karanasos, and Peter Pietzuch. 2019. Neptune: Scheduling Suspendable Tasks for Unified Stream/Batch Applications. In ACM Symposium on Cloud Computing (SoCC ’19), November 20–23, 2019, Santa Cruz, CA, USA. ACM, New York, NY, USA, 13 pages. https://doi.org/10.1145/3357223.3362724
 
@@ -141,7 +157,7 @@ Job --1 to N --> Stage --1 to N--> Task --N to 1 --> TaskSet --1 to 1 --> TaskSe
 Spark Streaming是Spark的一个扩展模块，它使得Spark可以支持可扩展、高吞吐量、容错的实时数据流处理。
 #### 架构
 **实现思想**
-![SparkStreamingStructure](http://spark.incubator.apache.org/docs/latest/img/streaming-flow.png)
+![SparkStreamingStructure](http://Spark.incubator.apache.org/docs/latest/img/streaming-flow.png)
 Spark Streaming采用微批次的思想，把输入的数据按时间间隔打包成作业提交（该时间间隔可以由用户指定），交由Spark核心进行计算。因此Spark Streaming本身并不进行计算任务。
 **组件**
 ![SparkStreamingItems](./src/SparkStreamingItems.png)
