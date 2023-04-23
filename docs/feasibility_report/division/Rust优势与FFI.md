@@ -18,18 +18,12 @@ Rust为了获取安全性和高性能，对程序员施加了较多的规则，�
 项目地址：https://github.com/XhyDds/osh-2023-labs/tree/master/lab2
 
 ## Rust与Scala的交互
-除了考虑Rust的优势以外，因为我们只对Spark的部分组件重写，所以还需要考虑Rust与Scala的交互问题。
+<!-- 除了考虑Rust的优势以外，因为我们只对Spark的部分组件重写，所以还需要考虑Rust与Scala的交互问题。
 ### 主体语言的选取： Rust 或 Scala
 由于Spark已经有了丰富的生态，出于兼容生态的考虑，我们选择将Rust改写的部分作为内部接口，而将Scala作为主体语言，调用Rust代码提供的接口，适当修改Spark的内部实现，而保留其外部接口不变，以兼容其生态，让用户可以在不改变Spark使用方式的前提下而获得更好的性能和安全保证。
 ### FFI
 Rust 不支持源代码级别直接与其他语言的交互， 也就是说不支持直接在Rust code 中直接内嵌其他编程语言代码，而只支持以二进制库的方式来互相调用，所以语言界限清晰明确，避免了许多问题。
 总的来说，Rust可以与C较为方便地交互，从而可以与C交互的语言，大多都能与Rust进行交互。Scala作为JVM上的语言，与Java相近，而Java与C可以通过JNI协议进行交互（会丢失JVM的跨平台性）。所以，我们这里也遵循从C到Java到Scala的顺序，逐步实现Rust与Scala的交互。
-#### Rust<->C
-**Rust->C**
-
-**Rust<-C**
-
-#### Rust<->Scala
 
 #### 静态库与动态库的选取
 静态库：
@@ -41,4 +35,38 @@ Rust 不支持源代码级别直接与其他语言的交互， 也就是说不�
 2. 可以实现进程之间的资源共享。
 3. 对于用户而言，程序升级更简单。
 4. 链接载入可完全由程序员在程序代码中控制。
-#### 编程实例
+#### 编程实例 -->
+### 可行性
+Scala是在JVM上运行的语言，和Java比较相似。与其他语言交互时，主要有JNI(Java Native Interface), JNA(Java Native Access), OpenJDK project Panama三种方式。其中最常用的即为JNI接口。
+Rust则通过二进制接口的方式与其他语言进行交互，调用包含其它函数接口的二进制库，或生成二进制库供其他语言使用。
+在我们的项目中，由于希望保留scala的外部接口，所以选择scala为client语言，用Rust改进spark的一些功能，并将接口提供给scala语言下的spark框架使用。
+
+### 技术依据
+Scala可以与C通过JNI来交互，从而可以通过Rust的extern语法，按照C的方式调用JNI，并完成各类交互。
+然而，正如我们通常不会直接在Rust中通过二进制接口调用C的标准库函数，而是使用libc crate一样，直接使用JNI对C的接口会使得编程较为繁琐且不够安全，代码中的大量unsafe块使得程序稳定性大大下降，所以，我们选择对JNI进行了安全的封装的接口：**jni[^1] crate**。
+#### Rust调用Scala
+**数据交互**
+两种语言在进行交互时，必须使用两边共有的数据类型。
+对于基础的参数类型，可以直接用`jni::sys::*`模块提供的系列类型来声明，对照表如下：
+|Scala 类型  |Native 类型 |类型描述|
+|---|---|---|
+|boolean    |jboolean	|unsigned 8 bits|
+|byte	    |jbyte	    |signed 8 bits|
+|char	    |jchar	    |unsigned 16 bits|
+|short	    |jshort	    |signed 16 bits|
+|int	    |jint	    |signed 32 bits|
+|long	    |jlong	    |signed 64 bits|
+|float	    |jfloat	    |32 bits|
+|double	    |jdouble	|64 bits|
+|void	    |void	    |not applicable|
+对于复合类型，如对象等，则可以统一用`jni::objects::JObject`类型声明。该类型封装了由JVM返回的对象指针，并为该指针赋予了生命周期，以保证在Rust代码中的安全性。
+**方法交互**
+由于语言间对对象及其特性的实现不同，很难直接调用对方语言中的函数或方法。于是通常需要使用server-client模型，将执行函数或方法的任务交给sever语言，即：client传递所需的数据参数，并由server执行计算任务，并将最终结果返回给client。
+基于这种模型的设计，jni提供了调用scala中函数、对象方法以及获取对象数据域的方法。它们定义于`jni::JNIEnv`中，如接受对象、方法名和方法的签名与参数的`jni::JNIEnv::call_method`，接受对象、成员名、类型的`jni::JNIEnv::get_field`等
+此外，jni额外实现了一个`jni::objects::JString`接口，用以方便地实现字符串的传输。
+#### Scala调用Rust
+
+
+
+
+[^1]: https://crates.io/crates/jni
