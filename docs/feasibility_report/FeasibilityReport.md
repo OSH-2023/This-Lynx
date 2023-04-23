@@ -6,13 +6,24 @@
 ## 引言
 
 ## 理论依据
-### 源码基础上对spark性能瓶颈的rust重写
-基于spark源码的改进是其中一种方案。在源代码上进行修改，特别是用rust重写其中的性能瓶颈模块，特别是内存密集型、CPU密集型的部分，同时保留源码的非关键部分，特别是spark中原生的丰富API，由此达到以小范围的修改达到较为显著的性能提升的效果。
-在Spark的Scala源码与rust代码间的交互是这一方案中需要特别关注的点，主要是由于scala基于JVM，与非JVM语言的Rust之间，有较大的交互困难。我们将使用Scala的JNI(Java Native Interface)与Rust进行交互，我们这里使用jni crate，来实现两种语言间的交互。
 
-### 基于不完善的rust版spark开源项目vega的实现
-由于rust语言的诸多优点，用rust重写spark是一个非常有诱惑力的方案。此前，就已经有一个较为粗浅的基于rust的spark项目：vega（[Github仓库](https://github.com/rajasekarv/vega)）。这一项目完全使用rust从零写起，构建完成了一个较为简单的spark内核。不过，这一项目已经有两三年没有维护，项目里还有不少算法没有实现，特别是Spark后来的诸多优化更新，这些都是我们的改进空间。
+### 可行方案
 
+为了实现对Spark瓶颈的优化，我们经过调研，找到了两条可行的路线，分别为直接在Apache Spark源码基础上进行重写，以及基于一个不完善的开源项目进行修改。
+
+#### 源码基础上对Spark性能瓶颈的Rust重写
+
+在源代码上进行修改，考虑使用Rust重写其中的性能瓶颈模块，特别是内存密集型、CPU密集型的部分，同时保留源码的非关键部分，尤其是Spark中原生的丰富API，以此达到以小范围的修改达到较为显著的性能提升的效果。
+
+在Spark的Scala源码与Rust代码间的交互是这一方案中需要特别关注的点，主要是由于scala基于JVM，与非JVM语言的Rust之间，有较大的交互困难。我们考虑使用Scala的JNI(Java Native Interface)与Rust进行交互，我们这里使用jni crate来实现两种语言间的交互。
+
+优势：Spark文档比较详细，编译相对较为方便，且没有无法使用的风险。
+
+缺陷：Spark代码庞杂，显然无法全部重写，只能考虑回调，但从Rust回调scala又极少有人进行尝试，需要自行探索。
+
+#### 基于不完善的Rust版Spark开源项目vega的实现
+
+由于Rust语言的诸多优点，用Rust重写Spark是一个非常有诱惑力的方案。此前，就已经有一个较为粗浅的基于Rust的Spark项目：vega（[Github仓库](https://github.com/rajasekarv/vega)）。这一项目完全使用Rust从零写起，构建完成了一个较为简单的Spark内核。不过，这一项目已经有两三年没有维护，项目里还有不少算法没有实现，特别是Spark后来的诸多优化更新，这些都可以是我们的改进空间。
 
 ## 技术依据
 ### Spark build
@@ -66,6 +77,7 @@ Scala是在JVM上运行的语言，和Java比较相似，二者可以无缝衔�
 | double     | jdouble     | 64 bits          |
 | void       | void        | not applicable   |
 
+缺陷：vega文档不够详细，且已经不再处于被维护状态，假如遇到问题，可能很难解决。
 对于复合类型，如对象等，则可以统一用`jni::objects::JObject`类型声明。该类型封装了由JVM返回的对象指针，并为该指针赋予了生命周期，以保证在Rust代码中的安全性。
 **方法交互**
 由于语言间对对象及其特性的实现不同，很难直接调用对方语言中的函数或方法。于是通常需要使用server-client模型，将执行函数或方法的任务交给sever语言，即：client传递所需的数据参数，并由server执行计算任务，并将最终结果返回给client。
@@ -95,11 +107,11 @@ Cap'n Proto [^capnp] 是一种速度极快的数据交换格式，以及能力�
 
 ### 调度
 
-在Spark里，与调度相关的程序位于`spark-3.2.3/core/src/main/scala/org/apache/spark/scheduler/`目录下。
+在Spark里，与调度相关的程序位于`Spark-3.2.3/core/src/main/scala/org/apache/Spark/scheduler/`目录下。
 
 #### DAG调度的过程
 
-我们首先给出一个宏观的说法，其中的不同的名称会在后文进行解释。总的来说，调度由`DAGScheduler`控制，其通过RDD算子构建`DAG`，再基于RDD算子之间的依赖来切分所涉算子，最终得到一些`Stage`对象。每个`Stage`再基于`Partitioner`生成多个`Task`，每个`Stage`中的`Task`集合包装成一个`TaskSet`，生成一个`TaskSetManager`。这些`TaskSetManager`与其他的`Pool`被嵌套地放在`Pool`中，进行宏观的任务调度。[^spark]
+我们首先给出一个宏观的说法，其中的不同的名称会在后文进行解释。总的来说，调度由`DAGScheduler`控制，其通过RDD算子构建`DAG`，再基于RDD算子之间的依赖来切分所涉算子，最终得到一些`Stage`对象。每个`Stage`再基于`Partitioner`生成多个`Task`，每个`Stage`中的`Task`集合包装成一个`TaskSet`，生成一个`TaskSetManager`。这些`TaskSetManager`与其他的`Pool`被嵌套地放在`Pool`中，进行宏观的任务调度。[^Spark]
 
 ![submitJob](./src/submitjob.png)
 
@@ -156,7 +168,7 @@ Job --1 to N --> Stage --1 to N--> Task --N to 1 --> TaskSet --1 to 1 --> TaskSe
 
 #### 调度部分可以改进的内容
 
-添加调度算法，如调研报告内提到的利用协程方法实现随时将当前在进行处理的批数据暂停，切换到需要低延迟的流数据上去，在处理完流数据之后，再切换回批数据，在保证了流数据的低延迟的同时兼顾批数据的处理。
+添加调度算法，如调研报告内提到的利用协程方法实现随时将当前在进行处理的批数据暂停，切换到需要低延迟的流数据上去，在处理完流数据之后，再切换回批数据，在保证了流数据的低延迟的同时兼顾批数据的处理。[^neptune]
 
 #### 向调度部分添加内容时的注意事项
 
@@ -165,17 +177,19 @@ Job --1 to N --> Stage --1 to N--> Task --N to 1 --> TaskSet --1 to 1 --> TaskSe
  - 添加新数据结构时，更新`DAGSchedulerSuite.assertDataStructuresEmpty`函数，这有助于找到内存泄露。
 
 
-[^schedulable]: Apache. Job Scheduling. Apache Spark Documents. [EB/OL]. [2023-04-20]. https://spark.apache.org/docs/latest/job-scheduling.html
+[^schedulable]: Apache. Job Scheduling. Apache Spark Documents. [EB/OL]. [2023-04-20]. https://Spark.apache.org/docs/latest/job-scheduling.html
 
 [^100]:https://zhuanlan.zhihu.com/p/163067566
 
-[^spark]: IWBS. Spark. CSDN. [EB/OL]. [2023-04-20]. https://blog.csdn.net/asd491310/category_7797537.html
+[^Spark]: IWBS. Spark. CSDN. [EB/OL]. [2023-04-20]. https://blog.csdn.net/asd491310/category_7797537.html
+
+[^neptune]:Panagiotis Garefalakis, Konstantinos Karanasos, and Peter Pietzuch. 2019. Neptune: Scheduling Suspendable Tasks for Unified Stream/Batch Applications. In ACM Symposium on Cloud Computing (SoCC ’19), November 20–23, 2019, Santa Cruz, CA, USA. ACM, New York, NY, USA, 13 pages. https://doi.org/10.1145/3357223.3362724
 
 ### Spark Streaming
 Spark Streaming是Spark的一个扩展模块，它使得Spark可以支持可扩展、高吞吐量、容错的实时数据流处理。
 #### 架构
 **实现思想**
-![SparkStreamingStructure](http://spark.incubator.apache.org/docs/latest/img/streaming-flow.png)
+![SparkStreamingStructure](http://Spark.incubator.apache.org/docs/latest/img/streaming-flow.png)
 Spark Streaming采用微批次的思想，把输入的数据按时间间隔打包成作业提交（该时间间隔可以由用户指定），交由Spark核心进行计算。因此Spark Streaming本身并不进行计算任务。
 **组件**
 ![SparkStreamingItems](./src/SparkStreamingItems.png)
@@ -268,6 +282,48 @@ eventLoop则负责循环处理各种事件（如job的开始/完成）
 Spark Streaming是一个扩展模块，不是Spark的核心组件，因此在我们项目中的优先级应该比较靠后。
 若采用在源码基础上重写的方案，由于Spark Streaming本身并不承担计算任务，因此对其进行优化不会带来较大性能提升，可选择将其忽略。
 但vega目前还未实现流计算相关功能。若在vega的基础上进行改进，在有余力的情况下可以尝试在其基础上实现Streaming模块。
+
+## 技术依据
+### JNI交互
+Scala是在JVM上运行的语言，和Java比较相似，二者可以无缝衔接。在与其他语言交互时，主要有JNI(Java Native Interface), JNA(Java Native Access), OpenJDK project Panama三种方式。其中最常用的即为JNI接口。借由JNI，Scala可以与Java代码无缝衔接，而Java可以与C也通过JNI来交互。而Rust可通过二进制接口的方式与其他语言进行交互，特别是可以通过Rust的extern语法，十分方便地与C语言代码交互，按照C的方式调用JNI。这一套机制的组合之下，Scala和Rust的各类交互得到了保障。
+同时，正如我们通常不会直接在Rust中通过二进制接口调用C的标准库函数，而是使用libc crate一样，直接使用JNI对C的接口会使得编程较为繁琐且不够安全，代码中的大量unsafe块使得程序稳定性大大下降，所以，我们将选择对JNI进行了安全的封装的接口：**jni[^1] crate**。
+#### Rust调用Scala
+**数据交互**
+两种语言在进行交互时，必须使用两边共有的数据类型。
+对于基础的参数类型，可以直接用`jni::sys::*`模块提供的系列类型来声明，对照表如下：
+| Scala 类型 | Native 类型 | 类型描述         |
+| ---------- | ----------- | ---------------- |
+| boolean    | jboolean    | unsigned 8 bits  |
+| byte       | jbyte       | signed 8 bits    |
+| char       | jchar       | unsigned 16 bits |
+| short      | jshort      | signed 16 bits   |
+| int        | jint        | signed 32 bits   |
+| long       | jlong       | signed 64 bits   |
+| float      | jfloat      | 32 bits          |
+| double     | jdouble     | 64 bits          |
+| void       | void        | not applicable   |
+
+对于复合类型，如对象等，则可以统一用`jni::objects::JObject`类型声明。该类型封装了由JVM返回的对象指针，并为该指针赋予了生命周期，以保证在Rust代码中的安全性。
+**方法交互**
+由于语言间对对象及其特性的实现不同，很难直接调用对方语言中的函数或方法。于是通常需要使用server-client模型，将执行函数或方法的任务交给sever语言，即：client传递所需的数据参数，并由server执行计算任务，并将最终结果返回给client。
+基于这种模型的设计，jni提供了调用scala中函数、对象方法以及获取对象数据域的方法。它们定义于`jni::JNIEnv`中，如接受对象、方法名和方法的签名与参数的`jni::JNIEnv::call_method`，接受对象、成员名、类型的`jni::JNIEnv::get_field`等
+此外，jni额外实现了一个`jni::objects::JString`接口，用以方便地实现字符串的传输。
+#### Scala调用Rust
+Rust可以通过`pub unsafe extern "C" fn{}`来创建导出函数，或通过jni封装的函数`JNIEnv::register_native_methods`动态注册native方法。
+导出函数会通过函数名为Scala的对应类提供一个native的静态方法。
+动态注册会在JNI_Onload这个导出函数里执行，jvm加载jni动态库时会执行这个函数，从而加载注册的函数。
+在Rust中定义这些函数时，同样需要遵循上面的那些交互方法和规范。
+### Cap'n Proto[^1]
+Cap'n Proto是一种速度极快的数据交换格式，以及能力强大的RPC系统.
+![capnp](./src/Capnp.png)
+#### 优势:
+1. 递增读取:可以在整个Cap'n Proto 信息完全传递之前进行处理，这是因为外部对象完全出现在内部对象以前。
+2. 随机访问:你可以仅读取一条信息的一个字段而无需将整个对象翻译。
+3. MMAP:通过memory-mapping读取一个巨型文件，OS甚至不会读取你未访问的部分。
+4. 跨语言通讯:避免了从脚本语言调用C++代码的痛苦。使用Cap'n Proto可以让多种语言轻松地在同一个内存中的数据结构上进行操作。
+5. 通过共享内存可以让在同一台机器上多线程共同访问。不需要通过内核来产生管道来传输数据。
+6. Arena Allocation:Cap'n Proto对象始终以"arena"或者"region"风格进行分配，因此更快并且提升了缓存局部性。
+7. 微小生成代码:Protobuf为每个消息类型产生专一的解析和序列化代码，这种代码会变得庞大无比。
 
 ## 创新点
 
