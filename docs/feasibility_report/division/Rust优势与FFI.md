@@ -42,7 +42,7 @@ Rust则通过二进制接口的方式与其他语言进行交互，调用包含�
 在我们的项目中，由于希望保留scala的外部接口，所以选择scala为client语言，用Rust改进spark的一些功能，并将接口提供给scala语言下的spark框架使用。
 
 ### 技术依据
-Scala可以与C通过JNI来交互，从而可以通过Rust的extern语法，按照C的方式调用JNI，并完成各类交互。
+Scala可以与Java代码无缝衔接，而Java可以与C通过JNI来交互，所以可以通过Rust的extern语法，按照C的方式调用JNI，并完成Scala和Rust的各类交互。
 然而，正如我们通常不会直接在Rust中通过二进制接口调用C的标准库函数，而是使用libc crate一样，直接使用JNI对C的接口会使得编程较为繁琐且不够安全，代码中的大量unsafe块使得程序稳定性大大下降，所以，我们选择对JNI进行了安全的封装的接口：**jni[^1] crate**。
 #### Rust调用Scala
 **数据交互**
@@ -65,8 +65,10 @@ Scala可以与C通过JNI来交互，从而可以通过Rust的extern语法，按�
 基于这种模型的设计，jni提供了调用scala中函数、对象方法以及获取对象数据域的方法。它们定义于`jni::JNIEnv`中，如接受对象、方法名和方法的签名与参数的`jni::JNIEnv::call_method`，接受对象、成员名、类型的`jni::JNIEnv::get_field`等
 此外，jni额外实现了一个`jni::objects::JString`接口，用以方便地实现字符串的传输。
 #### Scala调用Rust
-
-
+Rust可以通过`pub unsafe extern "C" fn{}`来创建导出函数，或通过jni封装的函数`JNIEnv::register_native_methods`动态注册native方法。
+导出函数会通过函数名为Scala的对应类提供一个native的静态方法。
+动态注册会在JNI_Onload这个导出函数里执行，jvm加载jni动态库时会执行这个函数，从而加载注册的函数。
+在Rust中定义这些函数时，同样需要遵循上面的那些交互方法和规范。
 
 
 [^1]: https://crates.io/crates/jni
