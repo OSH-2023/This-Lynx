@@ -15,6 +15,38 @@
 
 
 ## 技术依据
+### Spark build
+#### Maven--用于Java项目的构建自动化工具
+
+**Maven**是用于Java项目的构建自动化工具，而Spark使用Scala编写，Scala与Java共享JVM生态，因此Spark可以使用Maven进行构建和编译.
+Maven解决了构建软件的两个方面:如何构建软件及其依赖关系。[^wiki](https://en.wikipedia.org/wiki/Apache_Maven)
+- 普通管用Maven项目的目录具有以下目录条目
+
+|目录名称	|目的|
+|---|---|
+|项目主页	| 包含 pom.xml 和所有子目录。|
+|src/main/java	| 包含项目的可交付结果 Java 源代码。
+|SRC/main/src	| 包含项目的可交付结果资源，例如属性文件。
+|src/test/java	| 包含项目的测试 Java 源代码（例如 JUnit 或 TestNG 测试用例）。|
+|src/test/resources |	包含测试所需的资源。|
+
+- Maven 常用命令
+    - mvn clean: 清理
+    - mvn compile: 编译主程序
+    - mvn test-compile: 编译测试程序
+    - mvn test: 执行测试
+    - mvn package: 打包
+    - mvn install: 安装
+-   下载源码
+    [SparkDownload](https://spark.apache.org/downloads.html)
+    注意:
+    1. Choose a Spark release:3.2.3(Nov 28,2022)
+    2. Choose a package type:Source Code
+    3. Download Spark:spark-3.2.3.tgz
+-   构建命令
+    > ./build/mvn -Phadoop-3.2 -Pyarn -Dhadoop.version=3.2.2 -Phive -Phive-thriftserver -DskipTests clean package
+    
+![SparkBuild](./src/SparkBuild.png)
 ### JNI交互
 Scala是在JVM上运行的语言，和Java比较相似，二者可以无缝衔接。在与其他语言交互时，主要有JNI(Java Native Interface), JNA(Java Native Access), OpenJDK project Panama三种方式。其中最常用的即为JNI接口。借由JNI，Scala可以与Java代码无缝衔接，而Java可以与C也通过JNI来交互。而Rust可通过二进制接口的方式与其他语言进行交互，特别是可以通过Rust的extern语法，十分方便地与C语言代码交互，按照C的方式调用JNI。这一套机制的组合之下，Scala和Rust的各类交互得到了保障。
 同时，正如我们通常不会直接在Rust中通过二进制接口调用C的标准库函数，而是使用libc crate一样，直接使用JNI对C的接口会使得编程较为繁琐且不够安全，代码中的大量unsafe块使得程序稳定性大大下降，所以，我们将选择对JNI进行了安全的封装的接口：**jni[^1] crate**。
@@ -44,9 +76,11 @@ Rust可以通过`pub unsafe extern "C" fn{}`来创建导出函数，或通过jni
 导出函数会通过函数名为Scala的对应类提供一个native的静态方法。
 动态注册会在JNI_Onload这个导出函数里执行，jvm加载jni动态库时会执行这个函数，从而加载注册的函数。
 在Rust中定义这些函数时，同样需要遵循上面的那些交互方法和规范。
-### Cap'n Proto[^1]
-Cap'n Proto是一种速度极快的数据交换格式，以及能力强大的RPC系统.
+### Cap'n Proto
+Cap'n Proto [^capnp] 是一种速度极快的数据交换格式，以及能力强大的RPC系统.
 ![capnp](./src/Capnp.png)
+
+[^capnp]:https://capnproto.org/
 #### 优势:
 1. 递增读取:可以在整个Cap'n Proto 信息完全传递之前进行处理，这是因为外部对象完全出现在内部对象以前。
 2. 随机访问:你可以仅读取一条信息的一个字段而无需将整个对象翻译。
