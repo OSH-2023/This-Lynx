@@ -170,6 +170,54 @@ Job --1 to N --> Stage --1 to N--> Task --N to 1 --> TaskSet --1 to 1 --> TaskSe
 [^Spark]: IWBS. Spark. CSDN. [EB/OL]. [2023-04-20]. https://blog.csdn.net/asd491310/category_7797537.html
 
 [^neptune]:Panagiotis Garefalakis, Konstantinos Karanasos, and Peter Pietzuch. 2019. Neptune: Scheduling Suspendable Tasks for Unified Stream/Batch Applications. In ACM Symposium on Cloud Computing (SoCC ’19), November 20–23, 2019, Santa Cruz, CA, USA. ACM, New York, NY, USA, 13 pages. https://doi.org/10.1145/3357223.3362724
+### 计算引擎核心类
+#### ExternalSorter
+![ExternalSorter](./src/ExternalSorter.png)
+构造参数:
+- aggregator 可选的聚合器，带有combine function
+- partitioner 可选的划分，partition ID用于排序,然后是key
+- ordering 在partition内部使用的排序顺序
+
+主要方法:
+1. `spillMemoryIteratorToDisk(WriteablePartitionedIterator[K,C])->SpilledFile`
+将溢出的内存里的迭代器对应的内容放到临时磁盘中
+2. `insertAll(Iterator[Product2[K,V]])->Unit`
+利用自定义的AppendOnlyMap将records进行更新（缓存聚合）
+3. 
+``` java
+    mergeWithAggregation(
+        iterators: Seq[Iterator[Product2[K, C]]],
+        mergeCombiners: (C, C) => C,
+        comparator: Comparator[K],
+        totalOrder: Boolean)
+    ->Iterator[Product2[K, C]]
+```
+
+将一系列(K,C)迭代器按照key进行聚合，假定每一个迭代器都已经按照key使用给定的比较器排序.
+
+#### AppendOnlyMap/ExternalAppendOnlyMap
+类型签名:
+`class AppendOnlyMap[K, V](initialCapacity: Int = 64) extends Iterable[(K, V)] with Serializable `
+
+功能介绍:
+本质上是一种简单的哈希表，对于append-only的情况进行了优化，也就是说keys不会被移除，但是每一种Key的value可能发生改变。
+这个实现使用了平方探测法，哈希表的大小是2^n，保证对于每一个key都能浏览所有的空间。
+hash的函数使用了Murmur3_32函数（外部库）
+空间上界:`375809638 (0.7 * 2 ^ 29)` elements.
+
+成员变量功能:
+- LOAD_FACTOR: 负载因子，常量值=0.7
+- initialCapacity: 初始容量值64
+- capacity: 容量，初始时=initialCapacity
+- curSize: 记录当前已经放入data的key与聚合值的数量
+- data: 数组，初始大小为2*capacity,data数组的实际大小之所以是capacity的2倍是因为key和聚合值各占一位
+- growThreshhold:data数组容量增加的阈值
+$growThreshold=LOAD\_FACTOR*capacity$
+- mask: 计算数据存放位置的掩码值，表达式为capacity-1
+- k: 要放入data的key
+- pos: k将要放入data的索引值
+- curKey: data[2*pos]位置的当前key
+- newValue: key的聚合值
 
 ### Spark Streaming
 Spark Streaming是Spark的一个扩展模块，它使得Spark可以支持可扩展、高吞吐量、容错的实时数据流处理。
