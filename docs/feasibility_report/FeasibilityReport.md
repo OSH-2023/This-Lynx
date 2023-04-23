@@ -111,7 +111,7 @@ Job --1 to N --> Stage --1 to N--> Task --N to 1 --> TaskSet --1 to 1 --> TaskSe
 
 ### Spark Streaming
 Spark Streaming是Spark的一个扩展模块，它使得Spark可以支持可扩展、高吞吐量、容错的实时数据流处理。
-#### 架构
+#### 架构[^SparkStreamingStructure]
 **实现思想**
 ![SparkStreamingStructure](http://Spark.incubator.apache.org/docs/latest/img/streaming-flow.png)
 Spark Streaming采用微批次的思想，把输入的数据按时间间隔打包成作业提交（该时间间隔可以由用户指定），交由Spark核心进行计算。因此Spark Streaming本身并不进行计算任务。
@@ -206,6 +206,7 @@ eventLoop则负责循环处理各种事件（如job的开始/完成）
 Spark Streaming是一个扩展模块，不是Spark的核心组件，因此在我们项目中的优先级应该比较靠后。
 若采用在源码基础上重写的方案，由于Spark Streaming本身并不承担计算任务，因此对其进行优化不会带来较大性能提升，可选择将其忽略。
 但vega目前还未实现流计算相关功能。若在vega的基础上进行改进，在有余力的情况下可以尝试在其基础上实现Streaming模块。
+[^SparkStreamingStructure]: Spark Streaming Programming Guide https://spark.apache.org/docs/latest/streaming-programming-guide.html
 
 ## 技术依据
 ### JNI交互
