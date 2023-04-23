@@ -2,6 +2,7 @@
 
 OSH-2023 team project repo, our chinese team name is "芝士猞猁".
 
+```
  ________ __       __          __                                  
 |        \  \     |  \        |  \                                 
  \▓▓▓▓▓▓▓▓ ▓▓____  \▓▓ _______| ▓▓      __    __ _______  __    __ 
@@ -14,7 +15,7 @@ OSH-2023 team project repo, our chinese team name is "芝士猞猁".
                                        |  \__| ▓▓                  
                                         \▓▓    ▓▓                  
                                          \▓▓▓▓▓▓                   
-
+```
 
 ## Topic
 
