@@ -48,7 +48,8 @@
 #### Maven--用于Java项目的构建自动化工具
 
 **Maven**是用于Java项目的构建自动化工具，而Spark使用Scala编写，Scala与Java共享JVM生态，因此Spark可以使用Maven进行构建和编译.
-Maven解决了构建软件的两个方面:如何构建软件及其依赖关系。[^wiki](https://en.wikipedia.org/wiki/Apache_Maven)
+Maven解决了构建软件的两个方面:如何构建软件及其依赖关系。[^wiki]
+[^wiki]:Apach_Maven https://en.wikipedia.org/wiki/Apache_Maven
 - 普通管用Maven项目的目录具有以下目录条目
 
 | 目录名称           | 目的                                                          |
@@ -416,3 +417,4 @@ Rust为了获取安全性和高性能，对程序员施加了较多的规则，�
 
 [^spark_optimize]:王家林. Spark内核机制解析及性能调优. 2017.
 [^jni]:https://crates.io/crates/jni
+[^capnp]: Cap’n Proto is an insanely fast data interchange format and capability-based RPC system. https://capnproto.org/
