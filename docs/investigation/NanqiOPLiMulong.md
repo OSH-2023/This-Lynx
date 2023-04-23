@@ -106,7 +106,7 @@ Streaming Context
 2. ReceiverTracker启动时会通知ReceiverSupervisor启动，ReceiverSupervisor会启动流数据接收器Receiver。Receiver会不断接收实时流数据，交给ReceiverSupervisor存储为blocks，存储完毕后ReceiverSupervisor会将元数据发给ReceiverTracker，ReceiverTracker再将数据转发给ReceiverBlockTracker，由它管理元信息。
 3. JobGenerator中维护一个定时器，它在批处理时间到来时会生成作业，作业执行过程如下：
 (1)通知ReceiverTracker将接收到的数据进行提交，在提交时采用synchronized关键字进行处理，保证每条数据被划入一个且只被划入一个批次中。
-(2)要求DStreamGraph根据DSream依赖关系生成作业序列Seq[Job]。
+(2)要求DStreamGraph根据DStream依赖关系生成作业序列Seq[Job]。
 (3)从第一步中ReceiverTracker获取本批次数据的元数据。
 (4)把批处理时间time、作业序列Seq[Job]和本批次数据的元数据包装为JobSet，调用JobScheduler.submitJobSet(JobSet)提交给JobScheduler，JobScheduler将把这些作业发送给Spark核心进行处理，由于该执行为异步，因此本步执行速度将非常快。
 (5)只要提交结束（不管作业是否被执行），SparkStreaming对整个系统做一个检查点（Checkpoint）。
