@@ -288,7 +288,7 @@ Rust可以通过`pub unsafe extern "C" fn{}`来创建导出函数，或通过jni
 ### Cap'n Proto
 Cap'n Proto[^1]是一种速度极快的数据交换格式，以及能力强大的RPC系统.
 ![capnp](./src/Capnp.png)
-#### 优势:
+#### 优势
 1. 递增读取:可以在整个Cap'n Proto 信息完全传递之前进行处理，这是因为外部对象完全出现在内部对象以前。
 2. 随机访问:你可以仅读取一条信息的一个字段而无需将整个对象翻译。
 3. MMAP:通过memory-mapping读取一个巨型文件，OS甚至不会读取你未访问的部分。
