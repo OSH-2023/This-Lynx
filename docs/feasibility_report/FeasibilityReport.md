@@ -1,33 +1,43 @@
 # 可行性报告
-## 理论依据
-1. 基于JNI使用Scala和rust进行交互
-Scala是在JVM上运行的语言，和Java比较相似。与其他语言交互时，主要有JNI(Java Native Interface), JNA(Java Native Access), OpenJDK project Panama三种方式。其中最常用的即为JNI接口。
-Rust则通过二进制接口的方式与其他语言进行交互，调用包含其它函数接口的二进制库，或生成二进制库供其他语言使用。
-在我们的项目中，由于希望保留scala的外部接口，所以选择scala为client语言，用Rust改进spark的一些功能，并将实现的接口提供给scala语言下的spark框架使用。
+## 技术方案
+### 源码基础上对spark性能瓶颈的rust重写
+基于spark源码的改进是其中一种方案。在源代码上进行修改，特别是用rust重写其中的性能瓶颈模块，特别是内存密集型、CPU密集型的部分，同时保留源码的非关键部分，特别是spark中原生的丰富API，由此达到以小范围的修改达到较为显著的性能提升的效果。
+在Spark的Scala源码与rust代码间的交互是这一方案中需要特别关注的点，主要是由于scala基于JVM，而rust基于机器语言，其间交互较为复杂。我们将使用Scala的JNI(Java Native Interface)与Rust的FFI，可能还会借助中介语言的接口，来实现两种语言间的交互。
 
-2. 基于vega的实现
-Spark编译
-RPC的一种实现:capnp
-vega
+### 基于不完善的rust版spark开源项目vega的实现
+
+## 理论依据
+### 可优化性
+在Rust语言下，原版Spark的性能有巨大的可优化空间。
+
+
+
+### 可实施性
+#### 基于动态链接编译的可行性
+
+
+
+#### 基于一个不完善的rust版spark开源项目
+
 ## 技术依据
 ### JNI交互
-Scala可以与Java代码无缝衔接，而Java可以与C通过JNI来交互，所以可以通过Rust的extern语法，按照C的方式调用JNI，并完成Scala和Rust的各类交互。
-然而，正如我们通常不会直接在Rust中通过二进制接口调用C的标准库函数，而是使用libc crate一样，直接使用JNI对C的接口会使得编程较为繁琐且不够安全，代码中的大量unsafe块使得程序稳定性大大下降，所以，我们选择对JNI进行了安全的封装的接口：**jni[^1] crate**。
+Scala是在JVM上运行的语言，和Java比较相似。与其他语言交互时，主要有JNI(Java Native Interface), JNA(Java Native Access), OpenJDK project Panama三种方式。其中最常用的即为JNI接口。借由JNI，Scala可以与Java代码无缝衔接，而Java可以与C也通过JNI来交互。而Rust可通过二进制接口的方式与其他语言进行交互，特别是可以通过Rust的extern语法，十分方便地与C语言代码交互，按照C的方式调用JNI。这一套机制的组合之下，Scala和Rust的各类交互得到了保障。
+同时，正如我们通常不会直接在Rust中通过二进制接口调用C的标准库函数，而是使用libc crate一样，直接使用JNI对C的接口会使得编程较为繁琐且不够安全，代码中的大量unsafe块使得程序稳定性大大下降，所以，我们将选择对JNI进行了安全的封装的接口：**jni[^1] crate**。
 #### Rust调用Scala
 **数据交互**
 两种语言在进行交互时，必须使用两边共有的数据类型。
 对于基础的参数类型，可以直接用`jni::sys::*`模块提供的系列类型来声明，对照表如下：
-|Scala 类型  |Native 类型 |类型描述|
-|---|---|---|
-|boolean    |jboolean	|unsigned 8 bits|
-|byte	    |jbyte	    |signed 8 bits|
-|char	    |jchar	    |unsigned 16 bits|
-|short	    |jshort	    |signed 16 bits|
-|int	    |jint	    |signed 32 bits|
-|long	    |jlong	    |signed 64 bits|
-|float	    |jfloat	    |32 bits|
-|double	    |jdouble	|64 bits|
-|void	    |void	    |not applicable|
+| Scala 类型 | Native 类型 | 类型描述         |
+| ---------- | ----------- | ---------------- |
+| boolean    | jboolean    | unsigned 8 bits  |
+| byte       | jbyte       | signed 8 bits    |
+| char       | jchar       | unsigned 16 bits |
+| short      | jshort      | signed 16 bits   |
+| int        | jint        | signed 32 bits   |
+| long       | jlong       | signed 64 bits   |
+| float      | jfloat      | 32 bits          |
+| double     | jdouble     | 64 bits          |
+| void       | void        | not applicable   |
 对于复合类型，如对象等，则可以统一用`jni::objects::JObject`类型声明。该类型封装了由JVM返回的对象指针，并为该指针赋予了生命周期，以保证在Rust代码中的安全性。
 **方法交互**
 由于语言间对对象及其特性的实现不同，很难直接调用对方语言中的函数或方法。于是通常需要使用server-client模型，将执行函数或方法的任务交给sever语言，即：client传递所需的数据参数，并由server执行计算任务，并将最终结果返回给client。
