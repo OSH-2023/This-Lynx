@@ -2,6 +2,8 @@
 
 - [引言](#引言)
 - [理论依据](#理论依据)
+  - [Spark build](#spark-build)
+    - [Maven--用于Java项目的构建自动化工具](#maven--用于java项目的构建自动化工具)
   - [调度](#调度)
     - [DAG调度的过程](#dag调度的过程)
     - [调度算法](#调度算法)
@@ -40,6 +42,41 @@
 本文针对本小组选题**基于Rust语言对Apache Spark性能瓶颈的优化**进行了可行性的报告。本小组经过阅读Spark源码，查阅文档，查找了相关资料，给出了两条可行方案，并最终确立了最终方案。
 
 ## 理论依据
+
+### Spark build
+
+#### Maven--用于Java项目的构建自动化工具
+
+**Maven**是用于Java项目的构建自动化工具，而Spark使用Scala编写，Scala与Java共享JVM生态，因此Spark可以使用Maven进行构建和编译.
+Maven解决了构建软件的两个方面:如何构建软件及其依赖关系。[^wiki](https://en.wikipedia.org/wiki/Apache_Maven)
+- 普通管用Maven项目的目录具有以下目录条目
+
+| 目录名称           | 目的                                                          |
+| ------------------ | ------------------------------------------------------------- |
+| 项目主页           | 包含 pom.xml 和所有子目录。                                   |
+| src/main/java      | 包含项目的可交付结果 Java 源代码。                            |
+| SRC/main/src       | 包含项目的可交付结果资源，例如属性文件。                      |
+| src/test/java      | 包含项目的测试 Java 源代码（例如 JUnit 或 TestNG 测试用例）。 |
+| src/test/resources | 包含测试所需的资源。                                          |
+
+- Maven 常用命令
+    - mvn clean: 清理
+    - mvn compile: 编译主程序
+    - mvn test-compile: 编译测试程序
+    - mvn test: 执行测试
+    - mvn package: 打包
+    - mvn install: 安装
+-   下载源码
+    [SparkDownload](https://spark.apache.org/downloads.html)
+    注意:
+    1. Choose a Spark release:3.2.3(Nov 28,2022)
+    2. Choose a package type:Source Code
+    3. Download Spark:spark-3.2.3.tgz
+-   构建命令
+    > ./build/mvn -Phadoop-3.2 -Pyarn -Dhadoop.version=3.2.2 -Phive -Phive-thriftserver -DskipTests clean package
+    
+![SparkBuild](./src/SparkBuild.png)
+
 
 ### 调度
 
