@@ -145,7 +145,7 @@ Job --1 to N --> Stage --1 to N--> Task --N to 1 --> TaskSet --1 to 1 --> TaskSe
 
 
 
-
+[^spark_optimize]王家林. Spark内核机制解析及性能调优. 2017.
 
 
 
