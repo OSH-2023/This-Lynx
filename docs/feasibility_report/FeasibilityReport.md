@@ -2,11 +2,6 @@
 
 - [引言](#引言)
 - [理论依据](#理论依据)
-  - [可行方案](#可行方案)
-    - [源码基础上对Spark性能瓶颈的Rust重写](#源码基础上对spark性能瓶颈的rust重写)
-    - [基于不完善的Rust版Spark开源项目vega的实现](#基于不完善的rust版spark开源项目vega的实现)
-  - [Spark build](#spark-build)
-    - [Maven--用于Java项目的构建自动化工具](#maven--用于java项目的构建自动化工具)
   - [调度](#调度)
     - [DAG调度的过程](#dag调度的过程)
     - [调度算法](#调度算法)
@@ -31,6 +26,9 @@
     - [优势](#优势)
 - [创新点](#创新点)
 - [概要设计报告](#概要设计报告)
+  - [可行方案](#可行方案)
+    - [源码基础上对Spark性能瓶颈的Rust重写](#源码基础上对spark性能瓶颈的rust重写)
+    - [基于不完善的Rust版Spark开源项目vega的实现](#基于不完善的rust版spark开源项目vega的实现)
 - [进度管理](#进度管理)
 
 ## 小组成员 <!-- omit in toc -->
@@ -39,61 +37,9 @@
 
 ## 引言
 
-本报告
+本文针对本小组选题**基于Rust语言对Apache Spark性能瓶颈的优化**进行了可行性的报告。本小组经过阅读Spark源码，查阅文档，查找了相关资料，给出了两条可行方案，并最终确立了最终方案。
 
 ## 理论依据
-
-### 可行方案
-
-为了实现对Spark瓶颈的优化，我们经过调研，找到了两条可行的路线，分别为直接在Apache Spark源码基础上进行重写，以及基于一个不完善的开源项目进行修改。
-
-#### 源码基础上对Spark性能瓶颈的Rust重写
-
-在源代码上进行修改，考虑使用Rust重写其中的性能瓶颈模块，特别是内存密集型、CPU密集型的部分，同时保留源码的非关键部分，尤其是Spark中原生的丰富API，以此达到以小范围的修改达到较为显著的性能提升的效果。
-
-在Spark的Scala源码与Rust代码间的交互是这一方案中需要特别关注的点，主要是由于scala基于JVM，与非JVM语言的Rust之间，有较大的交互困难。我们考虑使用Scala的JNI(Java Native Interface)与Rust进行交互，我们这里使用jni crate来实现两种语言间的交互。
-
-优势：Spark文档比较详细，编译相对较为方便，且没有无法使用的风险。
-
-缺陷：Spark代码庞杂，显然无法全部重写，只能考虑回调，但从Rust回调scala又极少有人进行尝试，需要自行探索。
-
-#### 基于不完善的Rust版Spark开源项目vega的实现
-
-由于Rust语言的诸多优点，用Rust重写Spark是一个非常有诱惑力的方案。此前，就已经有一个较为粗浅的基于Rust的Spark项目：vega（[Github仓库](https://github.com/rajasekarv/vega)）。这一项目完全使用Rust从零写起，构建完成了一个较为简单的Spark内核。不过，这一项目已经有两三年没有维护，项目里还有不少算法没有实现，特别是Spark后来的诸多优化更新，这些都可以是我们的改进空间。
-
-
-### Spark build
-#### Maven--用于Java项目的构建自动化工具
-
-**Maven**是用于Java项目的构建自动化工具，而Spark使用Scala编写，Scala与Java共享JVM生态，因此Spark可以使用Maven进行构建和编译.
-Maven解决了构建软件的两个方面:如何构建软件及其依赖关系。[^wiki](https://en.wikipedia.org/wiki/Apache_Maven)
-- 普通管用Maven项目的目录具有以下目录条目
-
-| 目录名称           | 目的                                                          |
-| ------------------ | ------------------------------------------------------------- |
-| 项目主页           | 包含 pom.xml 和所有子目录。                                   |
-| src/main/java      | 包含项目的可交付结果 Java 源代码。                            |
-| SRC/main/src       | 包含项目的可交付结果资源，例如属性文件。                      |
-| src/test/java      | 包含项目的测试 Java 源代码（例如 JUnit 或 TestNG 测试用例）。 |
-| src/test/resources | 包含测试所需的资源。                                          |
-
-- Maven 常用命令
-    - mvn clean: 清理
-    - mvn compile: 编译主程序
-    - mvn test-compile: 编译测试程序
-    - mvn test: 执行测试
-    - mvn package: 打包
-    - mvn install: 安装
--   下载源码
-    [SparkDownload](https://spark.apache.org/downloads.html)
-    注意:
-    1. Choose a Spark release:3.2.3(Nov 28,2022)
-    2. Choose a package type:Source Code
-    3. Download Spark:spark-3.2.3.tgz
--   构建命令
-    > ./build/mvn -Phadoop-3.2 -Pyarn -Dhadoop.version=3.2.2 -Phive -Phive-thriftserver -DskipTests clean package
-    
-![SparkBuild](./src/SparkBuild.png)
 
 ### 调度
 
@@ -397,6 +343,28 @@ Spark 是一个分布式计算框架，具有良好的并发性能。而 Rust �
 Rust为了获取安全性和高性能，对程序员施加了较多的规则，在编译期进行了较为严格的检查（内存安全正），使得编程难度显著提高。但是如果熟悉了它的编程风格，就可以轻松写出安全而高效的代码。此外，用Rust编写的代码，只要能够通过编译，基本就可以正常运行，且在调试代码时，可以分模块测试而不用担心它们的互相影响————这提高了调试代码的效率，而且适于多人协作开发（在函数式编程方式下尤是如此）。
 
 ## 概要设计报告
+
+### 可行方案
+
+为了实现对Spark瓶颈的优化，我们经过调研，找到了两条可行的路线，分别为直接在Apache Spark源码基础上进行重写，以及基于一个不完善的开源项目进行修改。
+
+#### 源码基础上对Spark性能瓶颈的Rust重写
+
+在源代码上进行修改，考虑使用Rust重写其中的性能瓶颈模块，特别是内存密集型、CPU密集型的部分，同时保留源码的非关键部分，尤其是Spark中原生的丰富API，以此达到以小范围的修改达到较为显著的性能提升的效果。
+
+在Spark的Scala源码与Rust代码间的交互是这一方案中需要特别关注的点，主要是由于scala基于JVM，与非JVM语言的Rust之间，有较大的交互困难。我们考虑使用Scala的JNI(Java Native Interface)与Rust进行交互，我们这里使用jni crate来实现两种语言间的交互。
+
+优势：Spark文档比较详细，编译相对较为方便，且没有无法使用的风险。
+
+缺陷：Spark代码庞杂，显然无法全部重写，只能考虑回调，但从Rust回调scala又极少有人进行尝试，需要自行探索。
+
+#### 基于不完善的Rust版Spark开源项目vega的实现
+
+由于Rust语言的诸多优点，用Rust重写Spark是一个非常有诱惑力的方案。此前，就已经有一个较为粗浅的基于Rust的Spark项目：vega（[Github仓库](https://github.com/rajasekarv/vega)）。这一项目完全使用Rust从零写起，构建完成了一个较为简单的Spark内核。不过，这一项目已经有两三年没有维护，项目里还有不少算法没有实现，特别是Spark后来的诸多优化更新，这些都可以是我们的改进空间。
+
+优势：vega总代码量较少，修改起来较方便。且为原生Rust项目，不需要回调。
+
+缺陷：vega文档不够详细，且已经不再处于被维护状态，假如遇到问题，可能很难解决。
 
 
 ## 进度管理
