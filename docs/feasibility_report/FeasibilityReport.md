@@ -74,8 +74,9 @@ Maven解决了构建软件的两个方面:如何构建软件及其依赖关系�
     2. Choose a package type:Source Code
     3. Download Spark:spark-3.2.3.tgz
 -   构建命令
-    > ./build/mvn -Phadoop-3.2 -Pyarn -Dhadoop.version=3.2.2 -Phive -Phive-thriftserver -DskipTests clean package
-    
+    ```shell
+    ./build/mvn -Phadoop-3.2 -Pyarn -Dhadoop.version=3.2.2 -Phive -Phive-thriftserver -DskipTests clean package
+    ```
 ![SparkBuild](./src/SparkBuild.png)
 
 
@@ -442,5 +443,5 @@ Rust为了获取安全性和高性能，对程序员施加了较多的规则，�
 |第十六周|跑benchmark,部署测试|
 
 [^spark_optimize]:王家林. Spark内核机制解析及性能调优. 2017.
-[^jni]:https://crates.io/crates/jni
+[^jni]:Rust jni crate https://crates.io/crates/jni
 [^capnp]: Cap’n Proto is an insanely fast data interchange format and capability-based RPC system. https://capnproto.org/
