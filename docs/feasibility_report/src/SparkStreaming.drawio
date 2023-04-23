@@ -1,0 +1,28 @@
+<mxfile host="65bd71144e">
+    <diagram id="0b034_J6o35Sk4ecnv_r" name="第 1 页">
+        <mxGraphModel dx="1788" dy="556" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="2" value="&lt;font style=&quot;font-size: 70px;&quot;&gt;Streaming Context&lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="-10" y="50" width="850" height="390" as="geometry"/>
+                </mxCell>
+                <mxCell id="5" value="DStream Graph&lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;br&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=24;" vertex="1" parent="1">
+                    <mxGeometry x="10" y="190" width="210" height="190" as="geometry"/>
+                </mxCell>
+                <mxCell id="7" value="DStream" style="shape=datastore;whiteSpace=wrap;html=1;fontSize=24;" vertex="1" parent="1">
+                    <mxGeometry x="60.5" y="280" width="109" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="8" value="Job Scheduler&lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;br&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=24;" vertex="1" parent="1">
+                    <mxGeometry x="280" y="190" width="540" height="190" as="geometry"/>
+                </mxCell>
+                <mxCell id="10" value="Job&lt;br&gt;Generator" style="rounded=1;whiteSpace=wrap;html=1;fontSize=24;" vertex="1" parent="1">
+                    <mxGeometry x="340" y="280" width="170" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="11" value="Receiver&lt;br&gt;Tracker" style="rounded=1;whiteSpace=wrap;html=1;fontSize=24;" vertex="1" parent="1">
+                    <mxGeometry x="590" y="280" width="180" height="90" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
