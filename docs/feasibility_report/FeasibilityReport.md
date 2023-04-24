@@ -75,8 +75,9 @@ Maven解决了构建软件的两个方面:如何构建软件及其依赖关系�
     2. Choose a package type:Source Code
     3. Download Spark:spark-3.2.3.tgz
 -   构建命令
-    > ./build/mvn -Phadoop-3.2 -Pyarn -Dhadoop.version=3.2.2 -Phive -Phive-thriftserver -DskipTests clean package
-    
+    ```shell
+    ./build/mvn -Phadoop-3.2 -Pyarn -Dhadoop.version=3.2.2 -Phive -Phive-thriftserver -DskipTests clean package
+    ```
 ![SparkBuild](./src/SparkBuild.png)
 
 
@@ -167,12 +168,15 @@ Job --1 to N --> Stage --1 to N--> Task --N to 1 --> TaskSet --1 to 1 --> TaskSe
 在MapReduce框架中，Shuffle阶段是连接Map和Reduce之间的桥梁，Map阶段通过Shuffle过程将数据输出到Reduce阶段中。由于Shuffle涉及十分密集的磁盘的读写和网络I／O，因此Shuffle性能的高低直接影响整个程序的性能。Spark本质上与MapReduce框架十分相似，因此也有自己的Shuffle过程实现。
 
 #### ShuffleManager架构
+
 在Driver和每个Executor的SparkEnv实例化过程中，都会创建一个ShuffleManager，用于管理块数据，提供集群块数据的读写，包括数据的本地读写和读取远程RDD结点的块数据。在RDD间存在宽依赖时，需要进行Shuffle操作，此时便需要将Spark作业（Job）划分成多个Stage，并在划分Stage的关键点———构建ShuffleDependency时———利用ShuffleManager进行Shuffle注册，获取后续数据读写所需的ShuffleHandle。
 
 ShuffleManager中的shuffleBlockResolver是Shuffle的块解析器，该解析器为数据块的读写提供支撑层，便于抽象具体的实现细节。基于此，有宽依赖关系的RDD执行compute时就可以读取上一Stage为其输出的Shuffle数据，并将计算结果传入下一stage。[^spark_optimize]
 
 #### 可改进的点
+
 ShuffleManager在生成依赖关系及RDD获取依赖关系过程中所需的计算使用频繁，可以在rust中得到优化。同时，Shuffle算法也极为关键，必须使用当前的SOTA算法，如在Vega中，只实现了最基础的HashShuffleManager，而没有实现性能更高的SortShuffleManager，这是极为明显的可以优化的点
+
 ### 计算引擎核心类
 #### ExternalSorter
 ![ExternalSorter](./src/ExternalSorter.png)
@@ -199,6 +203,7 @@ ShuffleManager在生成依赖关系及RDD获取依赖关系过程中所需的计
 将一系列(K,C)迭代器按照key进行聚合，假定每一个迭代器都已经按照key使用给定的比较器排序.
 
 #### AppendOnlyMap/ExternalAppendOnlyMap
+
 类型签名:
 `class AppendOnlyMap[K, V](initialCapacity: Int = 64) extends Iterable[(K, V)] with Serializable `
 
@@ -223,8 +228,10 @@ $growThreshold=LOAD\_FACTOR*capacity$
 - newValue: key的聚合值
 
 ### Spark Streaming
+
 Spark Streaming[^SparkStreamingStructure]是Spark的一个扩展模块，它使得Spark可以支持可扩展、高吞吐量、容错的实时数据流处理。
 #### 架构
+
 **实现思想**
 ![SparkStreamingStructure](http://Spark.incubator.apache.org/docs/latest/img/streaming-flow.png)
 Spark Streaming采用微批次的思想，把输入的数据按时间间隔打包成作业提交（该时间间隔可以由用户指定），交由Spark核心进行计算。因此Spark Streaming本身并不进行计算任务。
@@ -237,6 +244,7 @@ Spark Streaming采用微批次的思想，把输入的数据按时间间隔打�
 **JobGenerator类：** JobGenerator负责从DStream产生jobs。其内部有一个定时器，会定时调用generateJobs方法。
 **ReceiverTracker类：** 负责管理和控制receiver的状态。
 #### 源码分析
+
 在对Spark Streaming源码的分析中，省略了大部分的变量、方法和所有方法的具体实现，只保留了关键的变量/常量和关键方法的声明。
 **StreamingContext**
 ```scala
@@ -315,7 +323,9 @@ jobGenerator负责生成作业。
 eventLoop则负责循环处理各种事件（如job的开始/完成）
 `start()`方法用于启动JobScheduler，它会创建并启动eventLoop、receiverTracker等组件，并启动jobGenerator。
 `stop()`方法则负责停止JobScheduler和它启动的各种组件。
+
 #### 可改进的内容
+
 Spark Streaming是一个扩展模块，不是Spark的核心组件，因此在我们项目中的优先级应该比较靠后。
 若采用在源码基础上重写的方案，由于Spark Streaming本身并不承担计算任务，因此对其进行优化不会带来较大性能提升，可选择将其忽略。
 但vega目前还未实现流计算相关功能。若在vega的基础上进行改进，在有余力的情况下可以尝试在其基础上实现Streaming模块。
@@ -367,9 +377,11 @@ Rust可以通过`pub unsafe extern "C" fn{}`来创建导出函数，或通过jni
 动态注册会在JNI_Onload这个导出函数里执行，jvm加载jni动态库时会执行这个函数，从而加载注册的函数。在Rust中定义这些函数时，同样需要遵循上面的那些交互方法和规范。
 
 ### Cap'n Proto
+
 Cap'n Proto [^capnp] 是一种速度极快的数据交换格式，以及能力强大的RPC系统.
 ![capnp](./src/Capnp.png)
 #### 优势
+
 1. 递增读取:可以在整个Cap'n Proto 信息完全传递之前进行处理，这是因为外部对象完全出现在内部对象以前。
 2. 随机访问:你可以仅读取一条信息的一个字段而无需将整个对象翻译。
 3. MMAP:通过memory-mapping读取一个巨型文件，OS甚至不会读取你未访问的部分。
@@ -381,6 +393,7 @@ Cap'n Proto [^capnp] 是一种速度极快的数据交换格式，以及能力�
 9. 极快的运行时:Cap'np实现了极快的RPC调用以至于调用结果的返回可以快于请求发出。
 
 ## 创新点
+
 在对Spark的实现问题上，Rust与Scala（Spark所使用的语言）相比有诸多优势：
 
 **安全性**
@@ -431,19 +444,22 @@ Rust为了获取安全性和高性能，对程序员施加了较多的规则，�
 
 缺陷：vega文档不够详细，且已经不再处于被维护状态，假如遇到问题，可能很难解决。
 
+
 #### 最终选定方案
+
 综合考虑，我们选定**基于不完善的Rust版Spark开源项目vega的实现**，虽然两者都有一定缺陷，但是利用JNI技术的实例资料十分匮乏，尤其是rust与Scala都作为新兴语言，相关接口支持不够充分，而且跨语言调用面临对象转化的问题，无法保证开发进度。而vega作为开源项目，已经收获1.9k Star,但是因为缺乏维护而不支持许多新版特性显得十分可惜。这既是缺陷，也是优化的对象。使用vega完全面向rust,避免了跨语言调用的困难。因此，我们最终选定就vega的实现。
 
 ## 进度管理
-|时间进度|进度概览|
-|---|---|
-|第八周|系统学习rust|
-|第九周|编译，测试vega模块|
-|第十周|定位vega模块|
-|第十一周~第十四周|编写优化对象模块|
-|第十五周|添加拓展模块|
-|第十六周|跑benchmark,部署测试|
+
+| 时间进度          | 进度概览             |
+| ----------------- | -------------------- |
+| 第八周            | 系统学习rust         |
+| 第九周            | 编译，测试vega模块   |
+| 第十周            | 定位vega模块         |
+| 第十一周~第十四周 | 编写优化对象模块     |
+| 第十五周          | 添加拓展模块         |
+| 第十六周          | 跑benchmark,部署测试 |
 
 [^spark_optimize]:王家林. Spark内核机制解析及性能调优. 2017.
-[^jni]:https://crates.io/crates/jni
+[^jni]:Rust jni crate https://crates.io/crates/jni
 [^capnp]: Cap’n Proto is an insanely fast data interchange format and capability-based RPC system. https://capnproto.org/
