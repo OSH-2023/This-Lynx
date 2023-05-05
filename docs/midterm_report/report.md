@@ -200,9 +200,11 @@ ShuffleManager被用于管理块数据：
 
 <!-- slide -->
 ## HDFS
-Vega没有接入任何文件系统，作为一个分布式计算系统显然不合理。
-Rust开源社区中有提供HDFS的包
+Vega没有接入任何文件系统，作为一个分布式计算系统显然不合理
+Rust开源社区中有提供HDFS支持的包（hdrs），可以将其接入Vega，增强对文件的支持和一致性
+Spark原生支持HDFS，接入HDFS更容易融入Spark生态
 
+<!-- slide -->
 ## Spark Streaming
 Spark Streaming是Spark的一个扩展模块，使Spark支持流处理。
 微批次
@@ -269,4 +271,4 @@ JobScheduler和ReceiverTracker：调度、生成作业，控制Receicer状态
 | 第十周            | 定位vega模块         |
 | 第十一周~第十四周 | 编写优化对象模块     |
 | 第十五周          | 添加拓展模块         |
-| 第十六周          | 跑benchmark,部署测试 |
+| 第十六周          | 跑benchmark部署测试 |
