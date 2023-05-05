@@ -81,6 +81,35 @@ Job --1 to N --> Stage --1 to N--> Task --N to 1 --> TaskSet --1 to 1 --> TaskSe
 调度是分布式计算框架中非常重要的一个部分，为了介绍这一部分，我们先介绍一下Spark中不同的调度任务对象的定义。
 
 
+当用户启动一个操作，比如`count()`时，一个`Job`会通过`submitJob`被提交。每个`Job`中间层的数据需要多个`Stage`的执行来得到。
+
+`Stage`类是`Task`的集合，这些`Task`计算`Job`中间层的结果。每个`Task`有着相同的shuffle依赖。`Stage`在shuffle边界上被分开。有两种`Stage`：用于最终执行的`ResultStage`；以及中间层的`ShuffleMapStage`，其结果用于下一个`Stage`的输入。
+
+`Task`类，任务本身，包含了任务的一些信息，如`TaskId`，`index`，`attemptNumber`等。其由`executor`执行。每个`Task`会在单个机器上运行。
+
+`TaskSet`类，任务集，是`Task`的集合。
+
+`ShuffleMapTask`和`ResultTask`分别继承了`Task`类，对应之前的`ShuffleMapStage`和`ResultStage`。
+
+`Schedulable`类，其中一些成员变量比较重要，列举如下：[^schedulable]
+- `weight`，用于控制不同该类之间的权重，初始为1，而如果一个类有双倍的权重，则会获得双倍的资源。当设置很高的权重时，无论是否有活动，都会优先获得资源。
+- `minShare`，用于控制最少分配的资源(比如CPU核数)，公平调度器倾向于满足所有活动类的最小要求。默认为0。
+- `runningTasks`，当前在运行的任务数量。
+
+`Pool`和`TaskSetManager`分别继承了`Schedulable`类。
+- `TaskSetManager`是任务集管理器，其`Tasks`存放了任务
+- `Pool`是调度池，其中存在`schedulableQueue`存放调度队列，这是一个嵌套结构，即调度池里可能同时存在子调度池和任务集管理器。举例如下图![Pool](./src/pool.png)
+调度池中的一些方法均是递归式的操作，如果是`Pool`类，则继续递归，如果是`TaskSetManager`则调用对应的操作方法
+
+因此，我们有如下的过程：
+
+```mermaid
+graph LR
+Job --1 to N --> Stage --1 to N--> Task --N to 1 --> TaskSet --1 to 1 --> TaskSetManager
+```
+
+
+
 我们首先给出一个宏观的说法，其中的不同的名称会在后文进行解释。总的来说，调度由`DAGScheduler`控制，其通过RDD算子构建`DAG`，再基于RDD算子之间的依赖来切分所涉算子，最终得到一些`Stage`对象。每个`Stage`再基于`Partitioner`生成多个`Task`，每个`Stage`中的`Task`集合包装成一个`TaskSet`，生成一个`TaskSetManager`。这些`TaskSetManager`与其他的`Pool`被嵌套地放在`Pool`中，进行宏观的任务调度。[^Spark]
 
 ![submitJob](./src/submitjob.png)
@@ -107,35 +136,6 @@ Job --1 to N --> Stage --1 to N--> Task --N to 1 --> TaskSet --1 to 1 --> TaskSe
 
 #### 调度任务类
 
-`Job`类是提交给调度器的最高层的工作对象。当用户启动一个操作，比如`count()`时，一个`Job`会通过`submitJob`被提交。每个`Job`中间层的数据需要多个`Stage`的执行来得到。
-
-`Stage`类是`Task`的集合，这些`Task`计算`Job`中间层的结果。每个`Task`在相同RDD的分割下计算相同的函数，因此有着相同的shuffle依赖。`Stage`在shuffle边界上被分开。有两种`Stage`：用于最终执行的`ResultStage`，直接计算一个Spark操作(如`count()`, `save()`)；以及中间层的`ShuffleMapStage`，其结果用于下一个`Stage`的输入。当多个任务共用相同的RDD时，`Stage`常被在这些任务间共享。因此`Stage`间遵循拓扑排序的来依次执行。每个`Stage`有一个成员`firstJobId`，标识首个提交该`Stage`的`Job`。当使用FIFO调度时，这允许先计算或在失败时更快恢复早期`Job`的`Stage`。如果失败，单个`Stage`可以被多次重新执行。在这种情况下，`Stage`对象会跟踪多个`StageInfo`对象，传递给监听器或web UI。最新的`StageInfo`对象可以通过`latestInfo`访问。
-
-`Task`类，任务本身，包含了任务的一些信息，如`TaskId`，`index`，`attemptNumber`等。其由`executor`执行。每个`Task`会在单个机器上运行。
-
-`TaskSet`类，任务集，是`Task`的集合。
-
-`ShuffleMapTask`和`ResultTask`分别继承了`Task`类，对应之前的`ShuffleMapStage`和`ResultStage`。
-- `ShuffleMapTask`是shuffle map任务，其`partitionId`是该任务所在的分区，`mapId`是该任务的map id，`mapIndex`是该任务的map index，`mapStatus`是该任务的map状态。
-- `ResultTask`是结果任务，其`partitionId`是该任务所在的分区，`resultId`是该任务的结果id，`resultIndex`是该任务的结果index，`resultStatus`是该任务的结果状态。
-
-`Schedulable`类，其中一些成员变量比较重要，列举如下：[^schedulable]
-- `weight`，用于控制不同该类之间的权重，初始为1，而如果一个类有双倍的权重，则会获得双倍的资源。当设置很高的权重时，无论是否有活动，都会优先获得资源。
-- `minShare`，用于控制最少分配的资源(比如CPU核数)，公平调度器倾向于满足所有活动类的最小要求。默认为0。
-- `runningTasks`，当前在运行的任务数量。
-
-`Pool`和`TaskSetManager`分别继承了`Schedulable`类。
-- `TaskSetManager`是任务集管理器，其`Tasks`存放了任务
-- `Pool`是调度池，其中存在`schedulableQueue`存放调度队列，这是一个嵌套结构，即调度池里可能同时存在子调度池和任务集管理器。举例如下图![Pool](./src/pool.png)
-调度池中的一些方法均是递归式的操作，如果是`Pool`类，则继续递归，如果是`TaskSetManager`则调用对应的操作方法
-
-因此，我们有如下的过程：
-
-```mermaid
-graph LR
-Job --1 to N --> Stage --1 to N--> Task --N to 1 --> TaskSet --1 to 1 --> TaskSetManager
-```
-
 #### 调度部分可以改进的内容
 
 添加调度算法，如调研报告内提到的利用协程方法实现随时将当前在进行处理的批数据暂停，切换到需要低延迟的流数据上去，在处理完流数据之后，再切换回批数据，在保证了流数据的低延迟的同时兼顾批数据的处理。[^neptune]
@@ -145,3 +145,4 @@ Job --1 to N --> Stage --1 to N--> Task --N to 1 --> TaskSet --1 to 1 --> TaskSe
 `DAGScheduler`源码中的注释提示如下：
  - 当有关的job结束之后，所有的数据结构应该被清空，以避免在长时间运行程序中的状态无限增加。
  - 添加新数据结构时，更新`DAGSchedulerSuite.assertDataStructuresEmpty`函数，这有助于找到内存泄露。
+
