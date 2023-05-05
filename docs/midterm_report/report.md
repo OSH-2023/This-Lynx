@@ -215,7 +215,7 @@ Spark Streaming是Spark的一个扩展模块，使Spark支持流处理。
 ## 内部组件：
 <img src="./src/SparkStreamingItems.png">
 
-Streaming Context：Spar Streaming的起始点和上下文
+Streaming Context：Spark Streaming的起始点和上下文
 
 DStream和DStream Graph：封装流式数据和依赖关系
 
