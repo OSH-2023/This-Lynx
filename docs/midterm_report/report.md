@@ -59,10 +59,12 @@ Why we're doing so
 - 如果多个任务之间有依赖，容错的成本大大提高
 <!-- slide  vertical=true -->
 ## Hadoop(MapReduce)的后继者——Spark(RDD)
-由UCBlab提出的可伸缩的分布式数据集（Resilient Distributed Dataset）解决了上述问题
+<img src="https://upload-images.jianshu.io/upload_images/10127630-2326ab7cfb650dec.png">
+
+（Resilient Distributed Dataset）解决了上述问题
 
 - 一个 RDD 是一个只读, 被分区的数据集.我们可以通过稳定的存储系统和其他的 RDDs 进行操作而创建一个新的 RDDs.为了区别开 RDDs 的其他操作, 我们称这些操作为 transformations, 比如 map, filter 以及 join 等都是 transformations 操作.
-- 不同的算子对应了不同的依赖关系，RDD论文将这些关系分为两种:宽依赖与窄依赖，宽依赖
+- 不同的算子对应了不同的依赖关系，RDD论文将这些关系分为两种:宽依赖与窄依赖
 <!-- slide  vertical=true -->
 
 ![dependency](./src/Spark2.png)
@@ -89,6 +91,7 @@ Why we're doing so
 
 <!-- slide vertical=true -->
 ### Rust与Scala通过JNI交互
+<img src="https://img2018.cnblogs.com/blog/1313132/201810/1313132-20181021154613683-200287968.png" width="200%">
 
 - Scala是在JVM上运行的语言，常用JNI接口与C语言等实现交互。
 - 另一方面，Rust可通过二进制接口的方式与其他语言进行交互。
@@ -234,7 +237,12 @@ JobScheduler和ReceiverTracker：调度、生成作业，控制Receicer状态
 <!-- slide vertical=true -->
 ## Maven到Cargo
 
+<img src="https://maven.apache.org/images/maven-logo-black-on-white.png" width=50% style="float:left">
+
 **Maven**是用于Java项目的构建自动化工具，而Spark使用Scala编写，Scala与Java共享JVM生态，因此Spark可以使用Maven进行构建和编译.
+
+</br>
+
 Maven解决了构建软件的两个方面:如何构建软件及其依赖关系。
 - Maven 常用命令
     - mvn clean: 清理
@@ -245,6 +253,7 @@ Maven解决了构建软件的两个方面:如何构建软件及其依赖关系�
 **Cargo**提供了一系列的工具，从项目的建立、构建到测试、运行直至部署，为 Rust 项目的管理提供尽可能完整的手段。同时，与 Rust 语言及其编译器 rustc 紧密结合
 使用 cargo 工具的最大优势就在于，能够对该项目的各种依赖项进行方便、统一和灵活的管理。
 我们之后会展示Maven和Cargo构建项目的效果。
+<img src="https://www.rust-lang.org/static/images/rust-logo-blk.svg" width="30%" style="float:right">
 <!-- slide -->
 ## 部署测试
 <!-- slide vertical=true -->
