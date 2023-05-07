@@ -37,7 +37,7 @@ Why we're doing so
 
 <!-- slide  vertical=true -->
 
-### 举个例子：数豆子(wordcount)
+## 举个例子：数豆子(wordcount)
 
 一大堆五颜六色的彩虹豆，若干个人来数一数各种颜色的豆子
 
@@ -111,7 +111,7 @@ Why we're doing so
 
 <!-- slide vertical=true -->
 
-### rust与scala对比
+## rust与scala对比
 
 - 安全性：Rust编译期进行较为严格的检查
 - 高性能：Rust秉承零成本抽象原则，将许多运行时开销（如GC）放置到了编译期，提高了数据处理速度和效率
@@ -119,7 +119,7 @@ Why we're doing so
 
 <!-- slide vertical=true -->
 
-### Rust与Scala通过JNI交互
+## Rust与Scala通过JNI交互
 
 <img src="https://img2018.cnblogs.com/blog/1313132/201810/1313132-20181021154613683-200287968.png" width="200%">
 
@@ -138,9 +138,11 @@ Why we're doing so
 
 <!-- slide -->
 
-## 基于不完善的Rust版Spark开源项目vega的实现
+## 基于不完善的Rust版Spark开源项目vega
 
-<!-- slide vertical=true -->
+- [vega](https://github.com/rajasekarv/vega)仓库
+- 最近一次更新在2021年
+- [介绍博客](https://medium.com/@rajasekar3eg/fastspark-a-new-fast-native-implementation-of-spark-from-scratch-368373a29a5c)
 
 <!-- slide -->
 
