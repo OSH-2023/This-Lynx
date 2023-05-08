@@ -142,7 +142,7 @@ Why we're doing so
 
 - [vega](https://github.com/rajasekarv/vega)仓库
 - 最近一次更新在2021年
-- [介绍博客](https://medium.com/@rajasekar3eg/fastspark-a-new-fast-native-implementation-of-spark-from-scratch-368373a29a5c)
+- 不完善，但可用
 
 <!-- slide -->
 
@@ -259,7 +259,7 @@ How we'll get there
 
 - vega没有接入任何文件系统，作为一个分布式计算系统显然不合理
 - Rust开源社区中有提供HDFS支持的包（hdrs）
-- 可以将其接入vega，增强对文件的支持和一致性
+- 可以将其接入vega，增强对文件的支持
 - Spark原生支持HDFS，接入HDFS更容易融入Spark生态
 
 <!-- slide -->
