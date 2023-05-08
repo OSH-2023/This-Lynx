@@ -45,3 +45,80 @@
 
 #### 3. 运行
 在vega文件夹下`cargo run --example make_rdd`，顺利通过编译并提示输入密码，但无论输入密码正确与否，均继续要求输入密码，无法执行下一步。
+
+## 尝试局域网内连接到各自的虚拟机上
+
+### WSL2
+
+1. 因为WSL内部的openssh-server不完全，需要重新安装一下
+
+```shell
+$ sudo apt-get remove openssh-server
+$ sudo apt-get install openssh-server
+```
+
+2. 配置WSL内部的ssh，以下均需要管理员权限
+
+```
+# /etc/ssh/sshd_config
+...
+Port 2223
+...
+PermitRootLogin yes
+...
+PasswordAuthentication yes
+...
+```
+
+```
+# /etc/hosts.allow
+...
+sshd: ALL
+...
+```
+
+3. 重启ssh服务
+
+```shell
+$ sudo service ssh --full-restart
+```
+
+4. 查看WSL内部的IP地址
+
+```shell
+$ ifconfig
+eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 172.18.11.54  netmask 255.255.240.0  broadcast 172.18.15.255
+        ...
+```
+
+如上中`172.18.11.54`即为对应的IP地址
+
+5. Windows下管理员权限打开CMD，输入命令
+
+```cmd
+> netsh interface portproxy add v4tov4 listenaddress=0.0.0.0 listenport=2222 connectaddress=172.18.11.54 connectport=2223
+```
+
+其中`listenaddress`指向本地所有地址，`listenport`为监听端口，`connectaddress`为WSL内部的IP地址，`connectport`为WSL内部的ssh服务端口，即`/etc/ssh/sshd_config`中的`Port`项
+
+6. 查看Windows下的IP地址
+
+```cmd
+> ipconfig
+...
+Wireless LAN adapter WLAN:
+
+   Connection-specific DNS Suffix  . : ustc.edu.cn
+   Link-local IPv6 Address . . . . . : fe80::e2e5:debc:bc26:d885%9
+   IPv4 Address. . . . . . . . . . . : 100.65.31.103
+   Subnet Mask . . . . . . . . . . . : 255.255.192.0
+   Default Gateway . . . . . . . . . : 100.65.0.1
+...
+```
+
+7. 在局域网下其余主机上使用ssh连接即可
+
+```shell
+$ ssh root@100.65.31.103 -p 2222
+```
