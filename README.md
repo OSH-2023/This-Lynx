@@ -43,3 +43,4 @@ OSH-2023 team project repo, our chinese team name is "芝士猞猁".
 | 4-22  | 可行性报告讨论 | [4-22FeasibilityDiscussion3](./docs/discussion/4-22FeasibilityDis4.md) |              |
 |  5-5  |    中期汇报    |        [5-5MidtermDiscussion](./docs/discussion/5-5Midterm.md)         |              |
 |  5-7  |    尝试vega    |             [5-7TryVega](./docs/discussion/5-7TryVega.md)              |              |
+| 5-11  |  定位vega分工  |         [5-11LocateVega](./docs/discussion/5-11LocateVega.md)          |              |
