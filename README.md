@@ -47,3 +47,4 @@ OSH-2023 team project repo, our chinese team name is "芝士猞猁".
 | 5-14  |        讨论尝试        |         [5-14VegaDis](./docs/discussion/5-14VegaDiscussion.md)         |              |
 | 5-18  | 阅读代码，尝试双机连接 |                                                                        |              |
 | 5-21  | 阅读代码，尝试多机连接 |                                                                        |              |
+| 5-28  |        阅读代码        |                                                                        |              |
