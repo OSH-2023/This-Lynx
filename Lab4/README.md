@@ -5,8 +5,9 @@ https://docs.ray.io/en/latest/ray-overview/installation.html#building-ray-from-s
 
 ## 从Pypi下载:
 
-`# Install Ray with support for the dashboard + cluster launcher
-pip install -U "ray[default]"`
+`# Install Ray with support for the dashboard + cluster launcher`
+
+`pip install -U "ray[default]"`
 
 `pip install -U "ray[air]" # installs Ray + dependencies for Ray AI Runtime`
 
@@ -61,6 +62,8 @@ https://grafana.com/grafana/download
 使用方法
 https://www.anyscale.com/blog/monitoring-and-debugging-ray-workloads-ray-metrics
 
+
+Kuberay使用example
 https://docs.ray.io/en/latest/cluster/kubernetes/examples/ml-example.html#kuberay-ml-example
 
 https://docs.ray.io/en/latest/cluster/kubernetes/examples/gpu-training-example.html#kuberay-gpu-training-example
