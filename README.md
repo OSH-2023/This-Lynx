@@ -48,3 +48,4 @@ OSH-2023 team project repo, our chinese team name is "芝士猞猁".
 | 5-18  | 阅读代码，尝试双机连接 |                                                                        |              |
 | 5-21  | 阅读代码，尝试多机连接 |                                                                        |              |
 | 5-28  |        阅读代码        |                                                                        |              |
+|  6-2  |     讨论Lab4的分工     |                [6-2Lab4](./docs/discussion/6-2Lab4.md)                 |              |
