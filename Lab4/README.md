@@ -24,7 +24,8 @@ The rayproject/ray images include Ray and all required dependencies. It comes wi
 
 运行docker
 `docker run --shm-size=<shm-size> -t -i rayproject/ray`
-实测会报文件不存在错误，可以去掉中间的--shm-size字段，这时使用默认空间划分。
+shm-size 推荐使用512M或2G,可以自定义
+可以去掉中间的--shm-size字段，这时使用默认空间划分。
 
 ## 直接拉取源码
 
