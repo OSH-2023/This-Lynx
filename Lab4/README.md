@@ -19,13 +19,20 @@ The rayproject/ray images include Ray and all required dependencies. It comes wi
 
 目前测试未发现docker image是否指定python版本会对测试造成任何影响，但是在issues中发现python3.6应该有若干bug，推测3.7以后既可以正常兼容。
 
+拉取镜像命令为：
+`docker pull rayproject/ray`
+
 查看docker是否正常引入
 `docker images`
 
 运行docker
-`docker run --shm-size=<shm-size> -t -i rayproject/ray`
-shm-size 推荐使用512M或2G,可以自定义
-可以去掉中间的--shm-size字段，这时使用默认空间划分。
+`docker run --shm-size=4G -t -i -p 8265:8265 rayproject/ray`
+参数说明：
+- shm-size 推荐使用512M或2G,可以自定义可以去掉中间的--shm-size字段，这时使用默认空间划分。
+- i: 交互式操作
+- t: 终端
+- p: 端口映射，格式为：主机(宿主)端口:容器端口
+
 
 ## 直接拉取源码
 
@@ -51,14 +58,39 @@ https://docs.ray.io/en/latest/ray-air/benchmarks.html
 > `ray stop`
 > `ray status`
 
-## 查看仪表盘
+## 查看dashboard
 127.0.0.1:8265
 
-普罗米修斯下载(图形化工具，可选)
+# Prometheus & Grafana部署指南
+## 下载安装
+先下载Prometheus（时间序列数据库）的可执行文件，然后解压：
 https://prometheus.io/download/
+```bash
+tar xvfz prometheus-*.tar.gz
+cd prometheus-*
+```
+接着，启动Prometheus：
+```bash
+./prometheus --config.file=/tmp/ray/session_latest/metrics/prometheus/prometheus.yml
+```
 
-grafana下载
-https://grafana.com/grafana/download
+接着下载安装Grafana:
+
+```bash
+wget https://dl.grafana.com/enterprise/release/grafana-enterprise-9.5.2.linux-amd64.tar.gz
+tar -zxvf grafana-enterprise-9.5.2.linux-amd64.tar.gz
+```
+
+启动Grafana：
+```bash
+./bin/grafana-server --config /tmp/ray/session_latest/metrics/grafana/grafana.ini web
+```
+
+
+
+
+
+
 
 使用方法
 https://www.anyscale.com/blog/monitoring-and-debugging-ray-workloads-ray-metrics
