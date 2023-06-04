@@ -54,6 +54,8 @@ https://docs.ray.io/en/latest/ray-air/benchmarks.html
 在命令行中
 `ray start --head`
 
+> 注意如果是在docker里面需要加上参数"--docker-host=0.0.0.0"
+
 > 其他命令:
 > `ray stop`
 > `ray status`
