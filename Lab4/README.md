@@ -58,6 +58,13 @@ https://docs.ray.io/en/latest/ray-air/benchmarks.html
 > `ray stop`
 > `ray status`
 
+
+分布式启动：
+#主节点
+ray start --head --port=6379 --dashboard-host=0.0.0.0
+#从节点
+ray start --address='172.17.0.2:6379'
+
 ## 查看dashboard
 127.0.0.1:8265
 
