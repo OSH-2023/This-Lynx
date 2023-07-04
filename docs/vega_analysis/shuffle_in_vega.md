@@ -23,13 +23,35 @@
 综上所述，该函数并行地从多个服务器上的shuffle文件中读入数据（数量为分区数*reduce任务数，路径为`shuffle_uri/input_id/reduce_id`），并返回反序列化后的结果数组迭代器
 
 ### /shuffle/shuffle_manager
+里面有两个类：ShuffleManager和ShuffleService
+#### ShuffleManager
+在每台机子上都开一个，用于管理shuffle数据传输与文件存储
+**new()**:包含以下工作：新建shuffle文件夹，获取服务器网络参数，以此新建ShuffleManager
+**get_output_file()**:创建output文件并返回其路径`shuffle_dir/shuffle_id/input_id/output_id`（output_id会不会就是reduce_id）
+**check_status()**:检查通信channel的状态
+
+
+
+#### ShuffleService
+从.../{shuffleid}/{inputid}/{reduceid}获取数据，经过一层cache来读取
+
 
 
 ### /shuffle/shuffle_map_task
+整个类用于存储ShuffleMapTask的各项信息
+
+
+## /rdd/shuffle_rdd
 
 
 
 
+## dependency
+
+
+
+
+## map_output_tracker
 
 
 
