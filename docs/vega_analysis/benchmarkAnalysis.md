@@ -6,6 +6,7 @@
 ```bash
 sudo perf stat ./target/debug/vega
 ```
+> 备注:如果显示Workload failed: Permission denied，需要检查权限问题，使用`chmod -R 777 target_file`即可，前面sudo必须要有
 输出结果
 ```bash{.line-numbers}
 "/root"
