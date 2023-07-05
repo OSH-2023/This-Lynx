@@ -3,6 +3,11 @@
 
 > 本笔记主要用于理清散落在项目各处的shuffle代码逻辑
 
+## 变量名
+partition:分区号，map端RDD的分区号即input_id，reduce端RDD的分区号即reduce_id
+split:reduce_id
+shuffle_id:shuffle任务编号
+
 
 ## /shuffle
 
@@ -42,12 +47,22 @@
 
 
 ## /rdd/shuffle_rdd
+其本质属性主要就是shuffle_id
 
+RDD主要功能在于compute函数
+shuffle_rdd主要功能是用shuffle_fetcher获取shuffle文件读出的反序列化结果(k,v对来的)，然后将每种k对应的值都拼接进一个数组里
 
+（要是这个k,v对就是map_id和reduce_id的映射关系呢？）
 
+## /rdd/co_grouped_rdd
 
 ## dependency
+shuffle写文件的逻辑都在这里！
 
+**do_shuffle_task()**:
+1. 获取分区号partition，分区数n=num_output_splits，reduce_id(split)，空桶buckets
+2. 得到iter的(K,V)对
+3. 把iter里面的所有(K,V)对，按照K的hash值，将V分配到n个HashMap里面，最后插进内存(self.shuffle_id, partition, i)处(i是桶编号)
 
 
 
@@ -55,6 +70,12 @@
 
 
 
+
+## SHUFFLE_CACHE
+SHUFFLE_CACHE在`env.rs`里定义，是一个全局的Dashmap，索引`(shuffle_id, partition, i)=(shuffle_id, input_id, reduce_id)`的位置用于存储`hash(K)=i=reduce_id`时的所有`(K,V)`对，其中`i=reduce_id`是桶编号，`partition=input_id`是分区号，`shuffle_id`是shuffle任务编号
+
+
+## 总结
 
 
 
