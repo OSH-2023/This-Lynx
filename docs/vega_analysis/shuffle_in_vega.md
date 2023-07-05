@@ -76,6 +76,15 @@ SHUFFLE_CACHE在`env.rs`里定义，是一个全局的Dashmap，索引`(shuffle_
 
 
 ## 总结
+### shuffle通路：
+我们首先心中有一个基本概念：shuffle是将输入的M个分区内的数据“按一定规则”重新分配到R个分区上。
+
+由此我们给出shuffle写入的通路：
+ShuffleFetcher里面105行，`client.get(chunk_uri).await?; `会把shuffle文件(`shuffle_id/map_id/reduce_id`)给读出来；
+读请求会给实现了`Service<Request<Body>>`这个trait的`ShuffleService`处理，它会把URI变成cache_index从cache里面读出数据
+
+
+再给出shuffle写出的通路：
 
 
 
@@ -91,10 +100,15 @@ SHUFFLE_CACHE在`env.rs`里定义，是一个全局的Dashmap，索引`(shuffle_
 cargo test --package vega --lib -- shuffle::shuffle_fetcher::tests::fetch_ok --exact --nocapture 
 ```
 
+## 第一次优化
+- ENV加入了优化参数，可以控制是否使用sort_shuffle
+- 更改SHUFFLE_CACHE的结构及写入写出（含dependency的insert逻辑，shuffle_manager的get_cache_data逻辑与shuffle_fetcher逻辑）
+
+- 219
 
 
-
-
+## 参考资料
+[Spark Architecture: Shuffle](https://0x0fff.com/spark-architecture-shuffle/)
 
 
 
