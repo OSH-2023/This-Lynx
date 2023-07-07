@@ -55,10 +55,3 @@ sudo perf script | ./stackcollapse-perf.pl > out.perf-folded
 |pi|N=100,000,000,num_slices=2|result: 3.14170632 119.148737699s|yzx ubuntu release|原版iterator()产生两次拷贝|
 |pi|N=100,000,000,num_slices=2|result: 3.14166852 114.434112669s|yzx ubuntu release|原版iterator()产生两次拷贝|
 |pi|N=100,000,num_slices=2|result: 3.13 39.911636275s|yzx ubuntu release|原版iterator()产生两次拷贝|
-39.911636275s
-40.035713715s
-37.640988505s
-40.430815564s
-
-40.017035707s
-39.603150663s

@@ -56,9 +56,10 @@ OSH-2023 team project repo, our chinese team name is "芝士猞猁".
 |  6-2  |     讨论Lab4的分工     |                [6-2Lab4](./docs/discussion/6-2Lab4.md)                 |              |
 |  6-8  |   完成Lab4的剩余部分   |                [6-8Lab4](./docs/discussion/6-8Lab4.md)                 |              |
 | 6-11  |    讨论接下来的工作    |                [6-11Job](./docs/discussion/6-11Job.md)                 |              |
-| 7-4   |  考试周后继续完善项目  |                   [7-4](./docs/discussion/7-4.md)                       |              |
-| 7-5   |      继续完善项目      |                   [7-5](./docs/discussion/7-5.md)                       |              |
-| 7-6   |   基本完成大部分工作   |                   [7-6](./docs/discussion/7-6.md)                       |              |
+|  7-4  |  考试周后继续完善项目  |                    [7-4](./docs/discussion/7-4.md)                     |              |
+|  7-5  |      继续完善项目      |                    [7-5](./docs/discussion/7-5.md)                     |              |
+|  7-6  |   基本完成大部分工作   |                    [7-6](./docs/discussion/7-6.md)                     |              |
+|  7-7  | 收尾工作与结题报告开工 |                    [7-7](./docs/discussion/7-7.md)                     |              |
 
 ## :smiley_cat: Research Progress
 
