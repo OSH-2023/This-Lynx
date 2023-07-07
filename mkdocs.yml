@@ -1,0 +1,10 @@
+site_name: This-Lynx
+repo_name: OSH-2023/This-Lynx
+repo_url: https://github.com/OSH-2023/This-Lynx
+docs_dir: docs
+theme:
+  name: material 
+  language: 'zh'
+  palette:
+    primary: teal
+    accent: deep orange
