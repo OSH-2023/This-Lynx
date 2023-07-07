@@ -79,15 +79,18 @@ hash的函数使用了Murmur3_32函数（外部库）
 基类`abstract class Dependency[T] extends Serializable`
 
 1. `abstract class NarrowDependency[T](_rdd: RDD[T]) extends Dependency[T]`
+
+```
 /**
 * Get the parent partitions for a child partition.
 * @param partitionId a partition of the child RDD
 * @return the partitions of the parent RDD that the child partition depends upon
 */
-
+```
 依赖关系的基础类型，子RDD的每一个partition只依赖一小部分数量的父RDD，窄依赖允许流水线/管道式的执行.
 
-2. `class ShuffleDependency[K: ClassTag, V: ClassTag, C: ClassTag]`
+1. `class ShuffleDependency[K: ClassTag, V: ClassTag, C: ClassTag]`
+```
 /**
  * @param _rdd the parent RDD
  * @param partitioner partitioner used to partition the shuffle output
@@ -99,15 +102,18 @@ hash的函数使用了Murmur3_32函数（外部库）
  * @param mapSideCombine whether to perform partial aggregation (also known as map-side combine)
  * @param shuffleWriterProcessor the processor to control the write behavior in ShuffleMapTask
  */
+```
 代表在shuffle stage的输出上的依赖，由于shuffle是临时的，这个RDD也是临时的因为我们不需要在executor上挂载这个依赖。
-3. `class OneToOneDependency[T](rdd: RDD[T]) extends NarrowDependency[T](rdd)`
+1. `class OneToOneDependency[T](rdd: RDD[T]) extends NarrowDependency[T](rdd)`
 
 代表一对一的依赖，是一种在父RDD与子RDD的partition之间的关系
 4. `class RangeDependency[T](rdd: RDD[T], inStart: Int, outStart: Int, length: Int) extends NarrowDependency[T](rdd)`
+```
 /**
  * @param rdd the parent RDD
  * @param inStart the start of the range in the parent RDD
  * @param outStart the start of the range in the child RDD
  * @param length the length of the range
  */
+ ```
 代表一对一的依赖，但是是在一系列的partitions在父RDD和子RDD之间
