@@ -20,7 +20,7 @@
     - [与客户端交互](#与客户端交互)
     - [容错性](#容错性)
 - [项目具体优化细节](#项目具体优化细节)
-  - [队列容错实现](#队列容错实现)
+  - [容错实现](#容错实现)
   - [HDFS文件系统](#hdfs文件系统)
   - [Shuffle部分](#shuffle部分)
   - [实时监控拓展模块](#实时监控拓展模块)
@@ -30,9 +30,11 @@
 - [测试结果](#测试结果)
 - [项目总结](#项目总结)
   - [项目意义与前瞻性](#项目意义与前瞻性)
-  - [项目的优化方向](#项目的优化方向)
+  - [未来的优化方向](#未来的优化方向)
     - [减少序列化反序列化开销](#减少序列化反序列化开销)
     - [构建更加用户友好的API](#构建更加用户友好的api)
+    - [开发新的RDD算子](#开发新的rdd算子)
+    - [实现更加可靠的容错](#实现更加可靠的容错)
 - [参考文献](#参考文献)
 
 ## 项目介绍
@@ -115,9 +117,11 @@ Spark还提供了许多高级功能，例如机器学习、图计算、流处理
 Vega项目完全使用Rust从零写起，构建完成了一个较为简单的Spark内核。不过，这一项目已经有两三年没有维护，刚接手时项目还需要修复部分BUG才可运行。此外，项目里还有不少算法及模块没有实现，特别是Spark后来的诸多优化更新。
 
 这一项目在Github上已获得2.2K颗Star，是一个较为有名的Rust项目，其原仓库页面如下：
+
 <img src="./src/git page.png">
 
 作者也写了一篇博客介绍了自己的Vega项目：
+
 <img src="./src/blog.png">
 
 以下为Vega的运行机制：
@@ -169,6 +173,8 @@ E1-->E
 FF(job_work_dir)
 FF-->F
 ```
+
+以上为Context的运行过程。Context结构中，scheduler为调度器，address_map存储着从机的ip地址，distributed_driver为对是否为主机的标识。
 
 - **makerdd**
 
@@ -222,6 +228,8 @@ C("parallel_collection")
 C-->A1
 
 ```
+
+makerdd用于创建rdd，其对rdd_vals进行了包装，rdd_vals包含了context，vals，及经过分区的data，其中vals包含了id，dependencies，should_cache，context等重要信息。
 
 - **map**
 
@@ -279,6 +287,8 @@ C-->B2
 BBB-->|get_rdd_base|CC
 ```
 
+map函数用于对rdd中的每个元素进行操作，返回一个MapperRdd的ScrArc封装，Rdd中包含f，即对每个元素的操作，以及pins，即是否已经将该任务与某从机ip绑定，以及经过了基础设置的RddVals。
+
 - **collection**
 
 ```mermaid
@@ -310,6 +320,8 @@ C-->C2
 C1-->|run|C1
 C2-->|run|C2
 ```
+
+collection用于将Rdd发送给从机执行，回收结果并安装分区组合成程序的最终结果，首先对Rdd分区，对将其与collect函数一并提交给JobTracker，然后执行run_job函数，发送并等待所有任务执行完毕，最后将结果合并，collect为最终结果。
 
 ## 立项依据
 
@@ -394,7 +406,26 @@ HDFS的容错处理和GFS基本一致，可大致分为以下4点：
 4. 主从NameNode，主NameNode宕机时副NameNode成为主NameNode。
 
 ## 项目具体优化细节
-### 队列容错实现
+### 容错实现
+Vega没有实现容错机制，这导致了当某个节点出现故障时，整个程序都无法正常运行并卡死。这显然是不合理的。
+
+<img src="./src/faulterror1.png">
+
+起初，我们尝试仿效原作者 rajasekarv 的 receive_results 函数，编写了 task_failed 函数，并在 submit_task 函数中调用：当尝试5次连接超时后，主机会认为从机下线，并调用 task_failed 函数，进行容错处理，将该任务重新放入任务队列中，等待 shuffle 的重新调度。但是，由于原作者相关函数与结构并没有实现完全，导致产生了一系列难以修复的问题。
+
+<img src ="./src/faulterror2.png">
+
+这主要是因为，当任务执行失败时，需要为 on_event_failure 函数提供错误原因 TastEndReason ，其中需要包含 server_uri,shuffle_id,map_id,reduce_id，而后三者在 submit_task 所在环境下不易获取。上图中显示的错误即后续的处理函数未能根据提供的 shuffle_id 获取正确的shuffle。
+
+后来我们选择跳出固有逻辑，选用新的方式完成容错。我们利用循环队列来存储从机ip，在某从机下线时，从队首取出一个从机，并将原任务重新分发给该从机，然后将该从机放回队尾，并打印出相关Error信息以供用户检查（信息包括下线的从机编号，ip，未能成功处理的任务id，以及重新提交任务后接受任务的从机编号，ip等）。
+
+<img src ="./src/FaultTolerance.png">
+
+具体地，我们在调用 submit_task 函数时，使用 tokio::spawn 调用异步函数 submit_task_iter ，并将从机队列作为参数传入（直接修改 submit_task 为异步函数会导致生命周期出错，难以修改且影响稳定性）。接着，在 submit_task_iter 函数中，当连续五次连接超时后，将会从队列中取出备选的从机的ip，并递归调用 submit_task_iter，即尝试将任务重新发给另一台从机执行。
+
+通过这种方式，我们保证了在任何情况下，程序均能正常运行：如果某从机下线，能够正确将任务重新分发给其他从机（只有1/n的概率发到同一从机）；如果该从机再次上线，任务的分发也能够继续正常进行；如果所有从机都下线，程序将等待，直到某一台从机上线，才能继续执行。
+
+这一处理方式不仅能够保证程序的正常运行，还能一定程度上降低容错带来的性能损耗：避免了使用大量资源在收集结果阶段对任务是否成功进行监测和处理（因为提前了处理的时机），并且通过直接在 submit_task_iter 用 tokio::spawn 创建的异步线程中递归调用，减少了对任务，ip队列等的克隆开销（如果放在外面，由于需要使用 async move 闭包，必须要提前备份task与ip队列，否则会产生对已经失去所有权的变量的引用）。此外，由于此过程是异步进行的，并不会影响其他任务的执行。
 
 ### HDFS文件系统
 原本的Vega没有接入任何分布式文件系统的接口，甚至本地文件读写效果也相当差（分布式状态运行时会重复执行任务）。为了改善Vega的文件读取可用性，我们为其增加了与HDFS之间的接口。
@@ -434,18 +465,85 @@ Spark自1.1.0版本起默认采用的是更先进的SortShuffle。数据会根�
 
 ### 实时监控拓展模块
 
+原本的Vega里是没有性能监控模块的，但它实际上是一个很复杂的分布式系统。因此如果某个地方出了问题是很难排查的。因此，在某些关键点加上监控，通过监控获取数据，可以方便调试与对于系统进行检测。
+
+Grafana和Prometheus的搭配是一种应用非常广泛的监控模式。其中Prometheus是一个开源时序数据库，用来存储各种数据，包括各种CPU时间信息，硬盘使用数据等等。而Grafana是一个开源可视化工具，提供了将Prometheus里数据转为仪表盘的功能。
+
+如下即为Prometheus查看监控目标的画面。
+
+![prometheus](./src/prometheus.png)
+
+为了获得更多的监控数据，往往会加入node_exporter来给Prometheus中加入更多的值。
+
+但还需要对vega中的运行情况进行监控，这就需要使用对应的Rust库，将需要的数据值注册之后，根据不同的运行情况和结果进行更新。
+
+最终是使用了docker-compose.yml来配置，只需如下一行命令即可实现部署。
+
+```bash
+$ docker compose up -d
+```
+
+部署效果如下：
+
+![monitor](./src/distri_running.png)
+
 
 
 ### 自动化测试
-自动化实现提交到仓库后自动检查提交结果的正确性并运行test，如果运行失败会发邮件提醒协作者提交结果测试失败 
+自动化实现提交到仓库后自动检查提交结果的正确性并进行自动测试。
+
+如果运行失败会发邮件提醒协作者提交结果测试失败。
+
+自动化测试使用Github Action提供的相关功能实现，在每次git push时触发，能够大大提高开发人员调试效率和保证提交内容完整可用。
 #### Github workflow流程
-<!-- ```mermaid
-graph TB:
-<!-- ``` -->
+
+
+```mermaid
+flowchart TD
+A((Set up job))
+B[[Run actions]]
+C[[setup]]
+D[(Run tests)]
+E[(Post Run )]
+F((Complete job))
+Fail((Failure))
+N(Notice developer)
+
+A--success-->B
+A--failure-->Fail
+B--success-->C
+B--failure-->Fail
+C--success-->D
+C--failure-->Fail
+D--success-->E
+D--failure-->Fail
+E--success-->F
+E--failure-->Fail
+Fail==>N
+N ==Rerun==> A
+
+
+style A fill:#f9f,stroke:#333,stroke-width:1px
+style B fill:#cf5,stroke:#f66,stroke-width:2px
+style C fill:#f9f,stroke:#333,stroke-width:4px
+style D fill:#cc5,stroke:#f66,stroke-width:2px;
+style E fill:#ccf,stroke:#333,stroke-width:4px
+style F fill:#cf5,stroke:#f66,stroke-width:5px;
+```
 #### 自动测试效果
 ![Alt text](src/autotest.png)
-![unittest2](src/unittest2.png)
 
+黄色圆框表示刚刚提交的结果正在进行测试，测试按照一定的流程进行，这个流程可以由开发者指定，并且Github提供了丰富的插件和环境便于我们使用，这个功能可以在仓库的Actions中添加Workflow使用。
+- 自动化：GitHub Workflow可以自动化您的构建、测试和部署流程，从而减少手动操作和减少错误。
+
+- 可重复性：GitHub Workflow可以确保您的构建、测试和部署流程在每次运行时都是相同的，从而提高可重复性。
+
+- 可视化：GitHub Workflow提供了一个可视化的界面，可以让您轻松地查看您的构建、测试和部署流程。
+
+- 可扩展性：GitHub Workflow可以轻松地扩展到其他工具和服务，例如Docker、AWS、Azure等。
+
+开放性：GitHub Workflow是开源的，因此您可以自由地修改和定制它以满足您的需求。
+![unittest2](src/unittest2.png)
 ## 测试结果
 <img src="src/wordcount.png" style="zoom:200%">
 <img src="src/wordcount2.png" style="zoom:200%">
@@ -467,7 +565,7 @@ Vega继承了Spark的诸多优点。同样使用RDD，使得Vega拥有了简明�
 我们相信，在效率、可靠性、可用性与可维护性上都有着更好表现的Vega，将为大数据处理提供了更高效、更安全的解决方案！
 
 
-### 项目的优化方向
+### 未来的优化方向
 #### 减少序列化反序列化开销
 无论是Spark还是Vega在传递任务时都需要将任务序列化以便于传输，传至目标主机后再反序列化用以执行。而由于序列化反序列化开销很大，Spark与Vega中任务的启动都要花费较长时间。我们可以尝试精简任务的描述方式，同时采用更高性能的序列化反序列化器，以此提高任务传输效率。
 
@@ -480,9 +578,13 @@ Vega继承了Spark的诸多优点。同样使用RDD，使得Vega拥有了简明�
 
 <img src="./src/looong%20type%20name%20in%20rust.png">
 
+#### 开发新的RDD算子
+
 同时，原有的RDD算子类型不够丰富，支持的计算函数都较为底层，可以开发更多的算子以支持各种各样的计算任务，同时可以利用将底层任务合并为高层任务时的优化空间。
 
-
+#### 实现更加可靠的容错
+Spark中的容错机制是基于Spark的Lineage（血统）机制实现的。在Spark中，每个RDD都有一个指向其父RDD的指针，这样就可以通过RDD的血统关系来实现容错。当某个RDD的分区数据丢失时，可以通过其父RDD的血统关系重新计算得到。这种机制可以保证Spark的容错性，但是当某个RDD的父RDD丢失时，就无法通过血统关系重新计算得到，这就需要重新从头开始计算，这样就会导致计算效率的降低。
+虽然我们实现的容错机制已经能够在大部分情况下取得较好的结果，但仍有提高的空间。
 
 ## 参考文献
 
@@ -492,6 +594,7 @@ Vega继承了Spark的诸多优点。同样使用RDD，使得Vega拥有了简明�
 [^capnp]: Cap’n Proto is an insanely fast data interchange format and capability-based RPC system. https://capnproto.org/
 [^hdfs]:HDFS Architecture. https://hadoop.apache.org/docs/r3.3.5/hadoop-project-dist/hadoop-hdfs/HdfsDesign.html
 [^gfs]:Ghemawat, Sanjay, Howard Gobioff, and Shun-Tak Leung. "The Google File System." Operating Systems Review (2003): 29-43. Web. https://ustc-primo.hosted.exlibrisgroup.com.cn/permalink/f/tp5o03/TN_cdi_proquest_miscellaneous_31620514
+[^prom]:Roman Kudryashov. Monitoring Rust web application with Prometheus and Grafana. https://romankudryashov.com/blog/2021/11/monitoring-rust-web-application/
 
 
 
