@@ -101,6 +101,7 @@ presentation:
 
 使用两千万条shuffle记录的载量进行单元测试，测试结果如下：
 （Map端有M个分区，Reduce端有R个分区，$M\cdot R=20000000$）
+<img src="src/ShuffleUp.png" style="zoom:150%">
 | 时间/s |   1   |   2   |   3   | 平均  |
 | :----: | :---: | :---: | :---: | :---: |
 | 优化前 | 9.73  | 10.96 | 10.32 | 10.34 |
@@ -110,6 +111,10 @@ presentation:
 
 <!-- slide -->
 ## 实现容错
+
+<!-- slide vertical=true -->
+## VEGA原来的容错情况
+<img src="./src/faulterror1.png">
 
 <!-- slide vertical=true -->
 ## 容错机制
@@ -182,19 +187,31 @@ presentation:
 <!-- slide -->
 ## 自动化测试
 <!-- 自动化实现提交到仓库后自动检查提交结果的正确性并运行test，如果运行失败会发邮件提省协作者提交结果测试失败 -->
-![Alt text](src/autotest.png)
 <!-- slide vertical=true -->
 <img src="src/unittest1.png" style="zoom:200%">
 
 <!-- slide vertical=true -->
 <img src="src/unittest2.png" style="zoom:200%">
 
+<!-- slide vertical=true -->
+
+![Alt text](src/workflow.png)
+<!-- slide vertical=true -->
+
+![Alt text](src/autotest.png)
+
 <!-- slide -->
 ## 4 测试结果
-<img src="src/wordcount.png" style="zoom:200%">
 
 <!-- slide vertical=true -->
 <img src="src/wordcount2.png" style="zoom:200%">
+
+<!-- slide vertical=true -->
+<img src="src/wordcount_dis.png" style="zoom:200%">
+
+<!-- slide vertical=true -->
+<!-- 分布式计算pi -->
+<img src="src/calc_pi.png" style="zoom:200%">
 
 <!-- slide -->
 ## 5 项目总结
@@ -215,11 +232,11 @@ presentation:
 | 第八周         | 系统学习rust        | 以lab2, lab3为抓手在实验中学习Rust                       |
 | 第九周         | 编译，测试Vega模块  | 修复了原版Vega编译失败，部署失效的Bug                    |
 | 第十周         | 定位Vega模块        | 分配任务量，借鉴Spark对Vega代码进行阅读和理解            |
-| 第十一到十四周 | 编写优化对象模块    | 部署测试Vega分布式模式，开会写注释                       |
-| 第十五周       | 添加拓展模块        | 完成lab4, 推进HDFS加入文件系统的编写                     |
+| 第十一到十三周 | 编写优化对象模块    | 测试Vega分布式部署，开会写注释                       |
+| 第十四到十五周       | 添加拓展模块        | 完成lab4, 推进HDFS加入文件系统及容错机制的编写                     |
 | 第十六周       | 跑benchmark部署测试 | 编写测试样例，准备进入考试周                             |
 | 第十七周       | 无                  | 考试周放空                                               |
-| 第十八周       | 无                  | 连续四天开会高强度工作，完成所有既定任务并撰写报告和展示 |
+| 第十八周       | 无                  | 连续五天开会高强度工作，完成所有既定任务并撰写报告和展示 |
 
 <!-- slide vertical=true -->
 ## 项目意义与前瞻性
