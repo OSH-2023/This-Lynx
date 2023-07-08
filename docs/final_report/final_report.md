@@ -14,7 +14,196 @@
 ## 背景和立项依据
 
 ### 项目背景
+#### Vega
 Vega项目完全使用Rust从零写起，构建完成了一个较为简单的Spark内核。不过，这一项目已经有两三年没有维护，项目里还有不少算法没有实现，特别是Spark后来的诸多优化更新，这些都可以是我们的改进空间。
+
+**Context建立(master)**:
+```mermaid
+graph LR
+A(next_rdd_id)
+B(next_shuffle_id)
+C(scheduler)
+D[address_map]
+E(distributed_driver)
+F(work_dir)
+G[Context]
+
+A-->G
+B-->G
+C-->G
+D-->G
+E-->G
+F-->G
+
+
+AA(0)
+AA-->A
+BB(0)
+BB-->B
+
+CC[默认的scheduler]
+CC-->C
+CC1(port:10000)
+CC1-->CC
+CC2(servers:address_map)
+CC2-->CC
+D-->CC2
+CC3(master:true)
+CC3-->CC
+CC4(max_failures:20)
+CC4-->CC
+
+D1(exectuors' address_ips)
+D2(exectuors' ports)
+D1-->D
+D2-->D
+
+E1(true)
+E1-->E
+FF(job_work_dir)
+FF-->F
+```
+
+**makerdd**:
+```mermaid
+graph LR
+rdd[Rdds]
+A[parallelCollection]
+A1(name)
+A2[rdd_vals]
+AA1(context)
+AA2(vals)
+AA3(num_slices)
+AA4[_splits:Vec]
+AA1-->A2
+AA2-->A2
+AA3-->A2
+AA4-->A2
+A1-->A
+A2-->A
+A-->|SerArc|rdd
+
+AAA1[Context]
+AAA1-->|弱引用|AA1
+AAA[data]
+AAA-->|分区|AA4
+AA3-->|决定分区数|AA4
+
+B[RddVals]
+B-->|Arc|AA2
+B1(id)
+B2(dependencies)
+B3(should_cache)
+B4(context)
+
+AAA1-->|弱引用|B4
+B1-->B
+B2-->B
+B3-->B
+B4-->B
+
+BB3(false)
+BB3-->B3
+BB2(空Vec)
+BB2-->B2
+BB1(new_rdd_id)
+BB1-->B1
+
+AAA1-->|fetch_add|BB1
+
+C("parallel_collection")
+C-->A1
+
+```
+
+**map**:
+```mermaid
+graph LR
+rdd[Rdds]
+vec[vec_iter]
+
+A[MapperRdd]
+A-->|SerArc|vec
+
+A1(name)
+A2(prev)
+A3(vals)
+A4(f)
+A5(pins)
+A1-->A
+A2-->A
+A3-->A
+A4-->A
+A5-->A
+
+AA1("map")
+AA1-->A1
+AA4(函数?何用)
+AA4-->A4
+AA5(false)
+AA5-->A5
+
+B[RddVals]
+B-->|Arc|A3
+B1(id)
+B2(dependencies:narrow)
+B3(should_cache)
+B4(context)
+
+BBB[rdd]
+rdd-->|get_rdd|BBB
+BBB-->|=|A2
+BBB-->|get_context|BB
+BB[Context]
+BB-->|弱引用|B4
+B1-->B
+B2-->B
+B3-->B
+B4-->B
+
+BB3(false)
+BB3-->B3
+BB1(new_rdd_id)
+BB1-->B1
+
+C(OneToOneDependency)
+CC(rdd_base)
+CC-->C
+C-->B2
+BBB-->|get_rdd_base|CC
+```
+
+**collection**:
+```mermaid
+graph LR
+vec[vec_iter]
+rdd[rdd]
+vec-->|get_rdd|rdd
+fun(iter.collect)
+res(Result)
+
+A>run_job:context]
+B>run_job:scheduler]
+C1>run_job:distributed_scheduler]
+C2>run_job:local_scheduler]
+A-->|collect|res
+B-->A
+C1-->|distributed|B
+C2-->|local|B
+
+C[JobTracker]
+rdd-->C
+fun-->C
+par[partition]
+rdd-->|按num_splits|par
+par-->C
+C-->C1
+C-->C2
+
+C1-->|run|C1
+C2-->|run|C2
+```
+
 
 ### 立项依据
 
@@ -101,6 +290,11 @@ Spark自1.1.0版本起默认采用的是更先进的SortShuffle。数据会根�
 
 ## 项目总结
 ### 项目意义与前瞻性
+随着大数据处理需求的不断增长，对数据处理框架的性能和可靠性要求也越来越高。
+Vega继承了Spark的诸多优点。同样使用RDD，使得Vega拥有了简明、灵活、可扩展性好的编程模式，拥有了对非结构化数据或复杂的任务的良好支持，拥有了数据分片的高度弹性及在硬盘与内存间的高效调度，拥有了基于Lineage（血统）的高效容错机制。由此，它对计算任务的分布式执行有了良好的支持，可以在大数据处理中发挥重要作用。
+同时，Vega又吸收了Rust语言的诸多优良特性。Rust具有接近原生代码的性能，无需借助JVM执行，没有垃圾回收开销，使得Vega在性能上较Spark有了更大的提升；Rust又具有强大的内存安全、并发安全的特性，使得Vega在稳定性和可靠性上有了更大的提升；编程过程中，Rust超强的编译器可以避免绝大多数安全问题，现代的语法在零成本抽象的基础上为精简代码提供便利；同时。Rust还具有跨平台的特性，可以在不同的操作系统和硬件上运行，为数据处理提供更大的灵活性与可扩展性。用Rust重写Vega，是大势所趋。
+我们的Vega，又在原来Vega项目的基础上进行了优化，优化了Shuffle阶段的算法，接入了HDFS分布式文件系统，加入了多机下的队列容错机制，加入了基于Grafana/Prometheus实时监控运维模块，加入了项目自动测试。这使得Vega在性能上有了更大的提升，同时在可靠性、可用性与可维护性上也有所提升。
+在性能和可靠性上都有着更好表现的Vega，将为大数据处理提供了更高效、更安全的解决方案。
 
 
 ### 项目的优化方向
