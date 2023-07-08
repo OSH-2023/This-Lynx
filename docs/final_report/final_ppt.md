@@ -27,7 +27,7 @@ presentation:
 
 ## 基于Rust版Spark开源项目vega
 
-我们组在数月的每周两次固定讨论，线下开会的频率下圆满完成了学期初制订的各项任务目标，并且在此基础上**超额**完成了拓展功能。
+<!-- 我们组在数月的每周两次固定讨论，线下开会的频率下圆满完成了学期初制订的各项任务目标，并且在此基础上**超额**完成了拓展功能。 -->
 
 <!-- slide -->
 ## 2 背景和立项依据
@@ -57,7 +57,9 @@ presentation:
 
 <!-- slide -->
 ## 3 具体改进
-
+<!-- slide vertical=true -->
+##  改进依据
+![flame img](src/flame.png)
 <!-- slide -->
 ## Shuffle优化
 
@@ -168,7 +170,6 @@ presentation:
 
 <!-- slide -->
 ## 项目的优化方向
-
 <!-- slide vertical=true -->
 ### 减少序列化反序列化开销
 <img src="./src/serialization%20and%20deserialization.png">
