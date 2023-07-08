@@ -237,6 +237,11 @@ presentation:
 
 <img src="./src/looong%20type%20name%20in%20rust.png" style="zoom:150%">
 
+<!-- slide vertical=true -->
+### 建立更加完善的容错机制
+- Lineage（血统）机制实现容错
+- 降低容错为程序运行带来的成本
+
 <!-- slide -->
 
 # 谢谢大家
