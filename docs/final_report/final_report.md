@@ -447,7 +447,7 @@ Spark自1.1.0版本起默认采用的是更先进的SortShuffle。数据会根�
 
 
 ### 容错实现
-Vega没有实现容错机制，这导致了当某个节点出现故障时，整个程序都无法正常运行并卡死。这显然是不合理的。
+Vega没有实现容错机制，这导致了当某个节点出现故障时，整个程序都无法正常运行并卡死。这显然是不合理的，我们参考了一些论文与资料[^Fault_Tolerance_1] [^Fault_Tolerance_2]，尝试为其实现一个较完整的容错机制。
 
 <img src="./src/faulterror1.png">
 
@@ -588,7 +588,10 @@ Vega继承了Spark的诸多优点。同样使用RDD，使得Vega拥有了简明�
 
 #### 实现更加可靠的容错
 Spark中的容错机制是基于Spark的Lineage（血统）机制实现的。在Spark中，每个RDD都有一个指向其父RDD的指针，这样就可以通过RDD的血统关系来实现容错。当某个RDD的分区数据丢失时，可以通过其父RDD的血统关系重新计算得到。这种机制可以保证Spark的容错性，但是当某个RDD的父RDD丢失时，就无法通过血统关系重新计算得到，这就需要重新从头开始计算，这样就会导致计算效率的降低。
+
 虽然我们实现的容错机制已经能够在大部分情况下取得较好的结果，但仍有提高的空间。
+
+此外，还可以参考更多文献来实现更先进的分布式容错机制，比如，使用时间戳而不是延时来进行容错[^Fault_Tolerance_3]。
 
 ## 参考文献
 
@@ -602,7 +605,11 @@ Spark中的容错机制是基于Spark的Lineage（血统）机制实现的。在
 
 [^big_float]:High Precision Crate implemented for calculating pi. https://crates.io/crates/num-bigfloat
 
+[^Fault_Tolerance_1]:Jalote P. Fault tolerance in distributed systems[M]. Prentice-Hall, Inc., 1994. https://dl.acm.org/doi/abs/10.5555/179250
 
+[^Fault_Tolerance_2]:Cristian F. Understanding fault-tolerant distributed systems[J]. Communications of the ACM, 1991, 34(2): 56-78. https://dl.acm.org/doi/pdf/10.1145/102792.102801
+
+[^Fault_Tolerance_3]:Lamport L. Using time instead of timeout for fault-tolerant distributed systems[J]. ACM Transactions on Programming Languages and Systems (TOPLAS), 1984, 6(2): 254-280. https://dl.acm.org/doi/pdf/10.1145/2993.2994
 
 
 
