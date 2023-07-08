@@ -55,3 +55,12 @@ sudo perf script | ./stackcollapse-perf.pl > out.perf-folded
 |pi|N=100,000,000,num_slices=2|result: 3.14170632 119.148737699s|yzx ubuntu release|原版iterator()产生两次拷贝|
 |pi|N=100,000,000,num_slices=2|result: 3.14166852 114.434112669s|yzx ubuntu release|原版iterator()产生两次拷贝|
 |pi|N=100,000,num_slices=2|result: 3.13 39.911636275s|yzx ubuntu release|原版iterator()产生两次拷贝|
+|wordcount|100MB|用时52.2066s|yzx ubuntu pyspark|使用timeit进行计时|
+|wordcount|100MB|用时52.4881s|yzx ubuntu pyspark|使用timeit进行计时|
+|wordcount|100MB|用时26.5643s|yzx ubuntu pyspark|使用timeit进行计时，连续运行，使用缓存|
+|wordcount|100MB|用时30.7437s|yzx ubuntu vega release|使用perf进行分析|
+|wordcount|100MB|用时10.7568s|yzx ubuntu vega release|使用内置计时器|
+|wordcount|100MB|用时9.72145s|yzx ubuntu vega release|使用内置计时器|
+|wordcount|100MB|用时8.69915s|yzx ubuntu vega release|使用内置计时器|
+
+

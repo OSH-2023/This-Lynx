@@ -104,7 +104,7 @@ cargo test --package vega --lib -- shuffle::shuffle_fetcher::tests::fetch_ok --e
 - ENV加入了优化参数，可以控制是否使用sort_shuffle
 - 更改SHUFFLE_CACHE的结构及写入写出（含dependency的insert逻辑，shuffle_manager的get_cache_data逻辑与shuffle_fetcher逻辑）
 
-对shuffle部分，以两千万条shuffle记录的载量（`M*R=20000000`）进行测试，测试结果如下：
+对shuffle部分，以两千万条shuffle记录的载量（`M*R=20000000`）对其进行单元测试，测试结果如下：
 优化前：9.73,10.96,10.32 平均：10.34s
 优化后：6.82,5.46,4.87 平均：5.72s
 运行速度提升了81%
