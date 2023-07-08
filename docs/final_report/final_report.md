@@ -48,7 +48,7 @@
 - 李牧龙：为Vega增加了HDFS的读写接口和用于调试的本地读文件接口，进行Vega和Spark的分布式运行对比测试，编写wordcount样例
 - 罗浩铭：对Vega的Shuffle模块进行优化，编写项目测试样例
 - 汤皓宇：对Vega进行Docker部署，添加性能监控拓展模块，配置docker下的Prometheus/Grafana/node_exporter来展示Vega运行时各机器的CPU使用率和Vega的运行情况，负责每次会议的记录整理
-- 徐航宇：
+- 徐航宇：负责Vega运行环境与配置文件的创建，撰写及维护用户手册，并为Vega实现容错机制
 
 ## 进度管理
 | 时间进度 | 计划进度            | 实际进度                                           |
@@ -429,10 +429,10 @@ Spark自1.1.0版本起默认采用的是更先进的SortShuffle。数据会根�
 ### 自动化测试
 自动化实现提交到仓库后自动检查提交结果的正确性并运行test，如果运行失败会发邮件提醒协作者提交结果测试失败 
 #### Github workflow流程
-```mermaid
+<!-- ```mermaid
 graph TB:
-
-```
+ -->
+<!-- ``` -->
 #### 自动测试效果
 ![Alt text](src/autotest.png)
 ![unittest2](src/unittest2.png)
@@ -467,7 +467,7 @@ Vega继承了Spark的诸多优点。同样使用RDD，使得Vega拥有了简明�
 #### 构建更加用户友好的API
 由于Rust的类型机制较为复杂，使用Vega构建分布式计算应用时较为困难。比如，每次向RDD传递计算任务时传入时，获得结果的类型都会是包裹着计算任务的RDD类型，而在对RDD连续进行多次操作之后，得到的结果类型将会异常复杂，这不利于用户上手。
 
-如下即为Rust
+下图即为一例：
 
 <img src="./src/looong%20type%20name%20in%20rust.png">
 
