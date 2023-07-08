@@ -28,7 +28,7 @@ presentation:
 ## 基于Rust版Spark开源项目vega
 
 <!-- slide -->
-## 02 背景和立项依据
+## 2 背景和立项依据
 
 <!-- slide vertical=true -->
 
@@ -57,7 +57,7 @@ presentation:
 ## 3 具体改进
 
 <!-- slide -->
-# Shuffle优化
+## Shuffle优化
 
 <!-- slide vertical=true -->
 ## Shuffle介绍
@@ -86,30 +86,55 @@ Spark自1.1.0版本起默认采用的是更先进的SortShuffle。数据会根�
 优化后：6.82,5.46,4.87 平均：5.72s
 测得运行速度提升了81%，由此说明我们对这一模块的优化是成功的。
 
-<!-- slide vertical=true -->
-# 容错实现
-
-<!-- slide vertical=true -->
-# HDFS文件系统
-
-<!-- slide vertical=true -->
-# 实时监控拓展模块
-
-<!-- slide vertical=true -->
-# 自动化测试
+<!-- slide -->
+## 实现容错
 
 <!-- slide -->
-## 04 测试结果
+## 加入HDFS文件系统
 
 <!-- slide -->
-## 05 项目总结
+## 添加实时监控拓展模块
+
+<!-- slide vertical=true -->
+
+## 监控工具
+
+- prometheus
+- grafana
+- node_exporter
+
+<!-- slide vertical=true -->
+
+## 效果展示
+
+<img src="./src/local_running.png" style="zoom:150%">
+
+<!-- slide -->
+## 自动化测试
+
+<!-- slide -->
+## 4 测试结果
+
+<!-- slide -->
+## 5 项目总结
 
 <!-- slide vertical=true -->
 ## 组员分工与进度管理
 
+- 闫泽轩（组长）：
+- 李牧龙：
+- 罗浩铭：
+- 汤皓宇：对vega进行Docker部署，添加性能拓展模块，配置docker下的prometheus+grafana+node_exporter来展示vega运行时各机器的CPU使用率和vega的运行情况
+- 徐航宇：
+
 <!-- slide vertical=true -->
 ## 项目意义与前瞻性
 
-<!-- slide vertical=true -->
-## 项目的优化方向
+- ### Spark本身有很广的应用
+- ### 使用Rust进行计算框架撰写有很大好处
 
+<!-- slide -->
+## 未来可优化方向
+
+- ### 减少序列化开销
+- ### 构建更友好的API
