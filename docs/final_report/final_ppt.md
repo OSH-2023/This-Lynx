@@ -63,7 +63,9 @@ presentation:
 
 <!-- slide -->
 ## 3 具体改进
-
+<!-- slide vertical=true -->
+##  改进依据
+![flame img](src/flame.png)
 <!-- slide -->
 ## Shuffle优化
 
@@ -199,7 +201,6 @@ presentation:
 
 <!-- slide -->
 ## 项目的优化方向
-
 <!-- slide vertical=true -->
 ### 减少序列化反序列化开销
 <img src="./src/serialization%20and%20deserialization.png">
