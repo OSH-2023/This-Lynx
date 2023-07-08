@@ -63,7 +63,7 @@ presentation:
 
 <!-- slide vertical=true -->
 ## Shuffle介绍
-Shuffle：将输入的M个分区内的数据“按一定规则”重新分配到R个分区上。
+将输入的M个分区内的数据“按一定规则”重新分配到R个分区上。
 - 各个节点上相同key的内容写入主节点磁盘文件中
 - 相同key的数据将被拉取到同一个分区进行聚合操作
 
@@ -90,10 +90,15 @@ Shuffle：将输入的M个分区内的数据“按一定规则”重新分配到
 
 <!-- slide vertical=true -->
 ## Shuffle优化测试结果
-对shuffle部分，以两千万条shuffle记录的载量（Map端有M个分区，Reduce端有R个分区，`M*R=20000000`）进行单元测试，测试结果如下：
-优化前：9.73,10.96,10.32 平均：10.34s
-优化后：6.82,5.46,4.87 平均：5.72s
-测得运行速度提升了81%。
+
+使用两千万条shuffle记录的载量进行单元测试，测试结果如下：
+（Map端有M个分区，Reduce端有R个分区，$M\cdot R=20000000$）
+| 时间/s |   1   |   2   |   3   | 平均  |
+| :----: | :---: | :---: | :---: | :---: |
+| 优化前 | 9.73  | 10.96 | 10.32 | 10.34 |
+| 优化后 | 6.82  | 5.46  | 4.87  | 5.72  |
+
+**运行速度提升了81%**
 
 <!-- slide -->
 ## 实现容错
@@ -108,15 +113,23 @@ Shuffle：将输入的M个分区内的数据“按一定规则”重新分配到
 
 ## 监控工具
 
-- prometheus
-- grafana
+- Prometheus
+- Grafana
 - node_exporter
 
 <!-- slide vertical=true -->
 
 ## 效果展示
 
-<img src="./src/local_running.png" style="zoom:150%">
+<img src="./src/metrics.png">
+
+<!-- slide vertical=true -->
+
+## 效果展示
+
+<img src="./src/local_running.png" style="zoom:50%">
+
+<img src="./src/distri_after.png" style="zoom:50%">
 
 <!-- slide -->
 ## 自动化测试
@@ -164,4 +177,5 @@ Shuffle：将输入的M个分区内的数据“按一定规则”重新分配到
 ### 构建更加用户友好的API
 - Rust的类型机制较为复杂
 - 原有的RDD算子类型不够丰富
-<img src="./src/looong%20type%20name%20in%20rust.png">
+
+<img src="./src/looong%20type%20name%20in%20rust.png" style="zoom:150%">
