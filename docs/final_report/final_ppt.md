@@ -22,7 +22,6 @@ presentation:
 
 <!-- slide -->
 ## 1 项目介绍
-本项目基于Rust语言对Spark进行性能优化，我们小组成员经过数个月的持续，稳定和团结的工作达成了制订的各项目标，并且在此基础上超额完成了工作。
 
 <!-- slide vertical=true -->
 
@@ -163,4 +162,5 @@ presentation:
 ### 构建更加用户友好的API
 - Rust的类型机制较为复杂
 - 原有的RDD算子类型不够丰富
+
 <img src="./src/looong%20type%20name%20in%20rust.png">
