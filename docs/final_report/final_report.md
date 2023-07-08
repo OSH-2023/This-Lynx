@@ -20,9 +20,9 @@
     - [与客户端交互](#与客户端交互)
     - [容错性](#容错性)
 - [项目具体优化细节](#项目具体优化细节)
-  - [容错实现](#容错实现)
-  - [HDFS文件系统](#hdfs文件系统)
   - [Shuffle部分](#shuffle部分)
+  - [HDFS文件系统](#hdfs文件系统)
+  - [容错实现](#容错实现)
   - [实时监控拓展模块](#实时监控拓展模块)
   - [自动化测试](#自动化测试)
     - [Github workflow流程](#github-workflow流程)
@@ -396,6 +396,44 @@ HDFS的容错处理和GFS基本一致，可大致分为以下4点：
 4. 主从NameNode，主NameNode宕机时副NameNode成为主NameNode。
 
 ## 项目具体优化细节
+
+### Shuffle部分
+在Vega原有的HashShuffle算法中，会对每一对Map和Reduce端的分区配对都产生一条分区记录，假设Map端有M个分区，Reduce端有R个分区，那么最后产生的分区记录一共会有M*R条。原版的Spark中，每一条Shuffle记录都会被写进磁盘里。由于生成的文件数过多，会对文件系统造成压力，且大量小文件的随机读写会带来一定的磁盘开销，故其性能不佳。而Vega中已将Shuffle记录保存在以DashMap(分布式HashMap)实现的缓存里，这大幅降低了本地I/O开销，但远程开销仍然较大，且DashMap占用空间与性能也会受到索引条数过多的影响。
+
+<img src="./src/spark_hash_shuffle_no_consolidation.webp">
+
+Spark自1.1.0版本起默认采用的是更先进的SortShuffle。数据会根据目标的分区Id（即带Shuffle过程的目标RDD中各个分区的Id值）进行排序，然后写入一个单独的Map端输出文件中，而非很多个小文件。输出文件中按reduce端的分区号来索引文件中的不同shuffle部分。这种shuffle方式大幅减小了随机访存的开销与文件系统的压力，不过增加了排序的开销。（Spark起初不采用SortShuffle的原因正是为了避免产生不必要的排序开销）
+
+<img src="./src/spark_sort_shuffle.webp">
+
+在我们对Vega中shuffle逻辑的优化中，由于使用了DashMap缓存来保存Shuffle记录，我们无需进行排序，直接按reduce端分区号作为键值写入缓存即可。这既避免了排序的开销，又获得了SortShuffle合并shuffle记录以减少shuffle记录条数的效果。这样，shuffle输出只需以reduce端分区号为键值读出即可。
+
+使用两千万条shuffle记录的载量进行单元测试，测试结果如下：
+（Map端有M个分区，Reduce端有R个分区，$M\cdot R=20000000$）
+| 时间/s |   1   |   2   |   3   | 平均  |
+| :----: | :---: | :---: | :---: | :---: |
+| 优化前 | 9.73  | 10.96 | 10.32 | 10.34 |
+| 优化后 | 6.82  | 5.46  | 4.87  | 5.72  |
+
+
+![shuffle](src/ShuffleUp.png)
+测得运行速度提升了81%，由此说明我们对这一模块的优化是成功的。
+
+### HDFS文件系统
+原本的Vega没有接入任何分布式文件系统的接口，甚至本地文件读写效果也相当差（分布式状态运行时会重复执行任务）。为了改善Vega的文件读取可用性，我们为其增加了与HDFS之间的接口。
+
+接入HDFS主要需要解决几个问题：读取和写入数据，将数据制成Rdd。
+
+将数据读出和写入可以利用一个第三方包：hdrs实现。hdrs用Rust包装了HDFS的C接口，实现了Read、Write等Trait，很好地解决了读取写入数据的问题。
+
+但在分布式系统上，为提高读取效率和减少运算过程中的传输，应该让各个worker同时从HDFS读取。为此，我们编写了HdfsReadRdd。该Rdd会自动将要读取的所有文件分区，在`compute()`函数执行时让多个worker同时读取，并分别处理这些文件。
+
+相比之下，写入的处理非常简单。由于写入时一个文件一次只能一台机器写入，因此直接提供写入到HDFS上文件的函数，调用时由master执行即可。
+
+为统一IO功能，我们提供了可供调用的HdfsIO类，其中的`read_to_vec`和`read_to_rdd`方法可以将HDFS上的文件读取为字节流或Rdd，`write_to_hdfs`方法可以对HDFS进行写入。另外，为了方便处理读取得到的字节流，我们还提供了对文件进行读取和解码的`read_to_vec_and_decode`函数，调用时只要在`read_to_rdd`的基础上多传入一个用于解码的decoder函数，即可得到一个从HdfsReadRdd包装得到的Rdd，该Rdd进行`compute()`之后即可读取文件并且得到解码后的文件内容。
+
+另外，为方便运行和修复原作者的错误，我们按照类似与HDFS进行交互的方式，提供了LocalFsIO和LocalFsReadRdd，可用于调试时读取本地文件。
+
 ### 容错实现
 Vega没有实现容错机制，这导致了当某个节点出现故障时，整个程序都无法正常运行并卡死。这显然是不合理的。
 
@@ -417,41 +455,6 @@ Vega没有实现容错机制，这导致了当某个节点出现故障时，整�
 
 这一处理方式不仅能够保证程序的正常运行，还能一定程度上降低容错带来的性能损耗：避免了使用大量资源在收集结果阶段对任务是否成功进行监测和处理（因为提前了处理的时机），并且通过直接在 submit_task_iter 用 tokio::spawn 创建的异步线程中递归调用，减少了对任务，ip队列等的克隆开销（如果放在外面，由于需要使用 async move 闭包，必须要提前备份task与ip队列，否则会产生对已经失去所有权的变量的引用）。此外，由于此过程是异步进行的，并不会影响其他任务的执行。
 
-### HDFS文件系统
-原本的Vega没有接入任何分布式文件系统的接口，甚至本地文件读写效果也相当差（分布式状态运行时会重复执行任务）。为了改善Vega的文件读取可用性，我们为其增加了与HDFS之间的接口。
-
-接入HDFS主要需要解决几个问题：读取和写入数据，将数据制成Rdd。
-
-将数据读出和写入可以利用一个第三方包：hdrs实现。hdrs用Rust包装了HDFS的C接口，实现了Read、Write等Trait，很好地解决了读取写入数据的问题。
-
-但在分布式系统上，为提高读取效率和减少运算过程中的传输，应该让各个worker同时从HDFS读取。为此，我们编写了HdfsReadRdd。该Rdd会自动将要读取的所有文件分区，在`compute()`函数执行时让多个worker同时读取，并分别处理这些文件。
-
-相比之下，写入的处理非常简单。由于写入时一个文件一次只能一台机器写入，因此直接提供写入到HDFS上文件的函数，调用时由master执行即可。
-
-为统一IO功能，我们提供了可供调用的HdfsIO类，其中的`read_to_vec`和`read_to_rdd`方法可以将HDFS上的文件读取为字节流或Rdd，`write_to_hdfs`方法可以对HDFS进行写入。另外，为了方便处理读取得到的字节流，我们还提供了对文件进行读取和解码的`read_to_vec_and_decode`函数，调用时只要在`read_to_rdd`的基础上多传入一个用于解码的decoder函数，即可得到一个从HdfsReadRdd包装得到的Rdd，该Rdd进行`compute()`之后即可读取文件并且得到解码后的文件内容。
-
-另外，为方便运行和修复原作者的错误，我们按照类似与HDFS进行交互的方式，提供了LocalFsIO和LocalFsReadRdd，可用于调试时读取本地文件。
-
-
-### Shuffle部分
-在Vega原有的HashShuffle算法中，会对每一对Map和Reduce端的分区配对都产生一条分区记录，假设Map端有M个分区，Reduce端有R个分区，那么最后产生的分区记录一共会有M*R条。原版的Spark中，每一条Shuffle记录都会被写进磁盘里。由于生成的文件数过多，会对文件系统造成压力，且大量小文件的随机读写会带来一定的磁盘开销，故其性能不佳。而Vega中已将Shuffle记录保存在以DashMap(分布式HashMap)实现的缓存里，这大幅降低了本地I/O开销，但远程开销仍然较大，且DashMap占用空间与性能也会受到索引条数过多的影响。
-
-<img src="./src/spark_hash_shuffle_no_consolidation.webp">
-
-Spark自1.1.0版本起默认采用的是更先进的SortShuffle。数据会根据目标的分区Id（即带Shuffle过程的目标RDD中各个分区的Id值）进行排序，然后写入一个单独的Map端输出文件中，而非很多个小文件。输出文件中按reduce端的分区号来索引文件中的不同shuffle部分。这种shuffle方式大幅减小了随机访存的开销与文件系统的压力，不过增加了排序的开销。（Spark起初不采用SortShuffle的原因正是为了避免产生不必要的排序开销）
-
-<img src="./src/spark_sort_shuffle.webp">
-
-在我们对Vega中shuffle逻辑的优化中，由于使用了DashMap缓存来保存Shuffle记录，我们无需进行排序，直接按reduce端分区号作为键值写入缓存即可。这既避免了排序的开销，又获得了SortShuffle合并shuffle记录以减少shuffle记录条数的效果。这样，shuffle输出只需以reduce端分区号为键值读出即可。
-
-使用两千万条shuffle记录的载量进行单元测试，测试结果如下：
-（Map端有M个分区，Reduce端有R个分区，$M\cdot R=20000000$）
-| 时间/s |   1   |   2   |   3   | 平均  |
-| :----: | :---: | :---: | :---: | :---: |
-| 优化前 | 9.73  | 10.96 | 10.32 | 10.34 |
-| 优化后 | 6.82  | 5.46  | 4.87  | 5.72  |
-
-测得运行速度提升了81%，由此说明我们对这一模块的优化是成功的。
 
 ### 实时监控拓展模块
 
@@ -524,15 +527,16 @@ style F fill:#cf5,stroke:#f66,stroke-width:5px;
 ![Alt text](src/autotest.png)
 
 黄色圆框表示刚刚提交的结果正在进行测试，测试按照一定的流程进行，这个流程可以由开发者指定，并且Github提供了丰富的插件和环境便于我们使用，这个功能可以在仓库的Actions中添加Workflow使用。
-- 自动化：GitHub Workflow可以自动化您的构建、测试和部署流程，从而减少手动操作和减少错误。
 
-- 可重复性：GitHub Workflow可以确保您的构建、测试和部署流程在每次运行时都是相同的，从而提高可重复性。
+- **自动化**：GitHub Workflow可以自动化我们的构建、测试和部署流程，从而减少手动操作和减少错误。
 
-- 可视化：GitHub Workflow提供了一个可视化的界面，可以让您轻松地查看您的构建、测试和部署流程。
+- **可重复性**：GitHub Workflow可以确保我们的构建、测试和部署流程在每次运行时都是相同的，从而提高可重复性。
 
-- 可扩展性：GitHub Workflow可以轻松地扩展到其他工具和服务，例如Docker、AWS、Azure等。
+- **可视化**：GitHub Workflow提供了一个可视化的界面，可以让我们轻松地查看您的构建、测试和部署流程。
 
-开放性：GitHub Workflow是开源的，因此您可以自由地修改和定制它以满足您的需求。
+- **可扩展性**：GitHub Workflow可以轻松地扩展到其他工具和服务，例如Docker、AWS、Azure等。
+
+- **开放性**：GitHub Workflow是开源的，因此可以自由地修改和定制它以满足我们的需求。
 ![unittest2](src/unittest2.png)
 ## 测试结果
 <img src="src/wordcount.png" style="zoom:200%">
