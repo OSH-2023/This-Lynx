@@ -17,11 +17,11 @@ OSH-2023 team project repo, our chinese team name is "芝士猞猁".
                                          \▓▓▓▓▓▓                   
 ```
 
-## :cat: Topic
+## 🐱 Topic
 
 基于Rust语言对Apache Spark性能瓶颈的优化
 
-## :heart_eyes_cat: Members
+## 😻 Members
 
 - [闫泽轩](https://github.com/yuriYanZeXuan)
 - [李牧龙](https://github.com/NanqiOP)
@@ -29,7 +29,7 @@ OSH-2023 team project repo, our chinese team name is "芝士猞猁".
 - [汤皓宇](https://github.com/himalalps)
 - [徐航宇](https://github.com/XhyDds)
 
-## :smile_cat: Overview
+## 😸 Overview
 
 本项目基于印度开发者rajasekarv开发的vega项目，使用Rust语言（nightly）重构分布式计算框架Spark，实现其核心功能并进行性能上的优化。
 原作者的项目已停止更新2年，项目中存在大量未完成部分，且已无法在当前版本的Rust nightly下通过编译。本小组对该项目进行了维护，修正了部分代码，提升了容错性和运行效率，增加了与Hdfs、Prometheus、Grafana等的接口。目前vega已可以完成基本的分布式计算操作，并在许多任务上实现了相对Spark的较大性能提升。
@@ -37,7 +37,7 @@ OSH-2023 team project repo, our chinese team name is "芝士猞猁".
 >  项目仓库[Repository](https://github.com/XhyDds/vega)
 >  用户手册[GuideBook](https://xhydds.github.io/vega/)
 
-## :smirk_cat: Discussion Progress
+## 😼 Discussion Progress
 
 | 日期  |          主题          |             内容             |                               记录                                  |     备注     |
 | :---: | :--------------------: |:--------------------------------:| :--------------------------------------------------------------------: | :----------: |
@@ -64,7 +64,7 @@ OSH-2023 team project repo, our chinese team name is "芝士猞猁".
 |  7-6  |   基本完成大部分工作   |    hdfs与容错基本完成，性能监控初步配置成功    |         [7-6](./docs/discussion/7-6.md)                     |              |
 |  7-7  | 收尾工作与结题报告开工 |    各项工作基本顺利完成，进入收尾阶段，报告撰写正式开工     |         [7-7](./docs/discussion/7-7.md)                     |              |
 
-## :smiley_cat: Research Progress
+## 😺 Research Progress
 
 小组在调研阶段广泛查询各种资料，多方收集信息，确定了包括优化Spark在内的多个选题。在与老师充分沟通过后，考虑小组成员的爱好，最终确定了用Rust语言优化Spark的选题。
 
@@ -72,7 +72,7 @@ OSH-2023 team project repo, our chinese team name is "芝士猞猁".
 
 >  项目调研报告见[research_report](./docs/research_report/ResearchReport.md)
 
-## :smiley_cat: Basis of Project
+## 😺 Basis of Project
 
 Spark采用在JVM上运行的Scala语言编写。虽然带有运行时环境具有方便内存管理等优势，但同时也会拖累其性能。Rust作为一门系统编程语言，具有极高的运行效率（接近C++）的同时还可以保证内存安全性。非常适合用来优化Spark。
 
@@ -80,8 +80,8 @@ Spark采用在JVM上运行的Scala语言编写。虽然带有运行时环境具�
 
 >  项目可行性报告见[feasibility_report](./docs/feasibility_report/FeasibilityReport.md)
 
-## :smile_cat: Doc Description
-本文档存放了小组的各种报告，使用 `Material for MkDocs`生成并部署，详见[page](https://osh-2023.github.io/This-Lynx/)
+## 😸 Doc Description
+本文档存放了小组的各种报告，使用`Material for MkDocs`生成并部署，详见[page](https://osh-2023.github.io/This-Lynx/)
 
 ```
 |—— 1.discussion                # 例行讨论的会议记录
@@ -120,7 +120,7 @@ Spark采用在JVM上运行的Scala语言编写。虽然带有运行时环境具�
 |   ├── perf.svg                    # vega性能分析图
 |   ├── Running ... Vega            # 运行流程分析
 |   └── shuffle_in_vega.md          # shuffle分析
-└x─ 6.final_report              # 结题报告的文档记录
+└x─ 8.final_report              # 结题报告的文档记录
     ├── src
     ├── final_ppt.md                # 结题汇报ppt
     ├── final_report.md
