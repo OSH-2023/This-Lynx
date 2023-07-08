@@ -27,6 +27,12 @@ presentation:
 
 ## 基于Rust版Spark开源项目vega
 
+<img src="./src/git page.png">
+
+<!-- slide vertical=true -->
+
+<img src="./src/blog.png">
+
 <!-- slide -->
 ## 2 背景和立项依据
 
@@ -115,6 +121,8 @@ presentation:
 - Grafana
 - node_exporter
 
+*基于Docker直接部署*
+
 <!-- slide vertical=true -->
 
 ## 效果展示
@@ -144,7 +152,7 @@ presentation:
 - 闫泽轩（组长）：
 - 李牧龙：
 - 罗浩铭：对Vega的Shuffle模块进行优化，编写项目测试样例
-- 汤皓宇：对vega进行Docker部署，添加性能拓展模块，配置docker下的prometheus+grafana+node_exporter来展示vega运行时各机器的CPU使用率和vega的运行情况
+- 汤皓宇：对vega进行Docker部署，添加性能监控拓展模块
 - 徐航宇：
 
 <!-- slide vertical=true -->
