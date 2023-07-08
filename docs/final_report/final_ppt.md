@@ -204,6 +204,10 @@ presentation:
 <!-- slide vertical=true -->
 <img src="src/wordcount_dis.png" style="zoom:200%">
 
+<!-- slide vertical=true -->
+<!-- 分布式计算pi -->
+<img src="src/calc_pi.png" style="zoom:200%">
+
 <!-- slide -->
 ## 5 项目总结
 
