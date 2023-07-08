@@ -111,6 +111,16 @@ presentation:
 <!-- slide -->
 ## 实现容错
 
+<!-- slide vertical=true -->
+## 容错机制
+利用循环队列，在某从机下线时递归地进行任务的重新分发，
+保证程序的正常运行，并打印出相关Error信息以供用户检查。
+<img src="./src/FaultTolerance.png" style="zoom:300%">
+
+<!-- slide vertical=true -->
+## 效果展示
+待填充
+
 <!-- slide -->
 ## 加入HDFS文件系统
 
@@ -189,7 +199,7 @@ presentation:
 - 李牧龙：为Vega增加了HDFS的读写接口和用于调试的本地读文件接口，进行Vega和Spark的分布式运行对比测试，编写wordcount样例
 - 罗浩铭：对Vega的Shuffle模块进行优化，编写项目测试样例
 - 汤皓宇：对vega进行Docker部署，添加性能监控拓展模块
-- 徐航宇：
+- 徐航宇：负责Vega运行环境与配置文件的创建，撰写及维护用户手册，并为Vega实现容错机制
 
 <!-- slide vertical=true -->
 ## 项目意义与前瞻性
