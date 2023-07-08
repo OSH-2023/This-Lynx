@@ -574,7 +574,7 @@ Vega继承了Spark的诸多优点。同样使用RDD，使得Vega拥有了简明�
 
 #### 开发新的RDD算子
 
-同时，原有的RDD算子类型不够丰富，支持的计算函数都较为底层，可以开发更多的算子以支持各种各样的计算任务，同时可以利用将底层任务合并为高层任务时的优化空间。
+同时，原有的RDD算子类型不够丰富，支持的计算函数都较为底层，[^big_float]可以开发更多的算子以支持各种各样的计算任务，同时可以利用将底层任务合并为高层任务时的优化空间。
 
 #### 实现更加可靠的容错
 Spark中的容错机制是基于Spark的Lineage（血统）机制实现的。在Spark中，每个RDD都有一个指向其父RDD的指针，这样就可以通过RDD的血统关系来实现容错。当某个RDD的分区数据丢失时，可以通过其父RDD的血统关系重新计算得到。这种机制可以保证Spark的容错性，但是当某个RDD的父RDD丢失时，就无法通过血统关系重新计算得到，这就需要重新从头开始计算，这样就会导致计算效率的降低。
@@ -590,7 +590,7 @@ Spark中的容错机制是基于Spark的Lineage（血统）机制实现的。在
 [^gfs]:Ghemawat, Sanjay, Howard Gobioff, and Shun-Tak Leung. "The Google File System." Operating Systems Review (2003): 29-43. Web. https://ustc-primo.hosted.exlibrisgroup.com.cn/permalink/f/tp5o03/TN_cdi_proquest_miscellaneous_31620514
 [^prom]:Roman Kudryashov. Monitoring Rust web application with Prometheus and Grafana. https://romankudryashov.com/blog/2021/11/monitoring-rust-web-application/
 
-
+[^big_float]:High Precision Crate implemented for calculating pi. https://crates.io/crates/num-bigfloat
 
 
 

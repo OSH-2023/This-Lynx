@@ -101,6 +101,7 @@ presentation:
 
 使用两千万条shuffle记录的载量进行单元测试，测试结果如下：
 （Map端有M个分区，Reduce端有R个分区，$M\cdot R=20000000$）
+<img src="src/ShuffleUp.png" style="zoom:150%">
 | 时间/s |   1   |   2   |   3   | 平均  |
 | :----: | :---: | :---: | :---: | :---: |
 | 优化前 | 9.73  | 10.96 | 10.32 | 10.34 |
@@ -177,12 +178,18 @@ presentation:
 <!-- slide -->
 ## 自动化测试
 <!-- 自动化实现提交到仓库后自动检查提交结果的正确性并运行test，如果运行失败会发邮件提省协作者提交结果测试失败 -->
-![Alt text](src/autotest.png)
 <!-- slide vertical=true -->
 <img src="src/unittest1.png" style="zoom:200%">
 
 <!-- slide vertical=true -->
 <img src="src/unittest2.png" style="zoom:200%">
+
+<!-- slide vertical=true -->
+
+![Alt text](src/workflow.png)
+<!-- slide vertical=true -->
+
+![Alt text](src/autotest.png)
 
 <!-- slide -->
 ## 4 测试结果
