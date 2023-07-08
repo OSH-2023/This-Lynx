@@ -27,6 +27,8 @@ presentation:
 
 ## 基于Rust版Spark开源项目vega
 
+我们组在数月的每周两次固定讨论，线下开会的频率下圆满完成了学期初制订的各项任务目标，并且在此基础上**超额**完成了拓展功能。
+
 <!-- slide -->
 ## 2 背景和立项依据
 
@@ -61,7 +63,7 @@ presentation:
 
 <!-- slide vertical=true -->
 ## Shuffle介绍
-Shuffle：将输入的M个分区内的数据“按一定规则”重新分配到R个分区上。
+将输入的M个分区内的数据“按一定规则”重新分配到R个分区上。
 - 各个节点上相同key的内容写入主节点磁盘文件中
 - 相同key的数据将被拉取到同一个分区进行聚合操作
 
@@ -88,10 +90,15 @@ Shuffle：将输入的M个分区内的数据“按一定规则”重新分配到
 
 <!-- slide vertical=true -->
 ## Shuffle优化测试结果
-对shuffle部分，以两千万条shuffle记录的载量（Map端有M个分区，Reduce端有R个分区，`M*R=20000000`）进行单元测试，测试结果如下：
-优化前：9.73,10.96,10.32 平均：10.34s
-优化后：6.82,5.46,4.87 平均：5.72s
-测得运行速度提升了81%。
+
+使用两千万条shuffle记录的载量进行单元测试，测试结果如下：
+（Map端有M个分区，Reduce端有R个分区，$M\cdot R=20000000$）
+| 时间/s |   1   |   2   |   3   | 平均  |
+| :----: | :---: | :---: | :---: | :---: |
+| 优化前 | 9.73  | 10.96 | 10.32 | 10.34 |
+| 优化后 | 6.82  | 5.46  | 4.87  | 5.72  |
+
+**运行速度提升了81%**
 
 <!-- slide -->
 ## 实现容错
@@ -129,29 +136,46 @@ Shuffle：将输入的M个分区内的数据“按一定规则”重新分配到
 
 ## 监控工具
 
-- prometheus
-- grafana
+- Prometheus
+- Grafana
 - node_exporter
 
 <!-- slide vertical=true -->
 
 ## 效果展示
 
-<img src="./src/local_running.png" style="zoom:150%">
+<img src="./src/metrics.png">
+
+<!-- slide vertical=true -->
+
+## 效果展示
+
+<img src="./src/local_running.png" style="zoom:50%">
+
+<img src="./src/distri_after.png" style="zoom:50%">
 
 <!-- slide -->
 ## 自动化测试
+<!-- 自动化实现提交到仓库后自动检查提交结果的正确性并运行test，如果运行失败会发邮件提省协作者提交结果测试失败 -->
+![Alt text](src/autotest.png)
+<!-- slide vertical=true -->
+<img src="src/unittest1.png" style="zoom:200%">
+
+<!-- slide vertical=true -->
+<img src="src/unittest2.png" style="zoom:200%">
 
 <!-- slide -->
 ## 4 测试结果
-
+<img src="src/wordcount.png" style="zoom:200%">
+<!-- slide vertical=true -->
+<img src="src/wordcount2.png" style="zoom:200%">
 <!-- slide -->
 ## 5 项目总结
 
 <!-- slide vertical=true -->
 ## 组员分工与进度管理
 
-- 闫泽轩（组长）：
+- 闫泽轩（组长）：负责会议日程议程安排，对项目正确性进行测试，编写测试样例和部署测试。
 - 李牧龙：为Vega增加了HDFS的读写接口和用于调试的本地读文件接口，进行Vega和Spark的分布式运行对比测试，编写wordcount样例
 - 罗浩铭：对Vega的Shuffle模块进行优化，编写项目测试样例
 - 汤皓宇：对vega进行Docker部署，添加性能拓展模块，配置docker下的prometheus+grafana+node_exporter来展示vega运行时各机器的CPU使用率和vega的运行情况
@@ -176,4 +200,5 @@ Shuffle：将输入的M个分区内的数据“按一定规则”重新分配到
 ### 构建更加用户友好的API
 - Rust的类型机制较为复杂
 - 原有的RDD算子类型不够丰富
-<img src="./src/looong%20type%20name%20in%20rust.png">
+
+<img src="./src/looong%20type%20name%20in%20rust.png" style="zoom:150%">
