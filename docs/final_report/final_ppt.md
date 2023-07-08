@@ -65,22 +65,27 @@ Shuffle：将输入的M个分区内的数据“按一定规则”重新分配到
 - 各个节点上相同key的内容写入主节点磁盘文件中
 - 相同key的数据将被拉取到同一个分区进行聚合操作
 
-<!-- slide vertical=true -->
-## Shuffle介绍
-在Spark程序中，Shuffle过程涉及大量的磁盘文件读写操作，以及数据的网络传输操作，因而是性能的最大瓶颈。Shuffle阶段的设计优劣是决定性能好坏的关键因素。
+**最大的性能瓶颈!**
 
 <!-- slide vertical=true -->
 ## SortShuffleManager
-- 对每一对Map和Reduce端的分区配对都产生一条分区记录
-- 由于生成的文件数过多，会对文件系统造成压力，且大量小文件的随机读写会带来一定的磁盘开销，故其性能不佳。
-而Vega中已将Shuffle记录保存在以DashMap(分布式HashMap)实现的缓存里，这大幅降低了本地I/O开销，但远程开销仍然较大，且DashMap占用空间与性能也会受到索引条数过多的影响。
+- 对每一对Map和Reduce端的分区配对都产生一条分区记录，原版Spark生成一个文件存入，Vega将Shuffle记录保存在以DashMap(分布式HashMap)实现的缓存里
+- 由于生成的文件数过多，会对文件系统造成压力，且大量小文件的随机读写会带来一定的磁盘开销，故其性能不佳
+<img src="./src/spark_hash_shuffle_no_consolidation.webp">
 
-
+<!-- slide vertical=true -->
 ## SortShuffleManager
-Spark自1.1.0版本起默认采用的是更先进的SortShuffle。数据会根据目标的分区Id（即带Shuffle过程的目标RDD中各个分区的Id值）进行排序，然后写入一个单独的Map端输出文件中，而非很多个小文件。输出文件中按reduce端的分区号来索引文件中的不同shuffle部分。这种shuffle方式大幅减小了随机访存的开销与文件系统的压力，不过增加了排序的开销。（Spark起初不采用SortShuffle的原因正是为了避免产生不必要的排序开销）
+- 数据会根据目标的分区Id（即带Shuffle过程的目标RDD中各个分区的Id值）进行排序，然后写入一个单独的Map端输出文件中，而非很多个小文件
+- 输出文件中按reduce端的分区号来索引文件中的不同shuffle部分
+- 大幅减小了随机访存的开销与文件系统的压力，不过增加了排序的开销
+- <img src="./src/spark_sort_shuffle.webp">
 
+<!-- slide vertical=true -->
+## 我们的优化
 在我们对Vega中shuffle逻辑的优化中，由于使用了DashMap缓存来保存Shuffle记录，我们无需进行排序，直接按reduce端分区号作为键值写入缓存即可。这既避免了排序的开销，又获得了SortShuffle合并shuffle记录以减少shuffle记录条数的效果。这样，shuffle输出只需以reduce端分区号为键值读出即可。
 
+<!-- slide vertical=true -->
+## Shuffle优化测试结果
 对shuffle部分，以两千万条shuffle记录的载量（Map端有M个分区，Reduce端有R个分区，`M*R=20000000`）进行单元测试，测试结果如下：
 优化前：9.73,10.96,10.32 平均：10.34s
 优化后：6.82,5.46,4.87 平均：5.72s
@@ -130,11 +135,17 @@ Spark自1.1.0版本起默认采用的是更先进的SortShuffle。数据会根�
 <!-- slide vertical=true -->
 ## 项目意义与前瞻性
 
-- ### Spark本身有很广的应用
-- ### 使用Rust进行计算框架撰写有很大好处
 
 <!-- slide -->
-## 未来可优化方向
+## 项目的优化方向
 
-- ### 减少序列化开销
-- ### 构建更友好的API
+
+<!-- slide vertical=true -->
+### 减少序列化反序列化开销
+<img src="./src/serialization%20and%20deserialization.png">
+
+<!-- slide vertical=true -->
+### 构建更加用户友好的API
+- Rust的类型机制较为复杂
+- 原有的RDD算子类型不够丰富
+<img src="./src/looong%20type%20name%20in%20rust.png">
