@@ -89,7 +89,7 @@ presentation:
 - 数据会根据目标的分区Id（即带Shuffle过程的目标RDD中各个分区的Id值）进行排序，然后写入一个单独的Map端输出文件中，而非很多个小文件
 - 输出文件中按reduce端的分区号来索引文件中的不同shuffle部分
 - 大幅减小了随机访存的开销与文件系统的压力，不过增加了排序的开销
-
+ 
 <img src="./src/spark_sort_shuffle.webp">
 
 <!-- slide vertical=true -->
