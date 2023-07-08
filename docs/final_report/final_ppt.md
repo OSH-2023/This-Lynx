@@ -113,6 +113,10 @@ presentation:
 ## 实现容错
 
 <!-- slide vertical=true -->
+## VEGA原来的容错情况
+<img src="./src/faulterror1.png">
+
+<!-- slide vertical=true -->
 ## 容错机制
 利用循环队列，在某从机下线时递归地进行任务的重新分发，
 保证程序的正常运行，并打印出相关Error信息以供用户检查。
