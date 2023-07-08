@@ -125,6 +125,11 @@ presentation:
 ## 加入HDFS文件系统
 
 <!-- slide vertical=true -->
+## HDFS
+- Hadoop DFS
+- 基于GFS开发
+
+<!-- slide vertical=true -->
 ## 实现目标
 - 从HDFS读文件
 - **利用读取的数据生成Rdd**
