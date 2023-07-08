@@ -200,7 +200,7 @@ presentation:
 - 闫泽轩（组长）：负责会议日程议程安排，对项目正确性进行测试，编写测试样例和部署测试。
 - 李牧龙：为Vega增加了HDFS的读写接口和用于调试的本地读文件接口，进行Vega和Spark的分布式运行对比测试，编写wordcount样例
 - 罗浩铭：对Vega的Shuffle模块进行优化，编写项目测试样例
-- 汤皓宇：对vega进行Docker部署，添加性能监控拓展模块
+- 汤皓宇：对vega进行Docker部署，添加性能监控拓展模块，负责每次会议的记录整理
 - 徐航宇：负责Vega运行环境与配置文件的创建，撰写及维护用户手册，并为Vega实现容错机制
 
 <!-- slide vertical=true -->
@@ -223,3 +223,8 @@ presentation:
 - 原有的RDD算子类型不够丰富
 
 <img src="./src/looong%20type%20name%20in%20rust.png" style="zoom:150%">
+
+<!-- slide -->
+
+# 谢谢大家
+## Q&A
