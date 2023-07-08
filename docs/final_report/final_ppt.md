@@ -120,7 +120,7 @@ presentation:
 
 <!-- slide vertical=true -->
 ## 效果展示
-待填充
+![fault_tolerance.png](./src/fault_tolerance.png)
 
 <!-- slide -->
 ## 加入HDFS文件系统
