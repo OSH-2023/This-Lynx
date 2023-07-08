@@ -27,15 +27,16 @@
 
 ## 项目介绍
 
-我们的项目基于不完善的Rust版Spark开源项目vega，对其性能瓶颈进行优化，以实现一个性能明显优于原版Spark的Spark内核。
-我们优化了Shuffle阶段的算法，接入了HDFS分布式文件系统，加入了多机下的队列容错机制，加入了基于Grafana/Prometheus实时监控运维模块，加入了项目自动测试。这使得Vega在运行速度上较Spark与原版Vega相比有了更大的提升，同时在可靠性、可用性与可维护性上也明显提升。
+我们的项目基于不完善的Rust版Spark开源项目Vega，对其性能瓶颈进行优化，以实现一个性能明显优于原版Spark的Spark内核。
+
+我们优化了Shuffle阶段的算法，接入了HDFS分布式文件系统，加入了多机下的队列容错机制，加入了基于Grafana/Prometheus实时监控运维模块，加入了项目自动测试。这使得Vega在运行速度上较Spark与原版Vega相比有了更大的提升，同时在可靠性、可用性与可维护性上也明显优于原版。
 
 ## 组员分工
 
 - 闫泽轩（组长）：
 - 李牧龙：
 - 罗浩铭：
-- 汤皓宇：对vega进行Docker部署，添加性能拓展模块，配置docker下的prometheus+grafana+node_exporter来展示vega运行时各机器的CPU使用率和vega的运行情况
+- 汤皓宇：对Vega进行Docker部署，添加性能拓展模块，配置docker下的Prometheus/Grafana/node_exporter来展示Vega运行时各机器的CPU使用率和Vega的运行情况
 - 徐航宇：
 
 ## 进度管理

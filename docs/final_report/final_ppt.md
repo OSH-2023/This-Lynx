@@ -111,8 +111,8 @@ presentation:
 
 ## 监控工具
 
-- prometheus
-- grafana
+- Prometheus
+- Grafana
 - node_exporter
 
 <!-- slide vertical=true -->
@@ -125,7 +125,9 @@ presentation:
 
 ## 效果展示
 
-<img src="./src/local_running.png" style="zoom:150%">
+<img src="./src/local_running.png" style="zoom:50%">
+
+<img src="./src/distri_after.png" style="zoom:50%">
 
 <!-- slide -->
 ## 自动化测试
@@ -165,4 +167,4 @@ presentation:
 - Rust的类型机制较为复杂
 - 原有的RDD算子类型不够丰富
 
-<img src="./src/looong%20type%20name%20in%20rust.png">
+<img src="./src/looong%20type%20name%20in%20rust.png" style="zoom:150%">
