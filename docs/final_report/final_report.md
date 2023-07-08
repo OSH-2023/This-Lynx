@@ -28,10 +28,9 @@
     - [Github workflow流程](#github-workflow流程)
     - [自动测试效果](#自动测试效果)
 - [测试结果](#测试结果)
-- [测试结果](#测试结果-1)
 - [项目总结](#项目总结)
   - [项目意义与前瞻性](#项目意义与前瞻性)
-  - [项目的优化方向](#项目的优化方向)
+  - [未来的优化方向](#未来的优化方向)
     - [减少序列化反序列化开销](#减少序列化反序列化开销)
     - [构建更加用户友好的API](#构建更加用户友好的api)
 - [参考文献](#参考文献)
@@ -44,23 +43,26 @@
 
 ## 组员分工
 
-- 闫泽轩（组长）：负责会议日程议程安排，对项目正确性进行测试，编写测试样例和部署测试。
+- 闫泽轩（组长）：负责会议日程议程安排，对项目正确性进行测试，编写测试样例和部署测试
 - 李牧龙：为Vega增加了HDFS的读写接口和用于调试的本地读文件接口，进行Vega和Spark的分布式运行对比测试，编写wordcount样例
 - 罗浩铭：对Vega的Shuffle模块进行优化，编写项目测试样例
-- 汤皓宇：对Vega进行Docker部署，添加性能监控拓展模块，配置docker下的Prometheus/Grafana/node_exporter来展示Vega运行时各机器的CPU使用率和Vega的运行情况，负责每次会议的记录整理
+- 汤皓宇：对Vega进行Docker部署，添加性能监控拓展模块，配置Docker下的Prometheus/Grafana/node_exporter来展示Vega运行时各机器的CPU使用率和Vega的运行情况，负责每次会议的记录整理
 - 徐航宇：负责Vega运行环境与配置文件的创建，撰写及维护用户手册，并为Vega实现容错机制
 
 ## 进度管理
-| 时间进度          | 计划进度           |实际进度|
-| ----------------- | ------------------- |---|
-| 第八周            | 系统学习rust        |以lab2,lab3为抓手在实验中学习Rust|
-| 第九周            | 编译，测试Vega模块  |修复了原版Vega编译失败，部署失效的Bug|
-| 第十周            | 定位Vega模块        |分配任务量，借鉴Spark对Vega代码进行阅读和理解|
-| 第十一到十四周 | 编写优化对象模块    |部署测试Vega分布式模式，开会写注释|
-| 第十五周 | 添加拓展模块        |完成lab4,推进HDFS加入文件系统的编写|
-| 第十六周 | 跑benchmark部署测试 |编写测试样例，准备进入考试周|
-| 第十七周| 无    |考试周放空|
-| 第十八周 | 无        |连续五天开会高强度工作，完成所有既定任务并撰写报告和展示|
+| 时间进度 | 计划进度            | 实际进度                                           |
+| -------- | ------------------- | -------------------------------------------------- |
+| 第八周   | 系统学习rust        | 以lab2,lab3为抓手在实验中学习Rust                  |
+| 第九周   | 编译，测试Vega模块  | 修复了原版Vega编译失败，部署失效的Bug              |
+| 第十周   | 定位Vega模块        | 分配任务量，借鉴Spark对Vega代码进行阅读和理解      |
+| 第十一周 | 编写优化对象模块    | 开会写注释                                         |
+| 第十二周 | 编写优化对象模块    | 部署，运行Vega分布式                               |
+| 第十三周 | 编写优化对象模块    | 开会写注释                                         |
+| 第十四周 | 编写优化对象模块    | 开会写注释                                         |
+| 第十五周 | 添加拓展模块        | 完成lab4,推进HDFS加入文件系统的编写                |
+| 第十六周 | 跑benchmark部署测试 | 编写测试样例，准备进入考试周                       |
+| 第十七周 | 无                  | 考试周放空                                         |
+| 第十八周 | 无                  | 连续四天开会工作，完成所有既定任务并撰写报告和展示 |
 
 
 从4月初到7月初，我们保持每周两次讨论的频率，小步快跑着来通力合作完成了这个项目。虽然中途也遇到了不少困难，其中有些甚至在网上难以找到或是根本就没有可参考的内容，但功夫不负有心人，我们最后也都成功一一解决了这些问题。
@@ -113,9 +115,11 @@ Spark还提供了许多高级功能，例如机器学习、图计算、流处理
 Vega项目完全使用Rust从零写起，构建完成了一个较为简单的Spark内核。不过，这一项目已经有两三年没有维护，刚接手时项目还需要修复部分BUG才可运行。此外，项目里还有不少算法及模块没有实现，特别是Spark后来的诸多优化更新。
 
 这一项目在Github上已获得2.2K颗Star，是一个较为有名的Rust项目，其原仓库页面如下：
+
 <img src="./src/git page.png">
 
 作者也写了一篇博客介绍了自己的Vega项目：
+
 <img src="./src/blog.png">
 
 以下为Vega的运行机制：
@@ -395,6 +399,19 @@ HDFS的容错处理和GFS基本一致，可大致分为以下4点：
 ### 队列容错实现
 
 ### HDFS文件系统
+原本的Vega没有接入任何分布式文件系统的接口，甚至本地文件读写效果也相当差（分布式状态运行时会重复执行任务）。为了改善Vega的文件读取可用性，我们为其增加了与HDFS之间的接口。
+
+接入HDFS主要需要解决几个问题：读取和写入数据，将数据制成Rdd。
+
+将数据读出和写入可以利用一个第三方包：hdrs实现。hdrs用Rust包装了HDFS的C接口，实现了Read、Write等Trait，很好地解决了读取写入数据的问题。
+
+但在分布式系统上，为提高读取效率和减少运算过程中的传输，应该让各个worker同时从HDFS读取。为此，我们编写了HdfsReadRdd。该Rdd会自动将要读取的所有文件分区，在`compute()`函数执行时让多个worker同时读取，并分别处理这些文件。
+
+相比之下，写入的处理非常简单。由于写入时一个文件一次只能一台机器写入，因此直接提供写入到HDFS上文件的函数，调用时由master执行即可。
+
+为统一IO功能，我们提供了可供调用的HdfsIO类，其中的`read_to_vec`和`read_to_rdd`方法可以将HDFS上的文件读取为字节流或Rdd，`write_to_hdfs`方法可以对HDFS进行写入。另外，为了方便处理读取得到的字节流，我们还提供了对文件进行读取和解码的`read_to_vec_and_decode`函数，调用时只要在`read_to_rdd`的基础上多传入一个用于解码的decoder函数，即可得到一个从HdfsReadRdd包装得到的Rdd，该Rdd进行`compute()`之后即可读取文件并且得到解码后的文件内容。
+
+另外，为方便运行和修复原作者的错误，我们按照类似与HDFS进行交互的方式，提供了LocalFsIO和LocalFsReadRdd，可用于调试时读取本地文件。
 
 
 ### Shuffle部分
@@ -418,6 +435,28 @@ Spark自1.1.0版本起默认采用的是更先进的SortShuffle。数据会根�
 测得运行速度提升了81%，由此说明我们对这一模块的优化是成功的。
 
 ### 实时监控拓展模块
+
+原本的Vega里是没有性能监控模块的，但它实际上是一个很复杂的分布式系统。因此如果某个地方出了问题是很难排查的。因此，在某些关键点加上监控，通过监控获取数据，可以方便调试与对于系统进行检测。
+
+Grafana和Prometheus的搭配是一种应用非常广泛的监控模式。其中Prometheus是一个开源时序数据库，用来存储各种数据，包括各种CPU时间信息，硬盘使用数据等等。而Grafana是一个开源可视化工具，提供了将Prometheus里数据转为仪表盘的功能。
+
+如下即为Prometheus查看监控目标的画面。
+
+![prometheus](./src/prometheus.png)
+
+为了获得更多的监控数据，往往会加入node_exporter来给Prometheus中加入更多的值。
+
+但还需要对vega中的运行情况进行监控，这就需要使用对应的Rust库，将需要的数据值注册之后，根据不同的运行情况和结果进行更新。
+
+最终是使用了docker-compose.yml来配置，只需如下一行命令即可实现部署。
+
+```bash
+$ docker compose up -d
+```
+
+部署效果如下：
+
+![monitor](./src/distri_running.png)
 
 
 
@@ -480,7 +519,7 @@ style F fill:#cf5,stroke:#f66,stroke-width:5px;
 <img src="src/wordcount.png" style="zoom:200%">
 <img src="src/wordcount2.png" style="zoom:200%">
 
-## 测试结果
+
 
 
 ## 项目总结
@@ -497,7 +536,7 @@ Vega继承了Spark的诸多优点。同样使用RDD，使得Vega拥有了简明�
 我们相信，在效率、可靠性、可用性与可维护性上都有着更好表现的Vega，将为大数据处理提供了更高效、更安全的解决方案！
 
 
-### 项目的优化方向
+### 未来的优化方向
 #### 减少序列化反序列化开销
 无论是Spark还是Vega在传递任务时都需要将任务序列化以便于传输，传至目标主机后再反序列化用以执行。而由于序列化反序列化开销很大，Spark与Vega中任务的启动都要花费较长时间。我们可以尝试精简任务的描述方式，同时采用更高性能的序列化反序列化器，以此提高任务传输效率。
 
@@ -522,6 +561,7 @@ Vega继承了Spark的诸多优点。同样使用RDD，使得Vega拥有了简明�
 [^capnp]: Cap’n Proto is an insanely fast data interchange format and capability-based RPC system. https://capnproto.org/
 [^hdfs]:HDFS Architecture. https://hadoop.apache.org/docs/r3.3.5/hadoop-project-dist/hadoop-hdfs/HdfsDesign.html
 [^gfs]:Ghemawat, Sanjay, Howard Gobioff, and Shun-Tak Leung. "The Google File System." Operating Systems Review (2003): 29-43. Web. https://ustc-primo.hosted.exlibrisgroup.com.cn/permalink/f/tp5o03/TN_cdi_proquest_miscellaneous_31620514
+[^prom]:Roman Kudryashov. Monitoring Rust web application with Prometheus and Grafana. https://romankudryashov.com/blog/2021/11/monitoring-rust-web-application/
 
 
 
