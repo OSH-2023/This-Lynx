@@ -19,6 +19,8 @@ Vega项目完全使用Rust从零写起，构建完成了一个较为简单的Spa
 
 #### ShuffleManager
 
+在Spark程序中，Shuffle是性能的最大瓶颈，因为Shuffle的过程往往伴随着磁盘I/O与网络I/O等开销，程序编写的一个准则就是“尽量避免使用需要Shuffle的算子，且在必须Shuffle时尽量减少Shuffle的数据量”，而在Shuffle不可避免时，也要尽量优化Shuffle的方方面面以调优性能。
+
 在Spark框架中，Shuffle阶段的设计优劣是决定性能好坏的关键因素之一。实现一个优良的ShuffleManager，减少不必要的Shuffle开销至关重要。
 
 在MapReduce框架中，Shuffle阶段是连接Map和Reduce之间的桥梁，Map阶段通过Shuffle过程将数据输出到Reduce阶段中。由于Shuffle涉及十分密集的磁盘的读写和网络I／O，因此Shuffle性能的高低直接影响整个程序的性能。Spark本质上与MapReduce框架十分相似，因此也有自己的Shuffle过程实现。
@@ -32,6 +34,9 @@ ShuffleManager中的shuffleBlockResolver是Shuffle的块解析器，该解析器
 ##### 可改进的点
 
 ShuffleManager在生成依赖关系及RDD获取依赖关系过程中所需的计算使用频繁，可以在rust中得到优化。同时，Shuffle算法也极为关键，必须使用当前的SOTA算法，如在Vega中，只实现了最基础的HashShuffleManager，而没有实现性能更高的SortShuffleManager，这是极为明显的可以优化的点
+
+
+
 
 #### Rust优势
 
@@ -77,7 +82,9 @@ Rust为了获取安全性和高性能，对程序员施加了较多的规则，�
 
 ## 参考文献
 
-
+[^spark_optimize]:王家林. Spark内核机制解析及性能调优. 2017.
+[^jni]:Rust jni crate https://crates.io/crates/jni
+[^capnp]: Cap’n Proto is an insanely fast data interchange format and capability-based RPC system. https://capnproto.org/
 
 
 
