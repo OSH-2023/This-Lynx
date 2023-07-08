@@ -106,6 +106,29 @@ presentation:
 <!-- slide -->
 ## 加入HDFS文件系统
 
+<!-- slide vertical=true -->
+## 实现目标
+- 从HDFS读文件
+- **利用读取的数据生成Rdd**
+- 将数据写入HDFS
+
+<!-- slide vertical=true -->
+## Hdrs
+![hdfs.png](./src/hdrs.png)
+- 用Rust包装HDFS的C接口
+- 实现了Read、Write等Trait，功能丰富
+
+<!-- slide vertical=true -->
+## 读取数据/生成Rdd
+- 不能仅由主机读取
+- **HdfsReadRdd**
+- compute阶段读取
+- 可以解码数据
+
+<!-- slide vertical=true -->
+## 写入数据
+- 仅由主机写入
+
 <!-- slide -->
 ## 添加实时监控拓展模块
 
@@ -153,7 +176,7 @@ presentation:
 ## 组员分工与进度管理
 
 - 闫泽轩（组长）：负责会议日程议程安排，对项目正确性进行测试，编写测试样例和部署测试。
-- 李牧龙：
+- 李牧龙：为Vega增加了HDFS的读写接口和用于调试的本地读文件接口，进行Vega和Spark的分布式运行对比测试，编写wordcount样例
 - 罗浩铭：对Vega的Shuffle模块进行优化，编写项目测试样例
 - 汤皓宇：对vega进行Docker部署，添加性能拓展模块，配置docker下的prometheus+grafana+node_exporter来展示vega运行时各机器的CPU使用率和vega的运行情况
 - 徐航宇：
