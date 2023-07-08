@@ -187,9 +187,9 @@ presentation:
 <!-- slide -->
 ## 4 测试结果
 <img src="src/wordcount.png" style="zoom:200%">
+
 <!-- slide vertical=true -->
 <img src="src/wordcount2.png" style="zoom:200%">
-
 
 <!-- slide -->
 ## 5 项目总结
