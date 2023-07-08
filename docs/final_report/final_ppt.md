@@ -27,6 +27,8 @@ presentation:
 
 ## 基于Rust版Spark开源项目vega
 
+我们组在数月的每周两次固定讨论，线下开会的频率下圆满完成了学期初制订的各项任务目标，并且在此基础上**超额**完成了拓展功能。
+
 <!-- slide -->
 ## 2 背景和立项依据
 
@@ -118,17 +120,26 @@ Shuffle：将输入的M个分区内的数据“按一定规则”重新分配到
 
 <!-- slide -->
 ## 自动化测试
+<!-- 自动化实现提交到仓库后自动检查提交结果的正确性并运行test，如果运行失败会发邮件提省协作者提交结果测试失败 -->
+![Alt text](src/autotest.png)
+<!-- slide vertical=true -->
+<img src="src/unittest1.png" style="zoom:200%">
+
+<!-- slide vertical=true -->
+<img src="src/unittest2.png" style="zoom:200%">
 
 <!-- slide -->
 ## 4 测试结果
-
+<img src="src/wordcount.png" style="zoom:200%">
+<!-- slide vertical=true -->
+<img src="src/wordcount2.png" style="zoom:200%">
 <!-- slide -->
 ## 5 项目总结
 
 <!-- slide vertical=true -->
 ## 组员分工与进度管理
 
-- 闫泽轩（组长）：
+- 闫泽轩（组长）：负责会议日程议程安排，对项目正确性进行测试，编写测试样例和部署测试。
 - 李牧龙：
 - 罗浩铭：对Vega的Shuffle模块进行优化，编写项目测试样例
 - 汤皓宇：对vega进行Docker部署，添加性能拓展模块，配置docker下的prometheus+grafana+node_exporter来展示vega运行时各机器的CPU使用率和vega的运行情况
