@@ -71,6 +71,7 @@ presentation:
 ## SortShuffleManager
 - 对每一对Map和Reduce端的分区配对都产生一条分区记录，原版Spark生成一个文件存入，Vega将Shuffle记录保存在以DashMap(分布式HashMap)实现的缓存里
 - 由于生成的文件数过多，会对文件系统造成压力，且大量小文件的随机读写会带来一定的磁盘开销，故其性能不佳
+
 <img src="./src/spark_hash_shuffle_no_consolidation.webp">
 
 <!-- slide vertical=true -->
@@ -78,7 +79,8 @@ presentation:
 - 数据会根据目标的分区Id（即带Shuffle过程的目标RDD中各个分区的Id值）进行排序，然后写入一个单独的Map端输出文件中，而非很多个小文件
 - 输出文件中按reduce端的分区号来索引文件中的不同shuffle部分
 - 大幅减小了随机访存的开销与文件系统的压力，不过增加了排序的开销
-- <img src="./src/spark_sort_shuffle.webp">
+
+<img src="./src/spark_sort_shuffle.webp">
 
 <!-- slide vertical=true -->
 ## 我们的优化
@@ -139,7 +141,7 @@ presentation:
 
 - 闫泽轩（组长）：
 - 李牧龙：
-- 罗浩铭：
+- 罗浩铭：对Vega的Shuffle模块进行优化，编写项目测试样例
 - 汤皓宇：对vega进行Docker部署，添加性能拓展模块，配置docker下的prometheus+grafana+node_exporter来展示vega运行时各机器的CPU使用率和vega的运行情况
 - 徐航宇：
 
