@@ -52,19 +52,16 @@
 - 徐航宇：负责Vega运行环境与配置文件的创建，撰写及维护用户手册，并为Vega实现容错机制
 
 ## 进度管理
-| 时间进度 | 计划进度            | 实际进度                                           |
-| -------- | ------------------- | -------------------------------------------------- |
-| 第八周   | 系统学习rust        | 以lab2,lab3为抓手在实验中学习Rust                  |
-| 第九周   | 编译，测试Vega模块  | 修复了原版Vega编译失败，部署失效的Bug              |
-| 第十周   | 定位Vega模块        | 分配任务量，借鉴Spark对Vega代码进行阅读和理解      |
-| 第十一周 | 编写优化对象模块    | 开会写注释                                         |
-| 第十二周 | 编写优化对象模块    | 部署，运行Vega分布式                               |
-| 第十三周 | 编写优化对象模块    | 开会写注释                                         |
-| 第十四周 | 编写优化对象模块    | 开会写注释                                         |
-| 第十五周 | 添加拓展模块        | 完成lab4,推进HDFS加入文件系统的编写                |
-| 第十六周 | 跑benchmark部署测试 | 编写测试样例，准备进入考试周                       |
-| 第十七周 | 无                  | 考试周放空                                         |
-| 第十八周 | 无                  | 连续四天开会工作，完成所有既定任务并撰写报告和展示 |
+| 时间进度       | 计划进度            | 实际进度                                                 |
+| -------------- | ------------------- | -------------------------------------------------------- |
+| 第八周         | 系统学习rust        | 以lab2, lab3为抓手在实验中学习Rust                       |
+| 第九周         | 编译，测试Vega模块  | 修复了原版Vega编译失败，部署失效的Bug                    |
+| 第十周         | 定位Vega模块        | 分配任务量，借鉴Spark对Vega代码进行阅读和理解            |
+| 第十一到十四周 | 编写优化对象模块    | 测试Vega分布式部署，开会写注释                       |
+| 第十五周       | 添加拓展模块        | 完成lab4, 推进HDFS加入文件系统的编写                     |
+| 第十六周       | 跑benchmark部署测试 | 编写测试样例，准备进入考试周                             |
+| 第十七周       | 无                  | 考试周放空                                               |
+| 第十八周       | 无                  | 连续五天开会高强度工作，完成所有既定任务并撰写报告和展示 |
 
 
 从4月初到7月初，我们保持每周两次讨论的频率，小步快跑着来通力合作完成了这个项目。虽然中途也遇到了不少困难，其中有些甚至在网上难以找到或是根本就没有可参考的内容，但功夫不负有心人，我们最后也都成功一一解决了这些问题。
@@ -104,13 +101,13 @@
 
 Spark是一个快速、通用、可扩展的分布式计算系统。它最初是由加州大学伯克利分校AMPLab开发的，其奠基论文为*Spark: Cluster Computing with Working Sets*.[^spark]Spark提供了一种基于内存的计算模型，可以比Hadoop MapReduce更快地处理大规模数据，支持Java、Scala、Python和R等多种编程语言，支持UI可视化管理。
 
-Spark的核心概念是弹性分布式数据集(Resilient Distributed Datasets，简称RDD)。RDD是一种可以被划分成多个分区、分布在多个节点上的数据结构，支持高效的并行计算和容错。[^RDD]Spark中的许多计算都是通过对RDD进行转换和操作来实现的。
+Spark的核心概念是弹性分布式数据集(Resilient Distributed Datasets，简称RDD)。RDD是一种可以被划分成多个分区、分布在多个节点上的数据结构，支持高效的并行计算和容错。Spark中的许多计算都是通过对RDD进行转换和操作来实现的。
 
 Spark的计算过程可以分为两个阶段：转换阶段和动作阶段。在转换阶段，Spark会对RDD进行一系列转换操作，例如map、filter、reduceByKey等。这些操作不会立即执行，而是构建一个执行计划。在动作阶段，Spark会根据执行计划将转换操作转化为实际的计算任务，例如collect、count、save等。这些任务会被分配到不同的节点上执行，最终将结果汇总返回给驱动程序。
 
 Spark的运行模式可以分为本地模式和集群模式。在本地模式下，Spark可以直接在单台机器上运行，用于开发和测试。在集群模式下，Spark可以运行在多台机器上，实现分布式计算。
 
-Spark还提供了许多高级功能，例如机器学习、图计算、流处理等。[^Spark_The_Definitive_Guide]Spark的生态系统也非常丰富，包括MLlib(机器学习库)、Spark Streaming(流处理库)和GraphX(图分析库)等，可以满足不同应用场景的需求。他们还确保这些API具有高度的互操作性，使得人们首次可以在同一引擎中编写多种端到端的大数据应用程序。
+Spark还提供了许多高级功能，例如机器学习、图计算、流处理等。Spark的生态系统也非常丰富，包括MLlib(机器学习库)、Spark Streaming(流处理库)和GraphX(图分析库)等，可以满足不同应用场景的需求。他们还确保这些API具有高度的互操作性，使得人们首次可以在同一引擎中编写多种端到端的大数据应用程序。
 
 ### Vega
 
@@ -447,7 +444,7 @@ Spark自1.1.0版本起默认采用的是更先进的SortShuffle。数据会根�
 
 
 ### 容错实现
-Vega没有实现容错机制，这导致了当某个节点出现故障时，整个程序都无法正常运行并卡死。这显然是不合理的，我们参考了一些论文与资料[^Fault_Tolerance_1] [^Fault_Tolerance_2]，尝试为其实现一个较完整的容错机制。
+Vega没有实现容错机制，这导致了当某个节点出现故障时，整个程序都无法正常运行并卡死。这显然是不合理的。
 
 <img src="./src/faulterror1.png">
 
@@ -588,10 +585,7 @@ Vega继承了Spark的诸多优点。同样使用RDD，使得Vega拥有了简明�
 
 #### 实现更加可靠的容错
 Spark中的容错机制是基于Spark的Lineage（血统）机制实现的。在Spark中，每个RDD都有一个指向其父RDD的指针，这样就可以通过RDD的血统关系来实现容错。当某个RDD的分区数据丢失时，可以通过其父RDD的血统关系重新计算得到。这种机制可以保证Spark的容错性，但是当某个RDD的父RDD丢失时，就无法通过血统关系重新计算得到，这就需要重新从头开始计算，这样就会导致计算效率的降低。
-
 虽然我们实现的容错机制已经能够在大部分情况下取得较好的结果，但仍有提高的空间。
-
-此外，还可以参考更多文献来实现更先进的分布式容错机制，比如，使用时间戳而不是延时来进行容错[^Fault_Tolerance_3]。
 
 ## 参考文献
 
@@ -602,16 +596,10 @@ Spark中的容错机制是基于Spark的Lineage（血统）机制实现的。在
 [^hdfs]:HDFS Architecture. https://hadoop.apache.org/docs/r3.3.5/hadoop-project-dist/hadoop-hdfs/HdfsDesign.html
 [^gfs]:Ghemawat, Sanjay, Howard Gobioff, and Shun-Tak Leung. "The Google File System." Operating Systems Review (2003): 29-43. Web. https://ustc-primo.hosted.exlibrisgroup.com.cn/permalink/f/tp5o03/TN_cdi_proquest_miscellaneous_31620514
 [^prom]:Roman Kudryashov. Monitoring Rust web application with Prometheus and Grafana. https://romankudryashov.com/blog/2021/11/monitoring-rust-web-application/
-[^RDD]:Zaharia, Matei, et al. “Resilient Distributed Datasets: A Fault-tolerant Abstraction for In-memory Cluster Computing.” Networked Systems Design and Implementation, 2012, p. 2. cobweb.cs.uga.edu/~squinn/mmd_s15/papers/nsdi12-final138.pdf.
-[^Spark_The_Definitive_Guide]:Chambers, Bill, and Matei Zaharia. Spark: The Definitive Guide: Big Data Processing Made Simple. 2018, openlibrary.org/books/OL26833854M/Spark_The_Definitive_Guide_Big_Data_Processing_Made_Simple.[^big_float]:High Precision Crate implemented for calculating pi. https://crates.io/crates/num-bigfloat
+
 [^big_float]:High Precision Crate implemented for calculating pi. https://crates.io/crates/num-bigfloat
 
 
-[^Fault_Tolerance_1]:Jalote P. Fault tolerance in distributed systems[M]. Prentice-Hall, Inc., 1994. https://dl.acm.org/doi/abs/10.5555/179250
-
-[^Fault_Tolerance_2]:Cristian F. Understanding fault-tolerant distributed systems[J]. Communications of the ACM, 1991, 34(2): 56-78. https://dl.acm.org/doi/pdf/10.1145/102792.102801
-
-[^Fault_Tolerance_3]:Lamport L. Using time instead of timeout for fault-tolerant distributed systems[J]. ACM Transactions on Programming Languages and Systems (TOPLAS), 1984, 6(2): 254-280. https://dl.acm.org/doi/pdf/10.1145/2993.2994
 
 
 
