@@ -11,6 +11,8 @@
   - [ShuffleManager](#shufflemanager)
     - [ShuffleManager架构](#shufflemanager架构)
     - [可改进的点](#可改进的点)
+  - [HDFS](#hdfs)
+    - [关于HDFS](#关于hdfs)
   - [Rust优势](#rust优势)
     - [安全性](#安全性)
     - [高性能](#高性能)
@@ -37,9 +39,9 @@
 
 ## 组员分工
 
-- 闫泽轩（组长）：
-- 李牧龙：
-- 罗浩铭：
+- 闫泽轩（组长）：负责会议日程议程安排，对项目正确性进行测试，编写测试样例和部署测试。
+- 李牧龙：为Vega增加了HDFS的读写接口和用于调试的本地读文件接口，进行Vega和Spark的分布式运行对比测试，编写wordcount样例
+- 罗浩铭：对Vega的Shuffle模块进行优化，编写项目测试样例
 - 汤皓宇：对Vega进行Docker部署，添加性能监控拓展模块，配置docker下的Prometheus/Grafana/node_exporter来展示Vega运行时各机器的CPU使用率和Vega的运行情况
 - 徐航宇：
 
@@ -305,6 +307,40 @@ Vega中，划分Stage的点部分同样需要构建ShuffleDependency，它会将
 ShuffleManager在生成依赖关系及RDD获取依赖关系过程中所需的计算使用频繁，可以在rust中得到优化。同时，Shuffle算法也极为关键，必须使用当前的SOTA算法，如在Vega中，只实现了最基础的HashShuffleManager，而没有实现性能更高的SortShuffleManager，这也是可以优化的点
 
 
+### HDFS
+
+- vega没有接入任何文件系统，作为一个分布式计算系统显然不合理
+- Rust开源社区中有提供HDFS支持的包（hdrs）
+- 可以将其接入vega，增强对文件的支持
+- Spark原生支持HDFS，接入HDFS更容易融入Spark生态
+
+#### 关于HDFS
+HDFS[^13](Hadoop Distributed File System)是一个基于GFS的分布式文件系统，同时也是Hadoop的一部分。它具有GFS的许多特性[^14]，例如可靠性高，将文件分块存储，适合大文件存储，但延迟较高且无法高效存储小文件等。
+
+- **HDFS架构**
+
+![HDFS_ARC.webp](../investigation/src/HDFS_ARC.webp)
+其中NameNode即GFS中的Master节点，负责整个分布式文件系统的元数据(MetaData)管理和响应客户端请求。
+DataNode即为GFS中的chunkserver，负责存储数据块，通过心跳信息向NameNode报告自身状态。
+
+- **与客户端交互**
+
+HDFS的通信协议全部建立在TCP/IP协议上，包括客户端、DataNode和NameNode之间的协议以及客户端和DataNode之间的协议。这些协议通过RPC模型进行抽象封装。
+
+读取方面，客户端先和NameNode交互，获取所需文件的位置，随后直接和对应的DataNode交互读取数据。NameNode会确保读取程序尽可能读取最近的副本。
+
+写入方面，HDFS只支持追加写入操作，不支持随机写入(修改)操作。同一文件同一时刻只能由一个写入者写入。
+
+删除文件时，文件不会马上被释放，而是被移入/trash目录中，随时可以恢复。移入/trash目录超过规定时间后文件才被彻底删除并释放空间。
+
+- **容错性**
+
+HDFS的容错处理和GFS基本一致，可大致分为以下4点：
+1. 每一个数据块有多个副本(默认3个)，副本的存放策略为：第一个副本会随机选择，但是不会选择存储过满的节点，第二个副本放在和第一个副本不同且随机选择的机架，第三个和第二个放在同一机架上的不同节点，剩余副本完全随机节点。
+2. 每一个数据块都使用checksum校验，客户端可以使用checksum检查获取的文件是否正确，若错误则从其他节点获取。
+3. DataNode宕机时，可能会导致部分文件副本数量低于要求。NameNode会检查副本数量，对缺失副本的数据块增加副本数量。
+4. 主从NameNode，主NameNode宕机时副NameNode成为主NameNode。
+
 
 
 ### Rust优势
@@ -345,13 +381,20 @@ Rust为了获取安全性和高性能，对程序员施加了较多的规则，�
 ### Shuffle部分
 在Vega原有的HashShuffle算法中，会对每一对Map和Reduce端的分区配对都产生一条分区记录，假设Map端有M个分区，Reduce端有R个分区，那么最后产生的分区记录一共会有M*R条。原版的Spark中，每一条Shuffle记录都会被写进磁盘里。由于生成的文件数过多，会对文件系统造成压力，且大量小文件的随机读写会带来一定的磁盘开销，故其性能不佳。而Vega中已将Shuffle记录保存在以DashMap(分布式HashMap)实现的缓存里，这大幅降低了本地I/O开销，但远程开销仍然较大，且DashMap占用空间与性能也会受到索引条数过多的影响。
 
+<img src="./src/spark_hash_shuffle_no_consolidation.webp">
+
 Spark自1.1.0版本起默认采用的是更先进的SortShuffle。数据会根据目标的分区Id（即带Shuffle过程的目标RDD中各个分区的Id值）进行排序，然后写入一个单独的Map端输出文件中，而非很多个小文件。输出文件中按reduce端的分区号来索引文件中的不同shuffle部分。这种shuffle方式大幅减小了随机访存的开销与文件系统的压力，不过增加了排序的开销。（Spark起初不采用SortShuffle的原因正是为了避免产生不必要的排序开销）
+
+<img src="./src/spark_sort_shuffle.webp">
 
 在我们对Vega中shuffle逻辑的优化中，由于使用了DashMap缓存来保存Shuffle记录，我们无需进行排序，直接按reduce端分区号作为键值写入缓存即可。这既避免了排序的开销，又获得了SortShuffle合并shuffle记录以减少shuffle记录条数的效果。这样，shuffle输出只需以reduce端分区号为键值读出即可。
 
-对shuffle部分，以两千万条shuffle记录的载量（Map端有M个分区，Reduce端有R个分区，`M*R=20000000`）进行单元测试，测试结果如下：
-优化前：9.73,10.96,10.32 平均：10.34s
-优化后：6.82,5.46,4.87 平均：5.72s
+使用两千万条shuffle记录的载量进行单元测试，测试结果如下：
+（Map端有M个分区，Reduce端有R个分区，$M\cdot R=20000000$）
+| 时间/s |   1   |   2   |   3   | 平均  |
+| :----: | :---: | :---: | :---: | :---: |
+| 优化前 | 9.73  | 10.96 | 10.32 | 10.34 |
+| 优化后 | 6.82  | 5.46  | 4.87  | 5.72  |
 
 测得运行速度提升了81%，由此说明我们对这一模块的优化是成功的。
 
