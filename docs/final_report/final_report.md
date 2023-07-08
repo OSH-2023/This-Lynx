@@ -422,15 +422,60 @@ Spark自1.1.0版本起默认采用的是更先进的SortShuffle。数据会根�
 
 
 ### 自动化测试
-自动化实现提交到仓库后自动检查提交结果的正确性并运行test，如果运行失败会发邮件提醒协作者提交结果测试失败 
+自动化实现提交到仓库后自动检查提交结果的正确性并进行自动测试。
+
+如果运行失败会发邮件提醒协作者提交结果测试失败。
+
+自动化测试使用Github Action提供的相关功能实现，在每次git push时触发，能够大大提高开发人员调试效率和保证提交内容完整可用。
 #### Github workflow流程
-<!-- ```mermaid
-graph TB:
-<!-- ``` -->
+
+
+```mermaid
+flowchart TD
+A((Set up job))
+B[[Run actions]]
+C[[setup]]
+D[(Run tests)]
+E[(Post Run )]
+F((Complete job))
+Fail((Failure))
+N(Notice developer)
+
+A--success-->B
+A--failure-->Fail
+B--success-->C
+B--failure-->Fail
+C--success-->D
+C--failure-->Fail
+D--success-->E
+D--failure-->Fail
+E--success-->F
+E--failure-->Fail
+Fail==>N
+N ==Rerun==> A
+
+
+style A fill:#f9f,stroke:#333,stroke-width:1px
+style B fill:#cf5,stroke:#f66,stroke-width:2px
+style C fill:#f9f,stroke:#333,stroke-width:4px
+style D fill:#cc5,stroke:#f66,stroke-width:2px;
+style E fill:#ccf,stroke:#333,stroke-width:4px
+style F fill:#cf5,stroke:#f66,stroke-width:5px;
+```
 #### 自动测试效果
 ![Alt text](src/autotest.png)
-![unittest2](src/unittest2.png)
 
+黄色圆框表示刚刚提交的结果正在进行测试，测试按照一定的流程进行，这个流程可以由开发者指定，并且Github提供了丰富的插件和环境便于我们使用，这个功能可以在仓库的Actions中添加Workflow使用。
+- 自动化：GitHub Workflow可以自动化您的构建、测试和部署流程，从而减少手动操作和减少错误。
+
+- 可重复性：GitHub Workflow可以确保您的构建、测试和部署流程在每次运行时都是相同的，从而提高可重复性。
+
+- 可视化：GitHub Workflow提供了一个可视化的界面，可以让您轻松地查看您的构建、测试和部署流程。
+
+- 可扩展性：GitHub Workflow可以轻松地扩展到其他工具和服务，例如Docker、AWS、Azure等。
+
+开放性：GitHub Workflow是开源的，因此您可以自由地修改和定制它以满足您的需求。
+![unittest2](src/unittest2.png)
 ## 测试结果
 <img src="src/wordcount.png" style="zoom:200%">
 <img src="src/wordcount2.png" style="zoom:200%">
