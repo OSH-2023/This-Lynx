@@ -225,7 +225,7 @@ presentation:
 
 
 <!-- slide -->
-## 项目的优化方向
+## 未来的优化方向
 <!-- slide vertical=true -->
 ### 减少序列化反序列化开销
 <img src="./src/serialization%20and%20deserialization.png">
