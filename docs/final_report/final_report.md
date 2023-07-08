@@ -15,9 +15,13 @@
     - [安全性](#安全性)
     - [高性能](#高性能)
     - [并发性](#并发性)
+  - [HDFS文件系统](#hdfs文件系统)
+    - [HDFS架构](#hdfs架构)
+    - [与客户端交互](#与客户端交互)
+    - [容错性](#容错性)
 - [项目具体优化细节](#项目具体优化细节)
   - [队列容错实现](#队列容错实现)
-  - [HDFS文件系统](#hdfs文件系统)
+  - [HDFS文件系统](#hdfs文件系统-1)
   - [Shuffle部分](#shuffle部分)
   - [实时监控拓展模块](#实时监控拓展模块)
   - [自动化测试](#自动化测试)
@@ -45,7 +49,13 @@
 
 ## 进度管理
 
-<!-- TODO -->
+从4月初到7月初，我们保持每周两次讨论的频率，小步快跑着来通力合作完成了这个项目。虽然中途也遇到了不少困难，其中有些甚至在网上难以找到或是根本就没有可参考的内容，但功夫不负有心人，我们最后也都成功一一解决了这些问题。
+
+如下为我们[代码仓库](https://github.com/XhyDds/vega/)的提交记录，我们在原作者的基础上新添加了上百次commit.
+
+<img src="./src/commit.png">
+
+<img src="./src/commit_history.png">
 
 ## 项目背景
 
@@ -331,6 +341,35 @@ Spark是一个分布式计算框架，具有良好的并发性能。而Rust则�
 
 Rust为了获取安全性和高性能，对程序员施加了较多的规则，在编译期进行了较为严格的检查（内存安全正），使得编程难度显著提高。但是如果熟悉了它的编程风格，就可以轻松写出安全而高效的代码。此外，用Rust编写的代码，只要能够通过编译，基本就可以正常运行，且在调试代码时，可以分模块测试而不用担心它们的互相影响————这提高了调试代码的效率，而且适于多人协作开发（在函数式编程方式下尤是如此）。
 
+### HDFS文件系统
+
+HDFS[^hdfs](Hadoop Distributed File System)是一个基于GFS[^gfs]的分布式文件系统，同时也是Hadoop的一部分。它具有GFS的许多特性，例如可靠性高，将文件分块存储，适合大文件存储，但延迟较高且无法高效存储小文件。
+
+#### HDFS架构
+
+![HDFS_ARC.webp](../investigation/src/HDFS_ARC.webp)
+
+其中NameNode即GFS中的Master节点，负责整个分布式文件系统的元数据(MetaData)管理和响应客户端请求。
+
+DataNode即为GFS中的chunkserver，负责存储数据块，通过心跳信息向NameNode报告自身状态。
+
+#### 与客户端交互
+
+HDFS的通信协议全部建立在TCP/IP协议上，包括客户端、DataNode和NameNode之间的协议以及客户端和DataNode之间的协议。这些协议通过RPC模型进行抽象封装。
+
+读取方面，客户端先和NameNode交互，获取所需文件的位置，随后直接和对应的DataNode交互读取数据。NameNode会确保读取程序尽可能读取最近的副本。
+
+写入方面，HDFS只支持追加写入操作，不支持随机写入(修改)操作。同一文件同一时刻只能由一个写入者写入。
+
+删除文件时，文件不会马上被释放，而是被移入/trash目录中，随时可以恢复。移入/trash目录超过规定时间后文件才被彻底删除并释放空间。
+
+#### 容错性
+
+HDFS的容错处理和GFS基本一致，可大致分为以下4点：
+1. 每一个数据块有多个副本(默认3个)，副本的存放策略为：第一个副本会随机选择，但是不会选择存储过满的节点，第二个副本放在和第一个副本不同且随机选择的机架，第三个和第二个放在同一机架上的不同节点，剩余副本完全随机节点。
+2. 每一个数据块都使用checksum校验，客户端可以使用checksum检查获取的文件是否正确，若错误则从其他节点获取。
+3. DataNode宕机时，可能会导致部分文件副本数量低于要求。NameNode会检查副本数量，对缺失副本的数据块增加副本数量。
+4. 主从NameNode，主NameNode宕机时副NameNode成为主NameNode。
 
 ## 项目具体优化细节
 ### 队列容错实现
@@ -345,9 +384,12 @@ Spark自1.1.0版本起默认采用的是更先进的SortShuffle。数据会根�
 
 在我们对Vega中shuffle逻辑的优化中，由于使用了DashMap缓存来保存Shuffle记录，我们无需进行排序，直接按reduce端分区号作为键值写入缓存即可。这既避免了排序的开销，又获得了SortShuffle合并shuffle记录以减少shuffle记录条数的效果。这样，shuffle输出只需以reduce端分区号为键值读出即可。
 
-对shuffle部分，以两千万条shuffle记录的载量（Map端有M个分区，Reduce端有R个分区，`M*R=20000000`）进行单元测试，测试结果如下：
-优化前：9.73,10.96,10.32 平均：10.34s
-优化后：6.82,5.46,4.87 平均：5.72s
+对shuffle部分，以两千万条shuffle记录的载量(Map端有M个分区，Reduce端有R个分区，$M\cdot R=20000000$)进行单元测试，测试结果如下：
+
+| 时间/s |   1   |   2   |   3   | 平均  |
+| :----: | :---: | :---: | :---: | :---: |
+| 优化前 | 9.73  | 10.96 | 10.32 | 10.34 |
+| 优化后 | 6.82  | 5.46  | 4.87  | 5.72  |
 
 测得运行速度提升了81%，由此说明我们对这一模块的优化是成功的。
 
@@ -364,6 +406,7 @@ Spark自1.1.0版本起默认采用的是更先进的SortShuffle。数据会根�
 
 ## 项目总结
 ### 项目意义与前瞻性
+
 随着大数据处理需求的不断增长，对数据处理框架的性能和可靠性要求也越来越高。
 
 Vega继承了Spark的诸多优点。同样使用RDD，使得Vega拥有了简明、灵活、可扩展性好的编程模式，拥有了对非结构化数据或复杂的任务的良好支持，拥有了数据分片的高度弹性及在硬盘与内存间的高效调度，拥有了基于Lineage（血统）的高效容错机制。由此，它对计算任务的分布式执行有了良好的支持，可以在大数据处理中发挥重要作用。
@@ -371,6 +414,7 @@ Vega继承了Spark的诸多优点。同样使用RDD，使得Vega拥有了简明�
 同时，Vega又吸收了Rust语言的诸多优良特性。Rust具有接近原生代码的性能，无需借助JVM执行，没有垃圾回收开销，使得Vega在性能上较Spark有了更大的提升；Rust又具有强大的内存安全、并发安全的特性，使得Vega在稳定性和可靠性上有了更大的提升；编程过程中，Rust超强的编译器可以避免绝大多数安全问题，现代的语法在零成本抽象的基础上为精简代码提供便利；同时。Rust还具有跨平台的特性，可以在不同的操作系统和硬件上运行，且无需在从节点上配置Vega项目即可运行，为数据处理提供更大的灵活性与可扩展性。用Rust重写Vega，是大势所趋。
 
 我们又在原有Vega项目的基础上进行了优化，优化了Shuffle阶段的算法，接入了HDFS分布式文件系统，加入了多机下的队列容错机制，加入了基于Grafana/Prometheus实时监控运维模块，加入了项目自动测试。这使得Vega在运行速度上有了更大的提升，同时在可靠性、可用性与可维护性上也明显提升。
+
 我们相信，在效率、可靠性、可用性与可维护性上都有着更好表现的Vega，将为大数据处理提供了更高效、更安全的解决方案！
 
 
@@ -397,7 +441,8 @@ Vega继承了Spark的诸多优点。同样使用RDD，使得Vega拥有了简明�
 [^spark_optimize]:王家林. Spark内核机制解析及性能调优. 2017.
 [^jni]:Rust jni crate https://crates.io/crates/jni
 [^capnp]: Cap’n Proto is an insanely fast data interchange format and capability-based RPC system. https://capnproto.org/
-
+[^hdfs]:HDFS Architecture. https://hadoop.apache.org/docs/r3.3.5/hadoop-project-dist/hadoop-hdfs/HdfsDesign.html
+[^gfs]:Ghemawat, Sanjay, Howard Gobioff, and Shun-Tak Leung. "The Google File System." Operating Systems Review (2003): 29-43. Web. https://ustc-primo.hosted.exlibrisgroup.com.cn/permalink/f/tp5o03/TN_cdi_proquest_miscellaneous_31620514
 
 
 
