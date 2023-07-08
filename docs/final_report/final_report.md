@@ -247,8 +247,6 @@ A5-->A
 
 AA1("map")
 AA1-->A1
-AA4(函数?何用)
-AA4-->A4
 AA5(false)
 AA5-->A5
 
