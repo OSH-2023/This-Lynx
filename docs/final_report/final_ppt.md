@@ -70,14 +70,14 @@ presentation:
 **最大的性能瓶颈!**
 
 <!-- slide vertical=true -->
-## SortShuffleManager
+## Hash Shuffle Manager
 - 对每一对Map和Reduce端的分区配对都产生一条分区记录，原版Spark生成一个文件存入，Vega将Shuffle记录保存在以DashMap(分布式HashMap)实现的缓存里
 - 由于生成的文件数过多，会对文件系统造成压力，且大量小文件的随机读写会带来一定的磁盘开销，故其性能不佳
 
 <img src="./src/spark_hash_shuffle_no_consolidation.webp">
 
 <!-- slide vertical=true -->
-## SortShuffleManager
+## Sort Shuffle Manager
 - 数据会根据目标的分区Id（即带Shuffle过程的目标RDD中各个分区的Id值）进行排序，然后写入一个单独的Map端输出文件中，而非很多个小文件
 - 输出文件中按reduce端的分区号来索引文件中的不同shuffle部分
 - 大幅减小了随机访存的开销与文件系统的压力，不过增加了排序的开销
