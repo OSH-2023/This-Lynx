@@ -27,7 +27,6 @@
   - [自动化测试](#自动化测试)
     - [Github workflow流程](#github-workflow流程)
     - [自动测试效果](#自动测试效果)
-- [4 测试结果](#4-测试结果)
 - [测试结果](#测试结果)
 - [项目总结](#项目总结)
   - [项目意义与前瞻性](#项目意义与前瞻性)
@@ -44,10 +43,10 @@
 
 ## 组员分工
 
-- 闫泽轩（组长）：负责会议日程议程安排，对项目正确性进行测试，编写测试样例和部署测试。
+- 闫泽轩（组长）：负责会议日程议程安排，对项目正确性进行测试，编写测试样例和部署测试
 - 李牧龙：为Vega增加了HDFS的读写接口和用于调试的本地读文件接口，进行Vega和Spark的分布式运行对比测试，编写wordcount样例
 - 罗浩铭：对Vega的Shuffle模块进行优化，编写项目测试样例
-- 汤皓宇：对Vega进行Docker部署，添加性能监控拓展模块，配置docker下的Prometheus/Grafana/node_exporter来展示Vega运行时各机器的CPU使用率和Vega的运行情况
+- 汤皓宇：对Vega进行Docker部署，添加性能监控拓展模块，配置Docker下的Prometheus/Grafana/node_exporter来展示Vega运行时各机器的CPU使用率和Vega的运行情况，负责每次会议的记录整理
 - 徐航宇：负责Vega运行环境与配置文件的创建，撰写及维护用户手册，并为Vega实现容错机制
 
 ## 进度管理
@@ -247,8 +246,6 @@ A5-->A
 
 AA1("map")
 AA1-->A1
-AA4(函数?何用)
-AA4-->A4
 AA5(false)
 AA5-->A5
 
@@ -442,19 +439,18 @@ Spark自1.1.0版本起默认采用的是更先进的SortShuffle。数据会根�
 ### 自动化测试
 自动化实现提交到仓库后自动检查提交结果的正确性并运行test，如果运行失败会发邮件提醒协作者提交结果测试失败 
 #### Github workflow流程
-```mermaid
+<!-- ```mermaid
 graph TB:
-
-```
+<!-- ``` -->
 #### 自动测试效果
 ![Alt text](src/autotest.png)
 ![unittest2](src/unittest2.png)
 
-## 4 测试结果
+## 测试结果
 <img src="src/wordcount.png" style="zoom:200%">
 <img src="src/wordcount2.png" style="zoom:200%">
 
-## 测试结果
+
 
 
 ## 项目总结
