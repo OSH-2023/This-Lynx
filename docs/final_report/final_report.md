@@ -30,7 +30,7 @@
 - [测试结果](#测试结果)
 - [项目总结](#项目总结)
   - [项目意义与前瞻性](#项目意义与前瞻性)
-  - [项目的优化方向](#项目的优化方向)
+  - [未来的优化方向](#未来的优化方向)
     - [减少序列化反序列化开销](#减少序列化反序列化开销)
     - [构建更加用户友好的API](#构建更加用户友好的api)
 - [参考文献](#参考文献)
@@ -115,9 +115,11 @@ Spark还提供了许多高级功能，例如机器学习、图计算、流处理
 Vega项目完全使用Rust从零写起，构建完成了一个较为简单的Spark内核。不过，这一项目已经有两三年没有维护，刚接手时项目还需要修复部分BUG才可运行。此外，项目里还有不少算法及模块没有实现，特别是Spark后来的诸多优化更新。
 
 这一项目在Github上已获得2.2K颗Star，是一个较为有名的Rust项目，其原仓库页面如下：
+
 <img src="./src/git page.png">
 
 作者也写了一篇博客介绍了自己的Vega项目：
+
 <img src="./src/blog.png">
 
 以下为Vega的运行机制：
@@ -434,6 +436,28 @@ Spark自1.1.0版本起默认采用的是更先进的SortShuffle。数据会根�
 
 ### 实时监控拓展模块
 
+原本的Vega里是没有性能监控模块的，但它实际上是一个很复杂的分布式系统。因此如果某个地方出了问题是很难排查的。因此，在某些关键点加上监控，通过监控获取数据，可以方便调试与对于系统进行检测。
+
+Grafana和Prometheus的搭配是一种应用非常广泛的监控模式。其中Prometheus是一个开源时序数据库，用来存储各种数据，包括各种CPU时间信息，硬盘使用数据等等。而Grafana是一个开源可视化工具，提供了将Prometheus里数据转为仪表盘的功能。
+
+如下即为Prometheus查看监控目标的画面。
+
+![prometheus](./src/prometheus.png)
+
+为了获得更多的监控数据，往往会加入node_exporter来给Prometheus中加入更多的值。
+
+但还需要对vega中的运行情况进行监控，这就需要使用对应的Rust库，将需要的数据值注册之后，根据不同的运行情况和结果进行更新。
+
+最终是使用了docker-compose.yml来配置，只需如下一行命令即可实现部署。
+
+```bash
+$ docker compose up -d
+```
+
+部署效果如下：
+
+![monitor](./src/distri_running.png)
+
 
 
 ### 自动化测试
@@ -467,7 +491,7 @@ Vega继承了Spark的诸多优点。同样使用RDD，使得Vega拥有了简明�
 我们相信，在效率、可靠性、可用性与可维护性上都有着更好表现的Vega，将为大数据处理提供了更高效、更安全的解决方案！
 
 
-### 项目的优化方向
+### 未来的优化方向
 #### 减少序列化反序列化开销
 无论是Spark还是Vega在传递任务时都需要将任务序列化以便于传输，传至目标主机后再反序列化用以执行。而由于序列化反序列化开销很大，Spark与Vega中任务的启动都要花费较长时间。我们可以尝试精简任务的描述方式，同时采用更高性能的序列化反序列化器，以此提高任务传输效率。
 
@@ -492,6 +516,7 @@ Vega继承了Spark的诸多优点。同样使用RDD，使得Vega拥有了简明�
 [^capnp]: Cap’n Proto is an insanely fast data interchange format and capability-based RPC system. https://capnproto.org/
 [^hdfs]:HDFS Architecture. https://hadoop.apache.org/docs/r3.3.5/hadoop-project-dist/hadoop-hdfs/HdfsDesign.html
 [^gfs]:Ghemawat, Sanjay, Howard Gobioff, and Shun-Tak Leung. "The Google File System." Operating Systems Review (2003): 29-43. Web. https://ustc-primo.hosted.exlibrisgroup.com.cn/permalink/f/tp5o03/TN_cdi_proquest_miscellaneous_31620514
+[^prom]:Roman Kudryashov. Monitoring Rust web application with Prometheus and Grafana. https://romankudryashov.com/blog/2021/11/monitoring-rust-web-application/
 
 
 
