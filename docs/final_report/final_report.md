@@ -3,14 +3,18 @@
 - [项目介绍](#项目介绍)
 - [组员分工](#组员分工)
 - [进度管理](#进度管理)
-- [背景和立项依据](#背景和立项依据)
-  - [项目背景](#项目背景)
-    - [Vega](#vega)
-  - [立项依据](#立项依据)
-    - [ShuffleManager](#shufflemanager)
-      - [ShuffleManager架构](#shufflemanager架构)
-      - [可改进的点](#可改进的点)
-    - [Rust优势](#rust优势)
+- [项目背景](#项目背景)
+  - [分布式计算框架](#分布式计算框架)
+  - [Spark简介](#spark简介)
+  - [Vega](#vega)
+- [立项依据](#立项依据)
+  - [ShuffleManager](#shufflemanager)
+    - [ShuffleManager架构](#shufflemanager架构)
+    - [可改进的点](#可改进的点)
+  - [Rust优势](#rust优势)
+    - [安全性](#安全性)
+    - [高性能](#高性能)
+    - [并发性](#并发性)
 - [项目具体优化细节](#项目具体优化细节)
   - [队列容错实现](#队列容错实现)
   - [HDFS文件系统](#hdfs文件系统)
@@ -36,20 +40,58 @@
 - 闫泽轩（组长）：
 - 李牧龙：
 - 罗浩铭：
-- 汤皓宇：对Vega进行Docker部署，添加性能拓展模块，配置docker下的Prometheus/Grafana/node_exporter来展示Vega运行时各机器的CPU使用率和Vega的运行情况
+- 汤皓宇：对Vega进行Docker部署，添加性能监控拓展模块，配置docker下的Prometheus/Grafana/node_exporter来展示Vega运行时各机器的CPU使用率和Vega的运行情况
 - 徐航宇：
 
 ## 进度管理
 
+<!-- TODO -->
+
+## 项目背景
+
+### 分布式计算框架
 
 
-## 背景和立项依据
+主流的分布式计算框架主要分为四类，即MapReduce-like系统、Streaming系统、图计算系统和基于状态的系统。
 
-### 项目背景
-#### Vega
+- **MapReduce-like系统**
+
+以MapReduce(Hadoop)和Spark为代表。其特点是将计算抽象成high-level operator，如map, reduce, filter这样的算子，然后将算子组合成DAG，然后由后端的调度引擎进行并行化调度。
+
+- **Streaming系统**
+
+以flink, storm, Sprk streaming等为代表，专为流式数据提供服务的系统，强调实时性。
+
+- **图计算系统**
+
+以Pregel框架等为代表，特点是将计算过程抽象为图，然后在不同节点分布式执行，适用于PageRank等任务。
+
+- **基于状态的系统**
+
+以distbelief, Parameter Server架构等为代表，专为大型机器学习模型服务，将机器学习的模型存储上升为主要组件。
+
+近年来，不同分布式框架的融合已成为趋势，比如Spark作为MapReduce-like系统，同时也支持Pregel框架为基础的图计算，以及Spark Streaming为基础的流处理问题。
+
+### Spark简介
+
+Spark是一个快速、通用、可扩展的分布式计算系统。它最初是由加州大学伯克利分校AMPLab开发的，其奠基论文为*Spark: Cluster Computing with Working Sets*.[^spark]Spark提供了一种基于内存的计算模型，可以比Hadoop MapReduce更快地处理大规模数据，支持Java、Scala、Python和R等多种编程语言，支持UI可视化管理。
+
+Spark的核心概念是弹性分布式数据集(Resilient Distributed Datasets，简称RDD)。RDD是一种可以被划分成多个分区、分布在多个节点上的数据结构，支持高效的并行计算和容错。Spark中的许多计算都是通过对RDD进行转换和操作来实现的。
+
+Spark的计算过程可以分为两个阶段：转换阶段和动作阶段。在转换阶段，Spark会对RDD进行一系列转换操作，例如map、filter、reduceByKey等。这些操作不会立即执行，而是构建一个执行计划。在动作阶段，Spark会根据执行计划将转换操作转化为实际的计算任务，例如collect、count、save等。这些任务会被分配到不同的节点上执行，最终将结果汇总返回给驱动程序。
+
+Spark的运行模式可以分为本地模式和集群模式。在本地模式下，Spark可以直接在单台机器上运行，用于开发和测试。在集群模式下，Spark可以运行在多台机器上，实现分布式计算。
+
+Spark还提供了许多高级功能，例如机器学习、图计算、流处理等。Spark的生态系统也非常丰富，包括MLlib(机器学习库)、Spark Streaming(流处理库)和GraphX(图分析库)等，可以满足不同应用场景的需求。他们还确保这些API具有高度的互操作性，使得人们首次可以在同一引擎中编写多种端到端的大数据应用程序。
+
+### Vega
+
 Vega项目完全使用Rust从零写起，构建完成了一个较为简单的Spark内核。不过，这一项目已经有两三年没有维护，项目里还有不少算法没有实现，特别是Spark后来的诸多优化更新，这些都可以是我们的改进空间。
 
-**Context建立(master)**:
+以下为Vega的运行机制：
+
+- **Context建立(master)**
+
 ```mermaid
 graph LR
 A(next_rdd_id)
@@ -96,7 +138,8 @@ FF(job_work_dir)
 FF-->F
 ```
 
-**makerdd**:
+- **makerdd**
+
 ```mermaid
 graph LR
 rdd[Rdds]
@@ -148,7 +191,8 @@ C-->A1
 
 ```
 
-**map**:
+- **map**
+
 ```mermaid
 graph LR
 rdd[Rdds]
@@ -205,7 +249,8 @@ C-->B2
 BBB-->|get_rdd_base|CC
 ```
 
-**collection**:
+- **collection**
+
 ```mermaid
 graph LR
 vec[vec_iter]
@@ -237,9 +282,9 @@ C2-->|run|C2
 ```
 
 
-### 立项依据
+## 立项依据
 
-#### ShuffleManager
+### ShuffleManager
 
 Shuffle是将输入的M个分区内的数据“按一定规则”重新分配到R个分区上的过程。在Spark程序中，Shuffle是性能的最大瓶颈，因为Shuffle的过程往往伴随着大量的磁盘I/O与网络I/O等开销，因此Spark框架中Shuffle阶段的设计优劣是决定性能好坏的关键因素之一。实现一个优良的ShuffleManager，减少不必要的Shuffle开销至关重要。
 
@@ -247,7 +292,7 @@ Shuffle是将输入的M个分区内的数据“按一定规则”重新分配到
 
 Shuffle过程中，各个结点上的相同key都会先写入本地磁盘文件中，然后其他结点需要通过网络传输拉取各个结点上的磁盘文件中的含有相同key的记录。在将这些含有相同key的数据都拉取到同一个结点进行聚合操作时，还有可能会因为一个结点上处理的key过多，导致内存不够存放，进而溢写到磁盘文件中。因此在Shuffle过程中，可能会发生大量的磁盘文件读写操作，以及数据的网络传输操作，而这无疑也会降低程序的执行速度。
 
-##### ShuffleManager架构
+#### ShuffleManager架构
 
 在Spark中，Driver和每个Executor的SparkEnv实例化过程中，都会创建一个ShuffleManager，用于管理Shuffle过程中产生的块数据，提供集群块数据的读写，包括数据的本地读写和读取远程RDD结点的块数据。在RDD间存在宽依赖时，需要进行Shuffle操作，此时便需要将Spark作业（Job）划分成多个Stage，并在划分Stage的关键点———构建ShuffleDependency时———利用ShuffleManager进行Shuffle注册，获取后续数据读写所需的ShuffleHandle。
 
@@ -255,18 +300,18 @@ ShuffleManager中的shuffleBlockResolver是Shuffle的块解析器，该解析器
 
 Vega中，划分Stage的点部分同样需要构建ShuffleDependency，它会将Shuffle过程中产生的数据写入一个Cache内，而Shuffle阶段后的reduce阶段将通过ShuffleFetcher从Cache读出shuffle数据，读请求将通过ShuffleService类以TCP服务器形式响应。
 
-##### 可改进的点
+#### 可改进的点
 
 ShuffleManager在生成依赖关系及RDD获取依赖关系过程中所需的计算使用频繁，可以在rust中得到优化。同时，Shuffle算法也极为关键，必须使用当前的SOTA算法，如在Vega中，只实现了最基础的HashShuffleManager，而没有实现性能更高的SortShuffleManager，这也是可以优化的点
 
 
 
 
-#### Rust优势
+### Rust优势
 
 在对Spark的实现问题上，Rust与Scala（Spark所使用的语言）相比有诸多优势：
 
-**安全性**
+#### 安全性
 
 scala 所有的对象都是在堆中的，有 Head 的，生命周期由 GC 管控的。虽然有不用关心分配、释放的自由。却也导致了 STW 和更大的内存占用。
 
@@ -276,13 +321,13 @@ Rust 通过静态内存安全管理和所有权系统，可以避免许多 Spark
 
 在Spark的内存密集阶段，可以使用Rust改写，以减少内存占用、提高程序性能。
 
-**高性能**
+#### 高性能
 
 Rust 秉承零成本抽象原则，通过无运行时开销的特性，将许多其他语言的运行时开销（如GC）放置到了编译期，并将顶层的代码编译为较为高效的机器码，使得程序员在进行抽象时，不必担心性能的下降。
 
 使用 Rust 进行 Spark 的性能瓶颈优化可以提高数据处理速度和效率，减少资源浪费和计算成本。
 
-**并发性**
+#### 并发性
 
 Spark 是一个分布式计算框架，具有良好的并发性能。而 Rust 则通过所有权和类型系统，将许多并发错误转化为了编译时错误，从而避免在部署到生产环境后修复代码或出现竞争、死锁或其他难以复现和修复的 bug ，实现了高效而安全的并发设计。
 
@@ -348,6 +393,7 @@ Vega继承了Spark的诸多优点。同样使用RDD，使得Vega拥有了简明�
 
 ## 参考文献
 
+[^spark]:Zaharia, Matei, et al. “Spark: Cluster Computing With Working Sets.” IEEE International Conference on Cloud Computing Technology and Science, June 2010, p. 10. www2.eecs.berkeley.edu/Pubs/TechRpts/2010/EECS-2010-53.pdf.
 [^spark_optimize]:王家林. Spark内核机制解析及性能调优. 2017.
 [^jni]:Rust jni crate https://crates.io/crates/jni
 [^capnp]: Cap’n Proto is an insanely fast data interchange format and capability-based RPC system. https://capnproto.org/
