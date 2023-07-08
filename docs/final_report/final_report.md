@@ -20,9 +20,9 @@
     - [与客户端交互](#与客户端交互)
     - [容错性](#容错性)
 - [项目具体优化细节](#项目具体优化细节)
-  - [Shuffle部分](#shuffle部分)
-  - [HDFS文件系统](#hdfs文件系统)
   - [容错实现](#容错实现)
+  - [HDFS文件系统](#hdfs文件系统)
+  - [Shuffle部分](#shuffle部分)
   - [实时监控拓展模块](#实时监控拓展模块)
   - [自动化测试](#自动化测试)
     - [Github workflow流程](#github-workflow流程)
@@ -52,16 +52,19 @@
 - 徐航宇：负责Vega运行环境与配置文件的创建，撰写及维护用户手册，并为Vega实现容错机制
 
 ## 进度管理
-| 时间进度       | 计划进度            | 实际进度                                                 |
-| -------------- | ------------------- | -------------------------------------------------------- |
-| 第八周         | 系统学习rust        | 以lab2, lab3为抓手在实验中学习Rust                       |
-| 第九周         | 编译，测试Vega模块  | 修复了原版Vega编译失败，部署失效的Bug                    |
-| 第十周         | 定位Vega模块        | 分配任务量，借鉴Spark对Vega代码进行阅读和理解            |
-| 第十一到十四周 | 编写优化对象模块    | 部署测试Vega分布式模式，开会写注释                       |
-| 第十五周       | 添加拓展模块        | 完成lab4, 推进HDFS加入文件系统的编写                     |
-| 第十六周       | 跑benchmark部署测试 | 编写测试样例，准备进入考试周                             |
-| 第十七周       | 无                  | 考试周放空                                               |
-| 第十八周       | 无                  | 连续四天开会高强度工作，完成所有既定任务并撰写报告和展示 |
+| 时间进度 | 计划进度            | 实际进度                                           |
+| -------- | ------------------- | -------------------------------------------------- |
+| 第八周   | 系统学习rust        | 以lab2,lab3为抓手在实验中学习Rust                  |
+| 第九周   | 编译，测试Vega模块  | 修复了原版Vega编译失败，部署失效的Bug              |
+| 第十周   | 定位Vega模块        | 分配任务量，借鉴Spark对Vega代码进行阅读和理解      |
+| 第十一周 | 编写优化对象模块    | 开会写注释                                         |
+| 第十二周 | 编写优化对象模块    | 部署，运行Vega分布式                               |
+| 第十三周 | 编写优化对象模块    | 开会写注释                                         |
+| 第十四周 | 编写优化对象模块    | 开会写注释                                         |
+| 第十五周 | 添加拓展模块        | 完成lab4,推进HDFS加入文件系统的编写                |
+| 第十六周 | 跑benchmark部署测试 | 编写测试样例，准备进入考试周                       |
+| 第十七周 | 无                  | 考试周放空                                         |
+| 第十八周 | 无                  | 连续四天开会工作，完成所有既定任务并撰写报告和展示 |
 
 
 从4月初到7月初，我们保持每周两次讨论的频率，小步快跑着来通力合作完成了这个项目。虽然中途也遇到了不少困难，其中有些甚至在网上难以找到或是根本就没有可参考的内容，但功夫不负有心人，我们最后也都成功一一解决了这些问题。
@@ -171,6 +174,8 @@ FF(job_work_dir)
 FF-->F
 ```
 
+以上为Context的运行过程。Context结构中，scheduler为调度器，address_map存储着从机的ip地址，distributed_driver为对是否为主机的标识。
+
 - **makerdd**
 
 ```mermaid
@@ -223,6 +228,8 @@ C("parallel_collection")
 C-->A1
 
 ```
+
+makerdd用于创建rdd，其对rdd_vals进行了包装，rdd_vals包含了context，vals，及经过分区的data，其中vals包含了id，dependencies，should_cache，context等重要信息。
 
 - **map**
 
@@ -280,6 +287,8 @@ C-->B2
 BBB-->|get_rdd_base|CC
 ```
 
+map函数用于对rdd中的每个元素进行操作，返回一个MapperRdd的ScrArc封装，Rdd中包含f，即对每个元素的操作，以及pins，即是否已经将该任务与某从机ip绑定，以及经过了基础设置的RddVals。
+
 - **collection**
 
 ```mermaid
@@ -312,9 +321,10 @@ C1-->|run|C1
 C2-->|run|C2
 ```
 
+collection用于将Rdd发送给从机执行，回收结果并安装分区组合成程序的最终结果，首先对Rdd分区，对将其与collect函数一并提交给JobTracker，然后执行run_job函数，发送并等待所有任务执行完毕，最后将结果合并，collect为最终结果。
+
 ## 立项依据
-![flame img](src/flame.png)
-> 使用perf对vega进行性能监控，观察vega的火焰图可以发现主要时间有一半以上花费在tokio runtime(异步环境运行时)，另外一半中的五分之四花费在文件读写(File::read,libc__read,std::io::Write)中。因此我们有必要根据其资源占比进行有针对性的优化，如下从几个方面进行:**运行时相关（ShuffleManager）和文件系统相关(HDFS)**.
+
 ### ShuffleManager
 
 Shuffle是将输入的M个分区内的数据“按一定规则”重新分配到R个分区上的过程。在Spark程序中，Shuffle是性能的最大瓶颈，因为Shuffle的过程往往伴随着大量的磁盘I/O与网络I/O等开销，因此Spark框架中Shuffle阶段的设计优劣是决定性能好坏的关键因素之一。实现一个优良的ShuffleManager，减少不必要的Shuffle开销至关重要。
@@ -396,44 +406,6 @@ HDFS的容错处理和GFS基本一致，可大致分为以下4点：
 4. 主从NameNode，主NameNode宕机时副NameNode成为主NameNode。
 
 ## 项目具体优化细节
-
-### Shuffle部分
-在Vega原有的HashShuffle算法中，会对每一对Map和Reduce端的分区配对都产生一条分区记录，假设Map端有M个分区，Reduce端有R个分区，那么最后产生的分区记录一共会有M*R条。原版的Spark中，每一条Shuffle记录都会被写进磁盘里。由于生成的文件数过多，会对文件系统造成压力，且大量小文件的随机读写会带来一定的磁盘开销，故其性能不佳。而Vega中已将Shuffle记录保存在以DashMap(分布式HashMap)实现的缓存里，这大幅降低了本地I/O开销，但远程开销仍然较大，且DashMap占用空间与性能也会受到索引条数过多的影响。
-
-<img src="./src/spark_hash_shuffle_no_consolidation.webp">
-
-Spark自1.1.0版本起默认采用的是更先进的SortShuffle。数据会根据目标的分区Id（即带Shuffle过程的目标RDD中各个分区的Id值）进行排序，然后写入一个单独的Map端输出文件中，而非很多个小文件。输出文件中按reduce端的分区号来索引文件中的不同shuffle部分。这种shuffle方式大幅减小了随机访存的开销与文件系统的压力，不过增加了排序的开销。（Spark起初不采用SortShuffle的原因正是为了避免产生不必要的排序开销）
-
-<img src="./src/spark_sort_shuffle.webp">
-
-在我们对Vega中shuffle逻辑的优化中，由于使用了DashMap缓存来保存Shuffle记录，我们无需进行排序，直接按reduce端分区号作为键值写入缓存即可。这既避免了排序的开销，又获得了SortShuffle合并shuffle记录以减少shuffle记录条数的效果。这样，shuffle输出只需以reduce端分区号为键值读出即可。
-
-使用两千万条shuffle记录的载量进行单元测试，测试结果如下：
-（Map端有M个分区，Reduce端有R个分区，$M\cdot R=20000000$）
-| 时间/s |   1   |   2   |   3   | 平均  |
-| :----: | :---: | :---: | :---: | :---: |
-| 优化前 | 9.73  | 10.96 | 10.32 | 10.34 |
-| 优化后 | 6.82  | 5.46  | 4.87  | 5.72  |
-
-
-![shuffle](src/ShuffleUp.png)
-测得运行速度提升了81%，由此说明我们对这一模块的优化是成功的。
-
-### HDFS文件系统
-原本的Vega没有接入任何分布式文件系统的接口，甚至本地文件读写效果也相当差（分布式状态运行时会重复执行任务）。为了改善Vega的文件读取可用性，我们为其增加了与HDFS之间的接口。
-
-接入HDFS主要需要解决几个问题：读取和写入数据，将数据制成Rdd。
-
-将数据读出和写入可以利用一个第三方包：hdrs实现。hdrs用Rust包装了HDFS的C接口，实现了Read、Write等Trait，很好地解决了读取写入数据的问题。
-
-但在分布式系统上，为提高读取效率和减少运算过程中的传输，应该让各个worker同时从HDFS读取。为此，我们编写了HdfsReadRdd。该Rdd会自动将要读取的所有文件分区，在`compute()`函数执行时让多个worker同时读取，并分别处理这些文件。
-
-相比之下，写入的处理非常简单。由于写入时一个文件一次只能一台机器写入，因此直接提供写入到HDFS上文件的函数，调用时由master执行即可。
-
-为统一IO功能，我们提供了可供调用的HdfsIO类，其中的`read_to_vec`和`read_to_rdd`方法可以将HDFS上的文件读取为字节流或Rdd，`write_to_hdfs`方法可以对HDFS进行写入。另外，为了方便处理读取得到的字节流，我们还提供了对文件进行读取和解码的`read_to_vec_and_decode`函数，调用时只要在`read_to_rdd`的基础上多传入一个用于解码的decoder函数，即可得到一个从HdfsReadRdd包装得到的Rdd，该Rdd进行`compute()`之后即可读取文件并且得到解码后的文件内容。
-
-另外，为方便运行和修复原作者的错误，我们按照类似与HDFS进行交互的方式，提供了LocalFsIO和LocalFsReadRdd，可用于调试时读取本地文件。
-
 ### 容错实现
 Vega没有实现容错机制，这导致了当某个节点出现故障时，整个程序都无法正常运行并卡死。这显然是不合理的。
 
@@ -455,6 +427,41 @@ Vega没有实现容错机制，这导致了当某个节点出现故障时，整�
 
 这一处理方式不仅能够保证程序的正常运行，还能一定程度上降低容错带来的性能损耗：避免了使用大量资源在收集结果阶段对任务是否成功进行监测和处理（因为提前了处理的时机），并且通过直接在 submit_task_iter 用 tokio::spawn 创建的异步线程中递归调用，减少了对任务，ip队列等的克隆开销（如果放在外面，由于需要使用 async move 闭包，必须要提前备份task与ip队列，否则会产生对已经失去所有权的变量的引用）。此外，由于此过程是异步进行的，并不会影响其他任务的执行。
 
+### HDFS文件系统
+原本的Vega没有接入任何分布式文件系统的接口，甚至本地文件读写效果也相当差（分布式状态运行时会重复执行任务）。为了改善Vega的文件读取可用性，我们为其增加了与HDFS之间的接口。
+
+接入HDFS主要需要解决几个问题：读取和写入数据，将数据制成Rdd。
+
+将数据读出和写入可以利用一个第三方包：hdrs实现。hdrs用Rust包装了HDFS的C接口，实现了Read、Write等Trait，很好地解决了读取写入数据的问题。
+
+但在分布式系统上，为提高读取效率和减少运算过程中的传输，应该让各个worker同时从HDFS读取。为此，我们编写了HdfsReadRdd。该Rdd会自动将要读取的所有文件分区，在`compute()`函数执行时让多个worker同时读取，并分别处理这些文件。
+
+相比之下，写入的处理非常简单。由于写入时一个文件一次只能一台机器写入，因此直接提供写入到HDFS上文件的函数，调用时由master执行即可。
+
+为统一IO功能，我们提供了可供调用的HdfsIO类，其中的`read_to_vec`和`read_to_rdd`方法可以将HDFS上的文件读取为字节流或Rdd，`write_to_hdfs`方法可以对HDFS进行写入。另外，为了方便处理读取得到的字节流，我们还提供了对文件进行读取和解码的`read_to_vec_and_decode`函数，调用时只要在`read_to_rdd`的基础上多传入一个用于解码的decoder函数，即可得到一个从HdfsReadRdd包装得到的Rdd，该Rdd进行`compute()`之后即可读取文件并且得到解码后的文件内容。
+
+另外，为方便运行和修复原作者的错误，我们按照类似与HDFS进行交互的方式，提供了LocalFsIO和LocalFsReadRdd，可用于调试时读取本地文件。
+
+
+### Shuffle部分
+在Vega原有的HashShuffle算法中，会对每一对Map和Reduce端的分区配对都产生一条分区记录，假设Map端有M个分区，Reduce端有R个分区，那么最后产生的分区记录一共会有M*R条。原版的Spark中，每一条Shuffle记录都会被写进磁盘里。由于生成的文件数过多，会对文件系统造成压力，且大量小文件的随机读写会带来一定的磁盘开销，故其性能不佳。而Vega中已将Shuffle记录保存在以DashMap(分布式HashMap)实现的缓存里，这大幅降低了本地I/O开销，但远程开销仍然较大，且DashMap占用空间与性能也会受到索引条数过多的影响。
+
+<img src="./src/spark_hash_shuffle_no_consolidation.webp">
+
+Spark自1.1.0版本起默认采用的是更先进的SortShuffle。数据会根据目标的分区Id（即带Shuffle过程的目标RDD中各个分区的Id值）进行排序，然后写入一个单独的Map端输出文件中，而非很多个小文件。输出文件中按reduce端的分区号来索引文件中的不同shuffle部分。这种shuffle方式大幅减小了随机访存的开销与文件系统的压力，不过增加了排序的开销。（Spark起初不采用SortShuffle的原因正是为了避免产生不必要的排序开销）
+
+<img src="./src/spark_sort_shuffle.webp">
+
+在我们对Vega中shuffle逻辑的优化中，由于使用了DashMap缓存来保存Shuffle记录，我们无需进行排序，直接按reduce端分区号作为键值写入缓存即可。这既避免了排序的开销，又获得了SortShuffle合并shuffle记录以减少shuffle记录条数的效果。这样，shuffle输出只需以reduce端分区号为键值读出即可。
+
+使用两千万条shuffle记录的载量进行单元测试，测试结果如下：
+（Map端有M个分区，Reduce端有R个分区，$M\cdot R=20000000$）
+| 时间/s |   1   |   2   |   3   | 平均  |
+| :----: | :---: | :---: | :---: | :---: |
+| 优化前 | 9.73  | 10.96 | 10.32 | 10.34 |
+| 优化后 | 6.82  | 5.46  | 4.87  | 5.72  |
+
+测得运行速度提升了81%，由此说明我们对这一模块的优化是成功的。
 
 ### 实时监控拓展模块
 
@@ -468,7 +475,7 @@ Grafana和Prometheus的搭配是一种应用非常广泛的监控模式。其中
 
 为了获得更多的监控数据，往往会加入node_exporter来给Prometheus中加入更多的值。
 
-但还需要对vega中的运行情况进行监控，这就需要使用对应的Rust库[^prom]，将需要的数据值注册之后，根据不同的运行情况和结果进行更新。
+但还需要对vega中的运行情况进行监控，这就需要使用对应的Rust库，将需要的数据值注册之后，根据不同的运行情况和结果进行更新。
 
 最终是使用了docker-compose.yml来配置，只需如下一行命令即可实现部署。
 
@@ -527,16 +534,15 @@ style F fill:#cf5,stroke:#f66,stroke-width:5px;
 ![Alt text](src/autotest.png)
 
 黄色圆框表示刚刚提交的结果正在进行测试，测试按照一定的流程进行，这个流程可以由开发者指定，并且Github提供了丰富的插件和环境便于我们使用，这个功能可以在仓库的Actions中添加Workflow使用。
+- 自动化：GitHub Workflow可以自动化您的构建、测试和部署流程，从而减少手动操作和减少错误。
 
-- **自动化**：GitHub Workflow可以自动化我们的构建、测试和部署流程，从而减少手动操作和减少错误。
+- 可重复性：GitHub Workflow可以确保您的构建、测试和部署流程在每次运行时都是相同的，从而提高可重复性。
 
-- **可重复性**：GitHub Workflow可以确保我们的构建、测试和部署流程在每次运行时都是相同的，从而提高可重复性。
+- 可视化：GitHub Workflow提供了一个可视化的界面，可以让您轻松地查看您的构建、测试和部署流程。
 
-- **可视化**：GitHub Workflow提供了一个可视化的界面，可以让我们轻松地查看您的构建、测试和部署流程。
+- 可扩展性：GitHub Workflow可以轻松地扩展到其他工具和服务，例如Docker、AWS、Azure等。
 
-- **可扩展性**：GitHub Workflow可以轻松地扩展到其他工具和服务，例如Docker、AWS、Azure等。
-
-- **开放性**：GitHub Workflow是开源的，因此可以自由地修改和定制它以满足我们的需求。
+开放性：GitHub Workflow是开源的，因此您可以自由地修改和定制它以满足您的需求。
 ![unittest2](src/unittest2.png)
 ## 测试结果
 <img src="src/wordcount.png" style="zoom:200%">
@@ -583,7 +589,7 @@ Spark中的容错机制是基于Spark的Lineage（血统）机制实现的。在
 ## 参考文献
 
 [^spark]:Zaharia, Matei, et al. “Spark: Cluster Computing With Working Sets.” IEEE International Conference on Cloud Computing Technology and Science, June 2010, p. 10. www2.eecs.berkeley.edu/Pubs/TechRpts/2010/EECS-2010-53.pdf.
-[^spark_optimize]:Jialin Wang. Analysis of mechanism in Spark Kernel and Finetune of performance. 2017.
+[^spark_optimize]:王家林. Spark内核机制解析及性能调优. 2017.
 [^jni]:Rust jni crate https://crates.io/crates/jni
 [^capnp]: Cap’n Proto is an insanely fast data interchange format and capability-based RPC system. https://capnproto.org/
 [^hdfs]:HDFS Architecture. https://hadoop.apache.org/docs/r3.3.5/hadoop-project-dist/hadoop-hdfs/HdfsDesign.html
