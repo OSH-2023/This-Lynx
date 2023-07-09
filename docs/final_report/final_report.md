@@ -562,7 +562,7 @@ style F fill:#cf5,stroke:#f66,stroke-width:5px;
 
 ## 测试结果
 
-> 100MB 单机模式wordcount
+> 100MB 单机模式wordcount[^spark_examples]
 
 ![wordcount2](src/wordcount2.png)
 
@@ -659,3 +659,5 @@ University of California, Berkeley https://people.csail.mit.edu/matei/papers/201
 [^serde_traitobject]:open source crate for Serialization and Deserialization https://crates.io/crates/serde_traitobject
 
 [^spark_stream]:Spark Streaming Official Web URL https://spark.apache.org/streaming/
+
+[^spark_examples]:Spark Examples for Python,which was referenced by us https://github.com/apache/spark/tree/master/examples/src/main/python
