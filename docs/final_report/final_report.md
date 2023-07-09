@@ -603,7 +603,7 @@ Spark中的容错机制是基于Spark的Lineage（血统）机制实现的。在
 ## 参考文献
 
 [^spark]:Zaharia, Matei, et al. “Spark: Cluster Computing With Working Sets.” IEEE International Conference on Cloud Computing Technology and Science, June 2010, p. 10. www2.eecs.berkeley.edu/Pubs/TechRpts/2010/EECS-2010-53.pdf.
-[^spark_optimize]:王家林. Spark内核机制解析及性能调优. 2017.
+[^spark_optimize]:JiaLin Wang. Spark Kernel Mechanism Analysis and Performance Optimization. 2017.
 [^jni]:Rust jni crate https://crates.io/crates/jni
 [^capnp]: Cap’n Proto is an insanely fast data interchange format and capability-based RPC system. https://capnproto.org/
 [^hdfs]:HDFS Architecture. https://hadoop.apache.org/docs/r3.3.5/hadoop-project-dist/hadoop-hdfs/HdfsDesign.html
