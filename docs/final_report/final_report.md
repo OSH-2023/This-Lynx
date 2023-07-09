@@ -35,6 +35,7 @@
     - [构建更加用户友好的API](#构建更加用户友好的api)
     - [开发新的RDD算子](#开发新的rdd算子)
     - [实现更加可靠的容错](#实现更加可靠的容错)
+    - [实现更合理的任务分区机制](#实现更合理的任务分区机制)
 - [参考文献](#参考文献)
 
 ## 项目介绍
@@ -444,7 +445,7 @@ Spark自1.1.0版本起默认采用的是更先进的SortShuffle。数据会根�
 
 
 ### 容错实现
-Vega没有实现容错机制，这导致了当某个节点出现故障时，整个程序都无法正常运行并卡死。这显然是不合理的。
+Vega没有实现容错机制，这导致了当某个节点出现故障时，整个程序都无法正常运行并卡死。这显然是不合理的，我们参考了一些论文与资料[^FT1] [^FT3]，尝试为其实现一个较完整的容错机制。
 
 <img src="./src/faulterror1.png">
 
@@ -460,9 +461,15 @@ Vega没有实现容错机制，这导致了当某个节点出现故障时，整�
 
 具体地，我们在调用 submit_task 函数时，使用 tokio::spawn 调用异步函数 submit_task_iter ，并将从机队列作为参数传入（直接修改 submit_task 为异步函数会导致生命周期出错，难以修改且影响稳定性）。接着，在 submit_task_iter 函数中，当连续五次连接超时后，将会从队列中取出备选的从机的ip，并递归调用 submit_task_iter，即尝试将任务重新发给另一台从机执行。
 
-通过这种方式，我们保证了在任何情况下，程序均能正常运行：如果某从机下线，能够正确将任务重新分发给其他从机（只有1/n的概率发到同一从机）；如果该从机再次上线，任务的分发也能够继续正常进行；如果所有从机都下线，程序将等待，直到某一台从机上线，才能继续执行。
+功能上，通过这种方式，我们保证了在任何情况下，程序均能正常运行：
+- 如果某从机下线，能够正确将任务重新分发给其他从机（只有1/n的概率发到同一从机）；
+- 如果该从机再次上线，任务的分发也能够继续正常进行；
+- 如果所有从机都下线（如主机网络不佳），程序将等待，直到某一台从机上线，才能继续执行。
 
-这一处理方式不仅能够保证程序的正常运行，还能一定程度上降低容错带来的性能损耗：避免了使用大量资源在收集结果阶段对任务是否成功进行监测和处理（因为提前了处理的时机），并且通过直接在 submit_task_iter 用 tokio::spawn 创建的异步线程中递归调用，减少了对任务，ip队列等的克隆开销（如果放在外面，由于需要使用 async move 闭包，必须要提前备份task与ip队列，否则会产生对已经失去所有权的变量的引用）。此外，由于此过程是异步进行的，并不会影响其他任务的执行。
+性能上，这一处理方式不仅能够保证程序的正常运行，还能一定程度上降低容错带来的性能损耗：
+- 避免了使用大量资源在收集结果阶段对任务是否成功进行监测和处理，且处理更及时。因为提前了处理错误的时机，且只在发生错误时进行处理，正常运行过程中不产生开销;
+- 通过直接在 submit_task_iter 用 tokio::spawn 创建的异步线程中递归调用，减少了对任务，ip队列等的克隆开销。如果放在异步线程外面，由于需要使用 async move 闭包，必须要提前备份task与ip队列，否则会产生对已经失去所有权的变量的引用，而这会带来大量的克隆开销。
+- 由于此过程是异步进行的，并不会影响其他任务的正常执行，即，对某任务的容错并不会影响其他任务。
 
 ### 实时监控拓展模块
 
@@ -526,7 +533,7 @@ N ==Rerun==> A
 
 style A fill:#f9f,stroke:#333,stroke-width:1px
 style B fill:#cf5,stroke:#f66,stroke-width:2px
-style C fill:#f9f,stroke:#333,stroke-width:4px
+style C fill:#f9f,stroke:#333,stroke-width:4px      
 style D fill:#cc5,stroke:#f66,stroke-width:2px;
 style E fill:#ccf,stroke:#333,stroke-width:4px
 style F fill:#cf5,stroke:#f66,stroke-width:5px;
@@ -587,7 +594,15 @@ Vega继承了Spark的诸多优点。同样使用RDD，使得Vega拥有了简明�
 
 #### 实现更加可靠的容错
 Spark中的容错机制是基于Spark的Lineage（血统）机制实现的。在Spark中，每个RDD都有一个指向其父RDD的指针，这样就可以通过RDD的血统关系来实现容错。当某个RDD的分区数据丢失时，可以通过其父RDD的血统关系重新计算得到。这种机制可以保证Spark的容错性，但是当某个RDD的父RDD丢失时，就无法通过血统关系重新计算得到，这就需要重新从头开始计算，这样就会导致计算效率的降低。
-虽然我们实现的容错机制已经能够在大部分情况下取得较好的结果，但仍有提高的空间。
+
+虽然我们实现的容错机制已经能够较完美地解决问题，但仍有一定提高的空间。具体地，可以考虑权衡各方面因素，尝试更加合理的容错机制。参考的文献有，[^FT3] [^FT2] 等，比如在[^FT2]中提到了一个利用 time 而不是 timeout 来实现容错的方法。
+
+#### 实现更合理的任务分区机制
+在当前版本的Vega中，IO部分的任务分区是按照文件数量划分的，即，尽量保证各个节点分到的文件数目相近。但是这样的划分方式可能并不合理，更合适的方案应该是使得各个分区的文件大小相近。
+
+对此，我们设想了一种较合适的方案：使用优先队列或堆，每个节点代表一个分区，按照分区中的文件总大小组织结构。在分配任务时，将任务分给堆顶的分区（加入其任务链表），并对堆结构进行更新。这样，我们可以保证各个分区分配到的文件总大小相近。
+
+但是，受限于时间，这一点我们并没有具体实现，未来可以考虑将之完成。
 
 ## 参考文献
 
@@ -601,6 +616,11 @@ Spark中的容错机制是基于Spark的Lineage（血统）机制实现的。在
 
 [^big_float]:High Precision Crate implemented for calculating pi. https://crates.io/crates/num-bigfloat
 
+[^FT1]:Jalote P. Fault tolerance in distributed systems[M]. Prentice-Hall, Inc., 1994. https://dl.acm.org/doi/abs/10.5555/179250
+
+[^FT2]:Lamport L. Using time instead of timeout for fault-tolerant distributed systems[J]. ACM Transactions on Programming Languages and Systems (TOPLAS), 1984, 6(2): 254-280. https://dl.acm.org/doi/pdf/10.1145/2993.2994
+
+[^FT3]:Cristian F. Understanding fault-tolerant distributed systems[J]. Communications of the ACM, 1991, 34(2): 56-78. https://dl.acm.org/doi/pdf/10.1145/102792.102801
 
 
 
