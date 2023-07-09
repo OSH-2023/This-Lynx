@@ -25,6 +25,7 @@
   - [容错实现](#容错实现)
   - [实时监控拓展模块](#实时监控拓展模块)
   - [自动化测试](#自动化测试)
+    - [本地测试效果](#本地测试效果)
     - [Github workflow流程](#github-workflow流程)
     - [自动测试效果](#自动测试效果)
 - [测试结果](#测试结果)
@@ -39,7 +40,7 @@
 
 ## 项目介绍
 
-我们的项目基于不完善的Rust版Spark开源项目Vega，对其性能瓶颈进行优化，以实现一个性能明显优于原版Spark的Spark内核。
+我们的项目基于不完善的Rust版Spark[^spark_org][^spark_computing]开源项目Vega[^vega_github]，对其性能瓶颈进行优化，以实现一个性能明显优于原版Spark的Spark内核。
 
 我们优化了Shuffle阶段的算法，接入了HDFS分布式文件系统，加入了多机下的队列容错机制，加入了基于Grafana/Prometheus实时监控运维模块，加入了项目自动测试。这使得Vega在运行速度上较Spark与原版Vega相比有了更大的提升，同时在可靠性、可用性与可维护性上也明显优于原版。
 
@@ -66,7 +67,7 @@
 
 从4月初到7月初，我们保持每周两次讨论的频率，小步快跑着来通力合作完成了这个项目。虽然中途也遇到了不少困难，其中有些甚至在网上难以找到或是根本就没有可参考的内容，但功夫不负有心人，我们最后也都成功一一解决了这些问题。
 
-如下为我们[代码仓库](https://github.com/XhyDds/vega/)的提交记录，我们在原作者的基础上新添加了上百次commit.
+如下为我们[代码仓库](https://github.com/XhyDds/vega/)[^code_repo]的提交记录，我们在原作者的基础上新添加了上百次commit.
 
 <img src="./src/commit.png">
 
@@ -77,7 +78,7 @@
 ### 分布式计算框架简介
 
 
-主流的分布式计算框架主要分为四类，即MapReduce-like系统、Streaming系统、图计算系统和基于状态的系统。
+主流的分布式计算框架主要分为四类，即MapReduce-like[^mapreduce]系统、Streaming系统、图计算系统和基于状态的系统。
 
 - **MapReduce-like系统**
 
@@ -358,7 +359,7 @@ Rust通过静态内存安全管理和所有权系统，可以避免许多Spark�
 
 #### 高性能
 
-Rust 秉承零成本抽象原则，通过无运行时开销的特性，将许多其他语言的运行时开销(如GC)放置到了编译期，并将顶层的代码编译为较为高效的机器码，使得程序员在进行抽象时，不必担心性能的下降。
+Rust [^course.rs]秉承零成本抽象原则，通过无运行时开销的特性，将许多其他语言的运行时开销(如GC)放置到了编译期，并将顶层的代码编译为较为高效的机器码，使得程序员在进行抽象时，不必担心性能的下降。
 
 使用Rust进行Spark的性能瓶颈优化可以提高数据处理速度和效率，减少资源浪费和计算成本。
 
@@ -496,6 +497,12 @@ $ docker compose up -d
 如果运行失败会发邮件提醒协作者提交结果测试失败。
 
 自动化测试使用Github Action提供的相关功能实现，在每次git push时触发，能够大大提高开发人员调试效率和保证提交内容完整可用。
+#### 本地测试效果
+```sh
+cargo build
+cargo test
+```
+![unittest2](src/unittest2.png)
 #### Github workflow流程
 
 
@@ -534,7 +541,7 @@ style F fill:#cf5,stroke:#f66,stroke-width:5px;
 #### 自动测试效果
 ![Alt text](src/autotest.png)
 
-黄色圆框表示刚刚提交的结果正在进行测试，测试按照一定的流程进行，这个流程可以由开发者指定，并且Github提供了丰富的插件和环境便于我们使用，这个功能可以在仓库的Actions中添加Workflow使用。
+黄色圆框表示刚刚提交的结果正在进行测试，测试按照一定的流程进行，这个流程可以由开发者指定，并且Github提供了丰富的插件和环境便于我们使用，这个功能可以在仓库的Actions中添加Workflow[^work_flow]使用。
 - 自动化：GitHub Workflow可以自动化您的构建、测试和部署流程，从而减少手动操作和减少错误。
 
 - 可重复性：GitHub Workflow可以确保您的构建、测试和部署流程在每次运行时都是相同的，从而提高可重复性。
@@ -543,14 +550,19 @@ style F fill:#cf5,stroke:#f66,stroke-width:5px;
 
 - 可扩展性：GitHub Workflow可以轻松地扩展到其他工具和服务，例如Docker、AWS、Azure等。
 
-开放性：GitHub Workflow是开源的，因此您可以自由地修改和定制它以满足您的需求。
-![unittest2](src/unittest2.png)
-## 测试结果
-![wordcount2](src/wordcount2.png)
-> 200MB 数据wordcount
+- 开放性：GitHub Workflow是开源的，因此您可以自由地修改和定制它以满足您的需求。
 
+## 测试结果
+
+> 100MB 单机模式wordcount
+
+![wordcount2](src/wordcount2.png)
+
+> 200MB 分布式wordcount
+> 
 ![wordcount_dis](src/wordcount_dis.png)
-> 100,000,000次
+
+> 100,000,000次,运行时间单位ms
 
 ![calc_pi](src/calc_pi.png)
 
@@ -570,20 +582,19 @@ Vega继承了Spark的诸多优点。同样使用RDD，使得Vega拥有了简明�
 
 ### 未来的优化方向
 #### 减少序列化反序列化开销
-无论是Spark还是Vega在传递任务时都需要将任务序列化以便于传输，传至目标主机后再反序列化用以执行。而由于序列化反序列化开销很大，Spark与Vega中任务的启动都要花费较长时间。我们可以尝试精简任务的描述方式，同时采用更高性能的序列化反序列化器，以此提高任务传输效率。
+无论是Spark还是Vega在传递任务时都需要将任务序列化[^capnp]以便于传输，传至目标主机后再反序列化用以执行。而由于序列化反序列化开销很大，Spark与Vega中任务的启动都要花费较长时间。我们可以尝试精简任务的描述方式，同时采用更高性能的序列化反序列化器，以此提高任务传输效率。
 
 <img src="./src/serialization%20and%20deserialization.png">
 
 #### 构建更加用户友好的API
-由于Rust的类型机制较为复杂，使用Vega构建分布式计算应用时较为困难。比如，每次向RDD传递计算任务时传入时，获得结果的类型都会是包裹着计算任务的RDD类型，而在对RDD连续进行多次操作之后，得到的结果类型将会异常复杂，这不利于用户上手。
+由于Rust的类型机制较为复杂，使用Vega构建分布式计算应用时较为困难。比如，每次向RDD传递计算任务时传入时，获得结果的类型都会是包裹着计算任务的RDD类型，而在对RDD连续进行多次操作之后，得到的结果类型将会异常复杂，这不利于用户上手。[^vega_book]
 
 下图即为一例：
 
 <img src="./src/looong%20type%20name%20in%20rust.png">
 
 #### 开发新的RDD算子
-
-同时，原有的RDD算子类型不够丰富，支持的计算函数都较为底层，[^big_float]可以开发更多的算子以支持各种各样的计算任务，同时可以利用将底层任务合并为高层任务时的优化空间。
+Spark作为Apache基金会下的顶级项目，参与开源的开发人员众多，更新速度很快，每两个月就有一次中等程度的版本更新，而vega已经停止维护两年已久，因此不能即使更新RDD，这导致原有的RDD算子类型不够丰富，支持的计算函数都较为底层，[^big_float]可以开发更多的算子以支持各种各样的计算任务，同时可以利用将底层任务合并为高层任务时的优化空间。
 
 #### 实现更加可靠的容错
 Spark中的容错机制是基于Spark的Lineage（血统）机制实现的。在Spark中，每个RDD都有一个指向其父RDD的指针，这样就可以通过RDD的血统关系来实现容错。当某个RDD的分区数据丢失时，可以通过其父RDD的血统关系重新计算得到。这种机制可以保证Spark的容错性，但是当某个RDD的父RDD丢失时，就无法通过血统关系重新计算得到，这就需要重新从头开始计算，这样就会导致计算效率的降低。
@@ -602,8 +613,21 @@ Spark中的容错机制是基于Spark的Lineage（血统）机制实现的。在
 [^big_float]:High Precision Crate implemented for calculating pi. https://crates.io/crates/num-bigfloat
 
 
+[^vega_book]:vega user guide book https://rajasekarv.github.io/vega/chapter_1.html
+
+[^spark_computing]:*Spark: Cluster Computing with Working Sets*
+Matei Zaharia, Mosharaf Chowdhury, Michael J. Franklin, Scott Shenker, Ion Stoica
+University of California, Berkeley https://people.csail.mit.edu/matei/papers/2010/hotcloud_spark.pdf
 
 
+[^spark_org]:Unified engine for large-scale data analytics https://spark.apache.org/
 
+[^vega_github]:A new arguably faster implementation of Apache Spark from scratch in Rust https://github.com/rajasekarv/vega
 
+[^work_flow]:A workflow is a configurable automated process that will run one or more jobs.  https://docs.github.com/en/actions/using-workflows
 
+[^course.rs]:Rust tutorial for Chinese developer https://course.rs/about-book.html
+
+[^mapreduce]: Dean, J., & Ghemawat, S. (2004). MapReduce: Simplified Data Processing on Large Clusters. In Proceedings of the 6th Conference on Symposium on Operating Systems Design & Implementation - Volume 6 (pp. 10-10). USENIX Association.
+
+[^code_repo]:ThisLynx code repo location https://github.com/XhyDds/vega/
