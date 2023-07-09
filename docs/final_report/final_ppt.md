@@ -217,6 +217,9 @@ presentation:
 <!-- 分布式计算pi -->
 <img src="src/calc_pi.png" style="zoom:200%">
 
+<!-- slide vertical=true -->
+<img src="src/10.png" style="zoom:200%">
+
 <!-- slide -->
 ## 5 项目总结
 
