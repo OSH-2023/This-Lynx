@@ -546,11 +546,13 @@ style F fill:#cf5,stroke:#f66,stroke-width:5px;
 开放性：GitHub Workflow是开源的，因此您可以自由地修改和定制它以满足您的需求。
 ![unittest2](src/unittest2.png)
 ## 测试结果
-<img src="src/wordcount.png" style="zoom:200%">
-<img src="src/wordcount2.png" style="zoom:200%">
+![wordcount2](src/wordcount2.png)
+> 200MB 数据wordcount
 
+![wordcount_dis](src/wordcount_dis.png)
+> 100,000,000次
 
-
+![calc_pi](src/calc_pi.png)
 
 ## 项目总结
 ### 项目意义与前瞻性
