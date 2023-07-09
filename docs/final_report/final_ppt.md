@@ -35,6 +35,10 @@ presentation:
 
 <img src="./src/blog.png">
 
+<!-- slide vertical=true -->
+## 项目架构
+<img src ="./src/general.png">
+
 <!-- slide -->
 ## 2 立项依据
 
