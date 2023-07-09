@@ -37,7 +37,7 @@ presentation:
 
 <!-- slide vertical=true -->
 ## 项目架构
-<img src ="./src/general.png">
+<img src ="./src/general.png" style="zoom:150%">
 
 <!-- slide -->
 ## 2 立项依据
