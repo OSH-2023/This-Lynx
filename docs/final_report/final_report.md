@@ -41,7 +41,7 @@
 ## 项目介绍
 
 我们的项目基于不完善的Rust版Spark[^spark_org][^spark_computing]开源项目Vega[^vega_github]，对其性能瓶颈进行优化，以实现一个性能明显优于原版Spark的Spark内核。
-
+![structure img](src/general.png)
 我们优化了Shuffle阶段的算法，接入了HDFS分布式文件系统，加入了多机下的队列容错机制，加入了基于Grafana/Prometheus实时监控运维模块，加入了项目自动测试。这使得Vega在运行速度上较Spark与原版Vega相比有了更大的提升，同时在可靠性、可用性与可维护性上也明显优于原版。
 
 ## 组员分工
@@ -78,7 +78,7 @@
 ### 分布式计算框架简介
 
 
-主流的分布式计算框架主要分为四类，即MapReduce-like[^mapreduce]系统、Streaming系统、图计算系统和基于状态的系统。
+主流的分布式计算框架主要分为四类，即MapReduce-like[^mapreduce]系统、Streaming[^spark_stream]系统、图计算系统和基于状态的系统。
 
 - **MapReduce-like系统**
 
@@ -582,7 +582,7 @@ Vega继承了Spark的诸多优点。同样使用RDD，使得Vega拥有了简明�
 
 ### 未来的优化方向
 #### 减少序列化反序列化开销
-无论是Spark还是Vega在传递任务时都需要将任务序列化[^capnp]以便于传输，传至目标主机后再反序列化用以执行。而由于序列化反序列化开销很大，Spark与Vega中任务的启动都要花费较长时间。我们可以尝试精简任务的描述方式，同时采用更高性能的序列化反序列化器，以此提高任务传输效率。
+无论是Spark还是Vega在传递任务时都需要将任务序列化[^serde_traitobject][^capnp]以便于传输，传至目标主机后再反序列化用以执行。而由于序列化反序列化开销很大，Spark与Vega中任务的启动都要花费较长时间。我们可以尝试精简任务的描述方式，同时采用更高性能的序列化反序列化器，以此提高任务传输效率。
 
 <img src="./src/serialization%20and%20deserialization.png">
 
@@ -631,3 +631,7 @@ University of California, Berkeley https://people.csail.mit.edu/matei/papers/201
 [^mapreduce]: Dean, J., & Ghemawat, S. (2004). MapReduce: Simplified Data Processing on Large Clusters. In Proceedings of the 6th Conference on Symposium on Operating Systems Design & Implementation - Volume 6 (pp. 10-10). USENIX Association.
 
 [^code_repo]:ThisLynx code repo location https://github.com/XhyDds/vega/
+
+[^serde_traitobject]:open source crate for Serialization and Deserialization https://crates.io/crates/serde_traitobject
+
+[^spark_stream]:Spark Streaming Official Web URL https://spark.apache.org/streaming/
