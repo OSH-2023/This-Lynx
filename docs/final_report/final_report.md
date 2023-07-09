@@ -622,9 +622,13 @@ vega在分布式运行时不需要在从机上下载环境，但是限于配置�
 
 ### 我们的收获
 在这一学期的Vega项目中，我们小组戮力同心、团结一致，每位组员都奋勇争先、鞠躬尽瘁，以高度的团队精神、奉献精神高质量地完成了OSH大作业。
+
 Vega是我们小组大多数人目前接触到的最大的项目。接手这样一个大项目，要求我们要配置项目与环境以便成功编译运行，要在前人庞杂的代码、复杂的调用关系中理出逻辑关系，要接触到各种各样的第三方API。而更进一步，我们还要解决前人留下的BUG，要在巨大的项目中精确定位能改进的模块，在重构部分代码时要保证与项目其它部分的依赖关系不变。高强度的、贴近工业界真实开发场景的项目实践让我们每个人的系统编程、软件工程技能得到了充分锻炼。
-同时深入学习运用Rust，让我们深刻了解了函数式、内存安全、强大编译器等Rust独有的特性，让我们零距离体会到现代编程语言的魅力、适应未来的编程语言。
+
+同时深入学习运用Rust，让我们深刻了解了函数式、内存安全、强大编译器等Rust独有的特性，让我们零距离体会到现代编程语言的魅力，由于Rust体现着未来语言的趋势，这也将帮助我们适应未来的编程语言。
+
 同时，随着大数据处理、分布式计算的需求不断增长，分布式计算框架正发挥着日益重要的作用。这个项目让我们深入了解了Spark这一分布式计算框架的内核机制及调优，无论未来我们是要开发或是使用分布式计算框架，这样一段经历对我们都是非常有益的。
+
 总而言之，vega项目使我们小组每一个人都收获颇丰，感谢OSH大作业能够给我们这样一个契机来经手这一项目，感谢老师和助教的悉心指导！
 
 
@@ -671,4 +675,4 @@ University of California, Berkeley https://people.csail.mit.edu/matei/papers/201
 
 [^spark_examples]:Spark Examples for Python,which was referenced by us https://github.com/apache/spark/tree/master/examples/src/main/python
 
-[^Shuffle_Architecture]x0FFF. “Spark Architecture: Shuffle.” Distributed Systems Architecture, 22 Apr. 2016, 0x0fff.com/spark-architecture-shuffle.
+[^Shuffle_Architecture]:x0FFF. “Spark Architecture: Shuffle.” Distributed Systems Architecture, 22 Apr. 2016, 0x0fff.com/spark-architecture-shuffle.
