@@ -245,26 +245,26 @@ presentation:
 <!-- slide vertical=true -->
 ## 项目意义与前瞻性
 
-- ### Vega继承了Spark的诸多优点
-- ### Vega吸收了Rust语言的诸多优良特性
-- ### 我们对Vega项目进行了诸多优化，进一步提升了其性能
+- Vega继承了Spark的诸多优点
+- Vega吸收了Rust语言的诸多优良特性
+- 我们对Vega项目进行了诸多优化，进一步提升了其性能
 
 
 <!-- slide -->
 ## 未来的优化方向
 <!-- slide vertical=true -->
-### 减少序列化反序列化开销
+## 减少序列化反序列化开销
 <img src="./src/serialization%20and%20deserialization.png">
 
 <!-- slide vertical=true -->
-### 构建更加用户友好的API
+## 构建更加用户友好的API
 - Rust的类型机制较为复杂
 - 原有的RDD算子类型不够丰富
 
 <img src="./src/looong%20type%20name%20in%20rust.png" style="zoom:150%">
 
 <!-- slide vertical=true -->
-### 建立更加完善的容错机制
+## 建立更加完善的容错机制
 - Lineage（血统）机制实现容错
 - 降低容错为程序运行带来的成本
 
