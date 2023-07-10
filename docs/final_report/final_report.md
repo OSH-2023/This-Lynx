@@ -484,19 +484,17 @@ Grafana和Prometheus的搭配是一套应用非常广泛的监控模式。其中
 
 不过Prometheus本身只能获取比较少的信息，其中有关CPU运行情况的信息也不足以计算占用率，为了获得更加详细的监控数据，我们加入了node_exporter来给Prometheus中提供更全面的信息。
 
-但还需要对vega中的运行情况进行监控，这就需要使用对应的Rust库，将需要的数据值注册之后，根据不同的运行情况和结果进行更新。
+而对于Vega本身的运行情况就没有现成的开源实现了。同时对Rust应用进行性能监控的参考也比较少。在查阅了相关资料后，我们参考了这篇博客，[^prom]使用的是prometheus-client库。[^prom_client]
 
-最终是使用了docker-compose.yml来配置，只需如下一行命令即可实现部署。
+本质上说，Prometheus需要的是访问一个链接去获取对应的metrics内容，比如下图这样的就是node_exporter输出的CPU运行信息，然后Prometheus就会把数据存下来，以供后续查询。所以我们在Vega提供了异步函数`add_metric`，来提供出对应的信息。
 
-```bash
-$ docker compose up -d
-```
+<div style="text-align:center"><img src="./src/metrics.png" width=80%/></div>
 
-部署效果如下：
+而在把Vega内部信息输出到这个相当于服务器的地方时，因为Rust的所有权机制，我们没有使用指针传递，而是直接通过http请求访问同样的链接，直接传递信息。
 
-![monitor](./src/distri_running.png)
+最终我们是使用了docker-compose来方便地部署监控，具体细节可以参考用户手册。部署效果如下图。
 
-
+<div style="text-align:center"><img src="./src/distri_running.png" width=80%/></div>
 
 ### 自动化测试
 自动化实现提交到仓库后自动检查提交结果的正确性并进行自动测试。
@@ -606,7 +604,7 @@ Spark作为Apache基金会下的顶级项目，参与开源的开发人员众多
 #### 实现更加可靠的容错
 Spark中的容错机制是基于Spark的Lineage（血统）机制实现的。在Spark中，每个RDD都有一个指向其父RDD的指针，这样就可以通过RDD的血统关系来实现容错。当某个RDD的分区数据丢失时，可以通过其父RDD的血统关系重新计算得到。这种机制可以保证Spark的容错性，但是当某个RDD的父RDD丢失时，就无法通过血统关系重新计算得到，这就需要重新从头开始计算，这样就会导致计算效率的降低。
 
-虽然我们实现的容错机制已经能够较完美地解决问题，但仍有一定提高的空间。具体地，可以考虑权衡各方面因素，尝试更加合理的容错机制。参考的文献有，[^FT3] [^FT2] 等，比如在[^FT2]中提到了一个利用 time 而不是 timeout 来实现容错的方法。
+虽然我们实现的容错机制已经能够较完美地解决问题，但仍有一定提高的空间。具体地，可以考虑权衡各方面因素，尝试更加合理的容错机制。参考的文献有[^FT3][^FT2]等，比如在[^FT2]中提到了一个利用 time 而不是 timeout 来实现容错的方法。
 
 #### 实现更合理的任务分区机制
 在当前版本的Vega中，IO部分的任务分区是按照文件数量划分的，即，尽量保证各个节点分到的文件数目相近。但是这样的划分方式可能并不合理，更合适的方案应该是使得各个分区的文件大小相近。
@@ -674,3 +672,5 @@ Vega是我们小组大多数人目前接触到的最大的项目。接手这样�
 to build reliable and efficient software. https://www.rust-lang.org/
 
 [^scala]: The Scala Programming Language. https://www.scala-lang.org/
+
+[^prom-client]: Prometheus / OpenMetrics client library in Rust. https://github.com/prometheus/client_rust
