@@ -443,7 +443,7 @@ Spark自1.1.0版本起默认采用的是更先进的SortShuffle。数据会根�
 分析后我们发现，这些问题的原因是，当任务执行失败时需要为`on_event_failure`函数提供错误原因`TastEndReason`，其中需要包含`server_uri`, `shuffle_id`, `map_id`, `reduce_id`，而后三者在`submit_task`所在环境下不易获取。上图中显示的错误即后续的处理函数未能根据提供的`shuffle_id`获取正确的shuffle。
 
 后来我们选择跳出固有逻辑，采用新的方式来完成容错。我们利用循环队列存储从机ip，在某从机下线时，从队首取出一个从机，并将下线从机的任务重新分发给新选取的从机，然后将该从机放回队尾，并打印出相关Error信息以供用户检查（信息包括下线的从机编号，ip，未能成功处理的任务id，以及重新提交任务后接受任务的从机编号，ip等）。
-<div style="text-align:center"><img src="./src/FaultTolerance.png" width=80%/></div> 
+<div style="text-align:center"><img src="./src/FaultTolerance.png" width=50%/></div> 
 
 具体地，我们在调用`submit_task`函数时，使用`tokio::spawn`调用异步函数`submit_task_iter`，并将从机队列作为参数传入(直接修改 `submit_task`为异步函数会导致生命周期出错，难以修改且影响稳定性)。接着，在`submit_task_iter`函数中，当连续五次连接超时后，将会从队列中取出备选的从机的ip，并递归调用`submit_task_iter`，即尝试将任务重新发给另一台从机执行。
 
@@ -476,15 +476,13 @@ Spark自1.1.0版本起默认采用的是更先进的SortShuffle。数据会根�
 
 ### 实时监控拓展模块
 
-原本的Vega里是没有性能监控模块的，但它实际上是一个很复杂的分布式系统。因此如果某个地方出了问题是很难排查的。因此，在某些关键点加上监控，通过监控获取数据，可以方便调试与对于系统进行检测。
+原版的Vega里是没有性能监控模块的，只有在命令行中输出的log，但实际上它是一个很复杂的分布式系统，如果某个地方出了问题是看log很难排查出具体的问题。因此我们认为，对某些关键信息进行监控并通过图形化的方式展现出来，可以方便调试，也便于了解系统的运行情况。
 
-Grafana和Prometheus的搭配是一种应用非常广泛的监控模式。其中Prometheus是一个开源时序数据库，用来存储各种数据，包括各种CPU时间信息，硬盘使用数据等等。而Grafana是一个开源可视化工具，提供了将Prometheus里数据转为仪表盘的功能。
+Grafana和Prometheus的搭配是一套应用非常广泛的监控模式。其中Prometheus是一个开源时序数据库，用来存储各种数据，包括各种CPU时间信息，硬盘使用数据等等。而Grafana是一个开源可视化工具，提供了将Prometheus里数据转为仪表盘的功能。如下即为Prometheus查看监控目标的画面。
 
-如下即为Prometheus查看监控目标的画面。
+<div style="text-align:center"><img src="./src/prometheus.png" width=80%/></div>
 
-![prometheus](./src/prometheus.png)
-
-为了获得更多的监控数据，往往会加入node_exporter来给Prometheus中加入更多的值。
+不过Prometheus本身只能获取比较少的信息，其中有关CPU运行情况的信息也不足以计算占用率，为了获得更加详细的监控数据，我们加入了node_exporter来给Prometheus中提供更全面的信息。
 
 但还需要对vega中的运行情况进行监控，这就需要使用对应的Rust库，将需要的数据值注册之后，根据不同的运行情况和结果进行更新。
 
