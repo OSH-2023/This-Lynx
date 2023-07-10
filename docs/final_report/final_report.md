@@ -583,7 +583,7 @@ style F fill:#cf5,stroke:#f66,stroke-width:5px;
 
 <div style="text-align:center"><img src="./src/wordcount_dis.png" width=80%/></div>
 
-1. 蒙特卡洛方法计算Pi进行100,000,000次，运行时间单位ms
+3. 蒙特卡洛方法计算Pi进行100,000,000次，运行时间单位ms
 
 |序号|1|2|3|4|5|平均|
 |-|-|-|-|-|-|-|
