@@ -38,13 +38,16 @@
     - [实现更加可靠的容错](#实现更加可靠的容错)
     - [实现更合理的任务分区机制](#实现更合理的任务分区机制)
     - [实现跨平台的零成本移植](#实现跨平台的零成本移植)
+  - [我们的收获](#我们的收获)
 - [参考文献](#参考文献)
 
 ## 项目介绍
 
-我们的项目基于不完善的Rust版Spark[^spark_org][^spark_computing]开源项目Vega[^vega_github]，对其性能瓶颈进行优化，以实现一个性能明显优于原版Spark的Spark内核。
-![structure img](src/general.png)
-我们优化了Shuffle阶段的算法，接入了HDFS分布式文件系统，加入了多机下的队列容错机制，加入了基于Grafana/Prometheus实时监控运维模块，加入了项目自动测试。这使得Vega在运行速度上较Spark与原版Vega相比有了更大的提升，同时在可靠性、可用性与可维护性上也明显优于原版。
+我们的项目以不完善的Rust版Spark[^spark_org][^spark_computing]开源项目Vega[^vega_github]为基础，对其性能瓶颈进行了优化，实现了一个性能明显优于原版Spark的分布式计算框架。下图为我们的项目结构图：
+
+![structure img](src/general.png#pic_center)
+
+我们优化了Shuffle阶段的算法，加入了多机下的队列容错机制，接入了HDFS分布式文件系统，加入了基于Grafana/Prometheus的实时监控运维模块，并进行了项目自动化测试。最终的Vega在运行速度上相较Spark与原版Vega相比都有了很大的提升，同时在可靠性、可用性与可维护性上也明显优于原版。
 
 ## 组员分工
 
@@ -60,20 +63,19 @@
 | 第八周         | 系统学习rust        | 以lab2, lab3为抓手在实验中学习Rust                       |
 | 第九周         | 编译，测试Vega模块  | 修复了原版Vega编译失败，部署失效的Bug                    |
 | 第十周         | 定位Vega模块        | 分配任务量，借鉴Spark对Vega代码进行阅读和理解            |
-| 第十一到十三周 | 编写优化对象模块    | 测试Vega分布式部署，开会写注释                       |
-| 第十四到十五周       | 添加拓展模块        | 完成lab4, 推进HDFS加入文件系统及容错机制的编写                     |
+| 第十一到十三周 | 编写优化对象模块    | 测试Vega分布式部署，开会写注释                           |
+| 第十四到十五周 | 添加拓展模块        | 完成lab4, 推进HDFS加入文件系统及容错机制的编写           |
 | 第十六周       | 跑benchmark部署测试 | 编写测试样例，准备进入考试周                             |
 | 第十七周       | 无                  | 考试周放空                                               |
 | 第十八周       | 无                  | 连续五天开会高强度工作，完成所有既定任务并撰写报告和展示 |
 
-
-从4月初到7月初，我们保持每周两次讨论的频率，小步快跑着来通力合作完成了这个项目。虽然中途也遇到了不少困难，其中有些甚至在网上难以找到或是根本就没有可参考的内容，但功夫不负有心人，我们最后也都成功一一解决了这些问题。
+从4月初到7月初，我们保持每周两次讨论的频率，小步快跑着通力合作完成了这个项目。虽然中途也遇到了不少困难，其中有些甚至在网上难以找到或是根本就没有可参考的内容，但功夫不负有心人，我们最后也都成功一一解决了这些问题。
 
 如下为我们[代码仓库](https://github.com/XhyDds/vega/)[^code_repo]的提交记录，我们在原作者的基础上新添加了上百次commit.
 
-<img src="./src/commit.png">
+![commit](./src/commit.png#pic_center)
 
-<img src="./src/commit_history.png">
+![commit_history](./src/commit_history.png#pic_center)
 
 ## 项目背景
 
@@ -408,7 +410,7 @@ HDFS的容错处理和GFS基本一致，可大致分为以下4点：
 ## 项目具体优化细节
 
 ### Shuffle部分
-在Vega原有的HashShuffle算法中，会对每一对Map和Reduce端的分区配对都产生一条分区记录，假设Map端有M个分区，Reduce端有R个分区，那么最后产生的分区记录一共会有M*R条。原版的Spark中，每一条Shuffle记录都会被写进磁盘里。由于生成的文件数过多，会对文件系统造成压力，且大量小文件的随机读写会带来一定的磁盘开销，故其性能不佳。而Vega中已将Shuffle记录保存在以DashMap(分布式HashMap)实现的缓存里，这大幅降低了本地I/O开销，但远程开销仍然较大，且DashMap占用空间与性能也会受到索引条数过多的影响。
+在Vega原有的HashShuffle算法中，会对每一对Map和Reduce端的分区配对都产生一条分区记录，假设Map端有M个分区，Reduce端有R个分区，那么最后产生的分区记录一共会有M*R条。原版的Spark中，每一条Shuffle记录都会被写进磁盘里。由于生成的文件数过多，会对文件系统造成压力，且大量小文件的随机读写会带来一定的磁盘开销，故其性能不佳。而Vega中已将Shuffle记录保存在以DashMap(分布式HashMap)实现的缓存里，这大幅降低了本地I/O开销，但远程开销仍然较大，且DashMap占用空间与性能也会受到索引条数过多的影响。[^Shuffle_Architecture]
 
 <img src="./src/spark_hash_shuffle_no_consolidation.webp">
 
@@ -577,7 +579,7 @@ style F fill:#cf5,stroke:#f66,stroke-width:5px;
 ## 项目总结
 ### 项目意义与前瞻性
 
-随着大数据处理需求的不断增长，对数据处理框架的性能和可靠性要求也越来越高。
+随着大数据处理、分布式计算的需求不断增长，对分布式计算框架的性能和可靠性要求也越来越高。
 
 Vega继承了Spark的诸多优点。同样使用RDD，使得Vega拥有了简明、灵活、可扩展性好的编程模式，拥有了对非结构化数据或复杂的任务的良好支持，拥有了数据分片的高度弹性及在硬盘与内存间的高效调度，拥有了基于Lineage（血统）的高效容错机制。由此，它对计算任务的分布式执行有了良好的支持，可以在大数据处理中发挥重要作用。
 
@@ -618,6 +620,18 @@ Spark中的容错机制是基于Spark的Lineage（血统）机制实现的。在
 
 #### 实现跨平台的零成本移植
 vega在分布式运行时不需要在从机上下载环境，但是限于配置文件和平台依赖的库函数使用，这种移植还未进行实现和测试。但是利用Rust的条件编译`#[cfg(target os="windows")]`可以编写两套平台下的函数，以及在Context,env模块中编写解耦的配置加载逻辑理论上就可以实现跨平台的移植。Spark运行分布式时需要在从机上安装应用，而vega不需要。这样可以在未来的工作中实现跨平台的零成本移植.
+
+### 我们的收获
+在这一学期的Vega项目中，我们小组戮力同心、团结一致，每位组员都奋勇争先、鞠躬尽瘁，以高度的团队精神、奉献精神高质量地完成了OSH大作业。
+
+Vega是我们小组大多数人目前接触到的最大的项目。接手这样一个大项目，要求我们要配置项目与环境以便成功编译运行，要在前人庞杂的代码、复杂的调用关系中理出逻辑关系，要接触到各种各样的第三方API。而更进一步，我们还要解决前人留下的BUG，要在巨大的项目中精确定位能改进的模块，在重构部分代码时要保证与项目其它部分的依赖关系不变。高强度的、贴近工业界真实开发场景的项目实践让我们每个人的系统编程、软件工程技能得到了充分锻炼。
+
+同时深入学习运用Rust，让我们深刻了解了函数式、内存安全、强大编译器等Rust独有的特性，让我们零距离体会到现代编程语言的魅力，由于Rust体现着未来语言的趋势，这也将帮助我们适应未来的编程语言。
+
+同时，随着大数据处理、分布式计算的需求不断增长，分布式计算框架正发挥着日益重要的作用。这个项目让我们深入了解了Spark这一分布式计算框架的内核机制及调优，无论未来我们是要开发或是使用分布式计算框架，这样一段经历对我们都是非常有益的。
+
+总而言之，vega项目使我们小组每一个人都收获颇丰，感谢OSH大作业能够给我们这样一个契机来经手这一项目，感谢老师和助教的悉心指导！
+
 
 ## 参考文献
 
@@ -661,3 +675,5 @@ University of California, Berkeley https://people.csail.mit.edu/matei/papers/201
 [^spark_stream]:Spark Streaming Official Web URL https://spark.apache.org/streaming/
 
 [^spark_examples]:Spark Examples for Python,which was referenced by us https://github.com/apache/spark/tree/master/examples/src/main/python
+
+[^Shuffle_Architecture]:x0FFF. “Spark Architecture: Shuffle.” Distributed Systems Architecture, 22 Apr. 2016, 0x0fff.com/spark-architecture-shuffle.
