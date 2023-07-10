@@ -19,10 +19,10 @@
     - [HDFS架构](#hdfs架构)
     - [与客户端交互](#与客户端交互)
     - [容错性](#容错性)
-- [项目具体优化细节](#项目具体优化细节)
-  - [Shuffle部分](#shuffle部分)
-  - [HDFS文件系统](#hdfs文件系统)
+- [项目具体细节](#项目具体细节)
+  - [Shuffle优化](#shuffle优化)
   - [容错实现](#容错实现)
+  - [HDFS文件系统](#hdfs文件系统)
   - [实时监控拓展模块](#实时监控拓展模块)
   - [自动化测试](#自动化测试)
     - [本地测试效果](#本地测试效果)
@@ -382,7 +382,7 @@ HDFS[^hdfs](Hadoop Distributed File System)是一个基于GFS[^gfs]的分布式�
 
 #### HDFS架构
 
-![HDFS_ARC.webp](../investigation/src/HDFS_ARC.webp)
+<div style="text-align:center"><img src="../investigation/src/HDFS_ARC.webp" width=80%/></div> 
 
 上图为HDFS的架构，其中NameNode即GFS中的Master节点，负责整个分布式文件系统的元数据(MetaData)管理和响应客户端请求。
 
@@ -406,46 +406,29 @@ HDFS的容错处理和GFS基本一致，可大致分为以下4点：
 3. DataNode宕机时，可能会导致部分文件副本数量低于要求。NameNode会检查副本数量，对缺失副本的数据块增加副本数量。
 4. 主从NameNode，主NameNode宕机时副NameNode成为主NameNode。
 
-## 项目具体优化细节
+## 项目具体细节
 
-### Shuffle部分
+### Shuffle优化
+
 在Vega原有的HashShuffle算法中，会对每一对Map和Reduce端的分区配对都产生一条分区记录，假设Map端有M个分区，Reduce端有R个分区，那么最后产生的分区记录一共会有M*R条。原版的Spark中，每一条Shuffle记录都会被写进磁盘里。由于生成的文件数过多，会对文件系统造成压力，且大量小文件的随机读写会带来一定的磁盘开销，故其性能不佳。而Vega中已将Shuffle记录保存在以DashMap(分布式HashMap)实现的缓存里，这大幅降低了本地I/O开销，但远程开销仍然较大，且DashMap占用空间与性能也会受到索引条数过多的影响。[^Shuffle_Architecture]
 
-<img src="./src/spark_hash_shuffle_no_consolidation.webp">
+<div style="text-align:center"><img src="./src/spark_hash_shuffle_no_consolidation.webp" width=80%/></div> 
 
 Spark自1.1.0版本起默认采用的是更先进的SortShuffle。数据会根据目标的分区Id（即带Shuffle过程的目标RDD中各个分区的Id值）进行排序，然后写入一个单独的Map端输出文件中，而非很多个小文件。输出文件中按reduce端的分区号来索引文件中的不同shuffle部分。这种shuffle方式大幅减小了随机访存的开销与文件系统的压力，不过增加了排序的开销。（Spark起初不采用SortShuffle的原因正是为了避免产生不必要的排序开销）
 
-<img src="./src/spark_sort_shuffle.webp">
+<div style="text-align:center"><img src="./src/spark_sort_shuffle.webp" width=80%/></div> 
 
 在我们对Vega中shuffle逻辑的优化中，由于使用了DashMap缓存来保存Shuffle记录，我们无需进行排序，直接按reduce端分区号作为键值写入缓存即可。这既避免了排序的开销，又获得了SortShuffle合并shuffle记录以减少shuffle记录条数的效果。这样，shuffle输出只需以reduce端分区号为键值读出即可。
 
 使用两千万条shuffle记录的载量进行单元测试，测试结果如下：
 （Map端有M个分区，Reduce端有R个分区，$M\cdot R=20000000$）
-![Shuffle up](src/ShuffleUp.png)
+
 | 时间/s |   1   |   2   |   3   | 平均  |
 | :----: | :---: | :---: | :---: | :---: |
 | 优化前 | 9.73  | 10.96 | 10.32 | 10.34 |
 | 优化后 | 6.82  | 5.46  | 4.87  | 5.72  |
 
 测得运行速度提升了81%，由此说明我们对这一模块的优化是成功的。
-
-
-
-### HDFS文件系统
-原本的Vega没有接入任何分布式文件系统的接口，甚至本地文件读写效果也相当差（分布式状态运行时会重复执行任务）。为了改善Vega的文件读取可用性，我们为其增加了与HDFS之间的接口。
-
-接入HDFS主要需要解决几个问题：读取和写入数据，将数据制成Rdd。
-
-将数据读出和写入可以利用一个第三方包：hdrs实现。hdrs用Rust包装了HDFS的C接口，实现了Read、Write等Trait，很好地解决了读取写入数据的问题。
-
-但在分布式系统上，为提高读取效率和减少运算过程中的传输，应该让各个worker同时从HDFS读取。为此，我们编写了HdfsReadRdd。该Rdd会自动将要读取的所有文件分区，在`compute()`函数执行时让多个worker同时读取，并分别处理这些文件。
-
-相比之下，写入的处理非常简单。由于写入时一个文件一次只能一台机器写入，因此直接提供写入到HDFS上文件的函数，调用时由master执行即可。
-
-为统一IO功能，我们提供了可供调用的HdfsIO类，其中的`read_to_vec`和`read_to_rdd`方法可以将HDFS上的文件读取为字节流或Rdd，`write_to_hdfs`方法可以对HDFS进行写入。另外，为了方便处理读取得到的字节流，我们还提供了对文件进行读取和解码的`read_to_vec_and_decode`函数，调用时只要在`read_to_rdd`的基础上多传入一个用于解码的decoder函数，即可得到一个从HdfsReadRdd包装得到的Rdd，该Rdd进行`compute()`之后即可读取文件并且得到解码后的文件内容。
-
-另外，为方便运行和修复原作者的错误，我们按照类似与HDFS进行交互的方式，提供了LocalFsIO和LocalFsReadRdd，可用于调试时读取本地文件。
-
 
 ### 容错实现
 Vega没有实现容错机制，这导致了当某个节点出现故障时，整个程序都无法正常运行并卡死。这显然是不合理的，我们参考了一些论文与资料[^FT1] [^FT3]，尝试为其实现一个较完整的容错机制。
@@ -473,6 +456,24 @@ Vega没有实现容错机制，这导致了当某个节点出现故障时，整�
 - 避免了使用大量资源在收集结果阶段对任务是否成功进行监测和处理，且处理更及时。因为提前了处理错误的时机，且只在发生错误时进行处理，正常运行过程中不产生开销;
 - 通过直接在 submit_task_iter 用 tokio::spawn 创建的异步线程中递归调用，减少了对任务，ip队列等的克隆开销。如果放在异步线程外面，由于需要使用 async move 闭包，必须要提前备份task与ip队列，否则会产生对已经失去所有权的变量的引用，而这会带来大量的克隆开销。
 - 由于此过程是异步进行的，并不会影响其他任务的正常执行，即，对某任务的容错并不会影响其他任务。
+
+
+### HDFS文件系统
+
+原本的Vega没有接入任何分布式文件系统的接口，甚至本地文件读写效果也相当差(分布式状态运行时会重复执行任务)。为了改善Vega的文件读取可用性，我们为其增加了与HDFS之间的接口。
+
+接入HDFS主要需要解决几个问题：读取和写入数据，将数据制成Rdd。
+
+将数据读出和写入可以利用一个第三方包：hdrs实现。hdrs用Rust包装了HDFS的C接口，实现了Read、Write等Trait，很好地解决了读取写入数据的问题。
+
+但在分布式系统上，为提高读取效率和减少运算过程中的传输，应该让各个worker同时从HDFS读取。为此，我们编写了HdfsReadRdd。该Rdd会自动将要读取的所有文件分区，在`compute()`函数执行时让多个worker同时读取，并分别处理这些文件。
+
+相比之下，写入的处理非常简单。由于写入时一个文件一次只能一台机器写入，因此直接提供写入到HDFS上文件的函数，调用时由master执行即可。
+
+为统一IO功能，我们提供了可供调用的HdfsIO类，其中的`read_to_vec`和`read_to_rdd`方法可以将HDFS上的文件读取为字节流或Rdd，`write_to_hdfs`方法可以对HDFS进行写入。另外，为了方便处理读取得到的字节流，我们还提供了对文件进行读取和解码的`read_to_vec_and_decode`函数，调用时只要在`read_to_rdd`的基础上多传入一个用于解码的decoder函数，即可得到一个从HdfsReadRdd包装得到的Rdd，该Rdd进行`compute()`之后即可读取文件并且得到解码后的文件内容。
+
+另外，为方便运行和修复原作者的错误，我们按照类似与HDFS进行交互的方式，提供了LocalFsIO和LocalFsReadRdd，可用于调试时读取本地文件。
+
 
 ### 实时监控拓展模块
 
