@@ -582,6 +582,8 @@ style F fill:#cf5,stroke:#f66,stroke-width:5px;
 
 <div style="text-align:center"><img src="./src/calc_pi.png" width=80%/></div>
 
+> 结果分析:使用Rust相比于Spark减少了GC的资源开销，并且我们选择的任务属于计算密集型任务，在Rust接近C/C++的性能优势下可以使得运行结果速度有极为显著的提升。Rust多机部署相比于单机部署比较Spark的提升效果有所降低，这可能是因为JVM下的序列化的实现更加高效，而我们使用的Vega中的序列化特征"serde_traitobject"功能较弱，限制太强，因此传输时需要经过层层包装导致浪费了一部分CPU资源。
+
 ## 项目总结
 ### 项目意义与前瞻性
 
