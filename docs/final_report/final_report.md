@@ -43,9 +43,11 @@
 
 ## 项目介绍
 
-我们的项目基于不完善的Rust版Spark[^spark_org][^spark_computing]开源项目Vega[^vega_github]，对其性能瓶颈进行优化，以实现一个性能明显优于原版Spark的Spark内核。
-![structure img](src/general.png)
-我们优化了Shuffle阶段的算法，接入了HDFS分布式文件系统，加入了多机下的队列容错机制，加入了基于Grafana/Prometheus实时监控运维模块，加入了项目自动测试。这使得Vega在运行速度上较Spark与原版Vega相比有了更大的提升，同时在可靠性、可用性与可维护性上也明显优于原版。
+我们的项目以不完善的Rust版Spark[^spark_org][^spark_computing]开源项目Vega[^vega_github]为基础，对其性能瓶颈进行了优化，实现了一个性能明显优于原版Spark的分布式计算框架。下图为我们的项目结构图：
+
+![structure img](src/general.png#pic_center)
+
+我们优化了Shuffle阶段的算法，加入了多机下的队列容错机制，接入了HDFS分布式文件系统，加入了基于Grafana/Prometheus的实时监控运维模块，并进行了项目自动化测试。最终的Vega在运行速度上相较Spark与原版Vega相比都有了很大的提升，同时在可靠性、可用性与可维护性上也明显优于原版。
 
 ## 组员分工
 
@@ -67,14 +69,13 @@
 | 第十七周       | 无                  | 考试周放空                                               |
 | 第十八周       | 无                  | 连续五天开会高强度工作，完成所有既定任务并撰写报告和展示 |
 
-
-从4月初到7月初，我们保持每周两次讨论的频率，小步快跑着来通力合作完成了这个项目。虽然中途也遇到了不少困难，其中有些甚至在网上难以找到或是根本就没有可参考的内容，但功夫不负有心人，我们最后也都成功一一解决了这些问题。
+从4月初到7月初，我们保持每周两次讨论的频率，小步快跑着通力合作完成了这个项目。虽然中途也遇到了不少困难，其中有些甚至在网上难以找到或是根本就没有可参考的内容，但功夫不负有心人，我们最后也都成功一一解决了这些问题。
 
 如下为我们[代码仓库](https://github.com/XhyDds/vega/)[^code_repo]的提交记录，我们在原作者的基础上新添加了上百次commit.
 
-<img src="./src/commit.png">
+![commit](./src/commit.png#pic_center)
 
-<img src="./src/commit_history.png">
+![commit_history](./src/commit_history.png#pic_center)
 
 ## 项目背景
 
