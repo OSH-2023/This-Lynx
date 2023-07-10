@@ -43,9 +43,9 @@
 
 ## 项目介绍
 
-我们的项目以不完善的Rust版Spark[^spark_org][^spark_computing]开源项目Vega[^vega_github]为基础，对其性能瓶颈进行了优化，实现了一个性能明显优于原版Spark的分布式计算框架。下图为我们的项目结构图：
+我们的项目以不完善的Rust版Spark开源项目Vega为基础，对其性能瓶颈进行了优化，实现了一个性能明显优于原版Spark的分布式计算框架。下图为我们的项目结构图：
 
-![structure img](src/general.png#pic_center)
+<div style="text-align:center"><img src="./src/general.png" width=80%/></div> 
 
 我们优化了Shuffle阶段的算法，加入了多机下的队列容错机制，接入了HDFS分布式文件系统，加入了基于Grafana/Prometheus的实时监控运维模块，并进行了项目自动化测试。最终的Vega在运行速度上相较Spark与原版Vega相比都有了很大的提升，同时在可靠性、可用性与可维护性上也明显优于原版。
 
@@ -71,16 +71,15 @@
 
 从4月初到7月初，我们保持每周两次讨论的频率，小步快跑着通力合作完成了这个项目。虽然中途也遇到了不少困难，其中有些甚至在网上难以找到或是根本就没有可参考的内容，但功夫不负有心人，我们最后也都成功一一解决了这些问题。
 
-如下为我们[代码仓库](https://github.com/XhyDds/vega/)[^code_repo]的提交记录，我们在原作者的基础上新添加了上百次commit.
+如下为我们[代码仓库](https://github.com/XhyDds/vega/)的提交记录，我们在原作者的基础上新添加了上百次commit.我们还编写了[用户手册](https://xhydds.github.io/vega/)，为后人使用与继续改进提供了便利。
 
-![commit](./src/commit.png#pic_center)
+<div style="text-align:center"><img src="./src/commit.png" width=80%/></div> 
 
-![commit_history](./src/commit_history.png#pic_center)
+<div style="text-align:center"><img src="./src/commit_history.png" width=80%/></div> 
 
 ## 项目背景
 
 ### 分布式计算框架简介
-
 
 主流的分布式计算框架主要分为四类，即MapReduce-like[^mapreduce]系统、Streaming[^spark_stream]系统、图计算系统和基于状态的系统。
 
@@ -90,7 +89,7 @@
 
 - **Streaming系统**
 
-以flink, storm, Sprk streaming等为代表，专为流式数据提供服务的系统，强调实时性。
+以flink, storm, Spark streaming等为代表，专为流式数据提供服务的系统，强调实时性。
 
 - **图计算系统**
 
@@ -104,7 +103,7 @@
 
 ### Spark简介
 
-Spark是一个快速、通用、可扩展的分布式计算系统。它最初是由加州大学伯克利分校AMPLab开发的，其奠基论文为*Spark: Cluster Computing with Working Sets*.[^spark]Spark提供了一种基于内存的计算模型，可以比Hadoop MapReduce更快地处理大规模数据，支持Java、Scala、Python和R等多种编程语言，支持UI可视化管理。
+Spark[^spark_org]是一个快速、通用、可扩展的分布式计算系统。它最初是由加州大学伯克利分校AMPLab开发的，其奠基论文为*Spark: Cluster Computing with Working Sets*.[^spark]Spark提供了一种基于内存的计算模型，可以比Hadoop MapReduce更快地处理大规模数据，支持Java、Scala、Python和R等多种编程语言，支持UI可视化管理。
 
 Spark的核心概念是弹性分布式数据集(Resilient Distributed Datasets，简称RDD)。RDD是一种可以被划分成多个分区、分布在多个节点上的数据结构，支持高效的并行计算和容错。Spark中的许多计算都是通过对RDD进行转换和操作来实现的。
 
@@ -116,17 +115,17 @@ Spark还提供了许多高级功能，例如机器学习、图计算、流处理
 
 ### Vega
 
-Vega项目完全使用Rust从零写起，构建完成了一个较为简单的Spark内核。不过，这一项目已经有两三年没有维护，刚接手时项目还需要修复部分BUG才可运行。此外，项目里还有不少算法及模块没有实现，特别是Spark后来的诸多优化更新。
+Vega项目完全使用Rust从零写起，构建完成了一个较为简单的Spark内核。不过，这一项目已经有两年没有维护，刚接手时项目无法使用当前的rust-nightly直接编译，存在一定数量的error需要修复。此外，项目里还有不少算法及模块没有实现，特别是Spark一直在优化更新，因此有很大的优化空间。
 
-这一项目在Github上已获得2.2K颗Star，是一个较为有名的Rust项目，其原仓库页面如下：
+这一项目在Github上已获得2.2K颗Star，是一个较为有名的Rust项目，其[原仓库](https://github.com/rajasekarv/vega)页面如下：
 
-<img src="./src/git page.png">
+<div style="text-align:center"><img src="./src/git page.png" width=80%/></div> 
 
-作者也写了一篇博客介绍了自己的Vega项目：
+作者也写了一篇[博客](https://medium.com/@rajasekar3eg/fastspark-a-new-fast-native-implementation-of-spark-from-scratch-368373a29a5c)介绍了自己的Vega项目，在原文里作者测试后发现Vega相比Spark也有一些性能提升。
 
-<img src="./src/blog.png">
+<div style="text-align:center"><img src="./src/blog.png" width=80%/></div> 
 
-以下为Vega的运行机制：
+以下对Vega的运行机制进行一些粗略的介绍。
 
 - **Context建立(master)**
 
@@ -176,7 +175,7 @@ FF(job_work_dir)
 FF-->F
 ```
 
-以上为Context的运行过程。Context结构中，scheduler为调度器，address_map存储着从机的ip地址，distributed_driver为对是否为主机的标识。
+Context结构中，scheduler为调度器，address_map存储着从机的ip地址，distributed_driver为对是否为主机的标识。
 
 - **makerdd**
 
@@ -349,7 +348,7 @@ ShuffleManager在生成依赖关系及RDD获取依赖关系过程中所需的计
 
 ### Rust优势
 
-在对Spark的实现问题上，Rust与Scala（Spark所使用的语言）相比有诸多优势：
+在对Spark的实现问题上，Rust语言[^rust]与Spark使用的Scala语言[^scala]相比有诸多优势。
 
 #### 安全性
 
@@ -363,7 +362,7 @@ Rust通过静态内存安全管理和所有权系统，可以避免许多Spark�
 
 #### 高性能
 
-Rust [^course.rs]秉承零成本抽象原则，通过无运行时开销的特性，将许多其他语言的运行时开销(如GC)放置到了编译期，并将顶层的代码编译为较为高效的机器码，使得程序员在进行抽象时，不必担心性能的下降。
+Rust秉承零成本抽象原则，通过无运行时开销的特性，将许多其他语言的运行时开销(如GC)放置到了编译期，并将顶层的代码编译为较为高效的机器码，使得程序员在进行抽象时，不必担心性能的下降。
 
 使用Rust进行Spark的性能瓶颈优化可以提高数据处理速度和效率，减少资源浪费和计算成本。
 
@@ -385,7 +384,7 @@ HDFS[^hdfs](Hadoop Distributed File System)是一个基于GFS[^gfs]的分布式�
 
 ![HDFS_ARC.webp](../investigation/src/HDFS_ARC.webp)
 
-其中NameNode即GFS中的Master节点，负责整个分布式文件系统的元数据(MetaData)管理和响应客户端请求。
+上图为HDFS的架构，其中NameNode即GFS中的Master节点，负责整个分布式文件系统的元数据(MetaData)管理和响应客户端请求。
 
 DataNode即为GFS中的chunkserver，负责存储数据块，通过心跳信息向NameNode报告自身状态。
 
@@ -653,11 +652,6 @@ Vega是我们小组大多数人目前接触到的最大的项目。接手这样�
 
 [^vega_book]:vega user guide book https://rajasekarv.github.io/vega/chapter_1.html
 
-[^spark_computing]:*Spark: Cluster Computing with Working Sets*
-Matei Zaharia, Mosharaf Chowdhury, Michael J. Franklin, Scott Shenker, Ion Stoica
-University of California, Berkeley https://people.csail.mit.edu/matei/papers/2010/hotcloud_spark.pdf
-
-
 [^spark_org]:Unified engine for large-scale data analytics https://spark.apache.org/
 
 [^vega_github]:A new arguably faster implementation of Apache Spark from scratch in Rust https://github.com/rajasekarv/vega
@@ -677,3 +671,8 @@ University of California, Berkeley https://people.csail.mit.edu/matei/papers/201
 [^spark_examples]:Spark Examples for Python,which was referenced by us https://github.com/apache/spark/tree/master/examples/src/main/python
 
 [^Shuffle_Architecture]:x0FFF. “Spark Architecture: Shuffle.” Distributed Systems Architecture, 22 Apr. 2016, 0x0fff.com/spark-architecture-shuffle.
+
+[^rust]: Rust: A language empowering everyone
+to build reliable and efficient software. https://www.rust-lang.org/
+
+[^scala]: The Scala Programming Language. https://www.scala-lang.org/
