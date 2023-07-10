@@ -56,7 +56,7 @@
 - 李牧龙：为Vega增加了HDFS的读写接口和用于调试的本地读文件接口，进行Vega和Spark的分布式运行对比测试，编写wordcount样例
 - 罗浩铭：对Vega的Shuffle模块进行优化，编写项目测试样例
 - 汤皓宇：对Vega进行Docker部署，添加性能监控拓展模块，配置Docker下的Prometheus/Grafana/node_exporter来展示Vega运行时各机器的CPU使用率和Vega的运行情况，负责每次会议的记录整理
-- 徐航宇：负责Vega运行环境与配置文件的创建，撰写及维护用户手册，并为Vega实现容错机制
+- 徐航宇：为Vega在单机与多机上的部署开路，负责Vega运行环境与配置文件的创建，撰写及维护用户手册，并为Vega实现容错机制
 
 ## 进度管理
 | 时间进度       | 计划进度            | 实际进度                                                 |
@@ -72,7 +72,7 @@
 
 从4月初到7月初，我们保持每周两次讨论的频率，小步快跑着通力合作完成了这个项目。虽然中途也遇到了不少困难，其中有些甚至在网上难以找到或是根本就没有可参考的内容，但功夫不负有心人，我们最后也都成功一一解决了这些问题。
 
-如下为我们[代码仓库](https://github.com/XhyDds/vega/)的提交记录，我们在原作者的基础上新添加了上百次commit.我们还编写了[用户手册](https://xhydds.github.io/vega/)，为后人使用与继续改进提供了便利。
+如下为我们[代码仓库](https://github.com/XhyDds/Vega/)的提交记录，我们在原作者的基础上新添加了上百次commit.我们还编写了[用户手册](https://xhydds.github.io/Vega/)，为后人使用与继续改进提供了便利。
 
 <div style="text-align:center"><img src="./src/commit.png" width=80%/></div> 
 
@@ -118,7 +118,7 @@ Spark还提供了许多高级功能，例如机器学习、图计算、流处理
 
 Vega项目完全使用Rust从零写起，构建完成了一个较为简单的Spark内核。不过，这一项目已经有两年没有维护，刚接手时项目无法使用当前的rust-nightly直接编译，存在一定数量的error需要修复。此外，项目里还有不少算法及模块没有实现，特别是Spark一直在优化更新，因此有很大的优化空间。
 
-这一项目在GitHub上已获得2.2K颗Star，是一个较为有名的Rust项目，其[原仓库](https://github.com/rajasekarv/vega)页面如下：
+这一项目在GitHub上已获得2.2K颗Star，是一个较为有名的Rust项目，其[原仓库](https://github.com/rajasekarv/Vega)页面如下：
 
 <div style="text-align:center"><img src="./src/git page.png" width=80%/></div> 
 
@@ -126,7 +126,7 @@ Vega项目完全使用Rust从零写起，构建完成了一个较为简单的Spa
 
 <div style="text-align:center"><img src="./src/blog.png" width=80%/></div> 
 
-不过，原项目的相关文档较少，其只有一页的用户手册。[^vega_book]因此我们在这里对Vega的运行机制进行一些粗略的介绍。
+不过，原项目的相关文档较少，其只有一页的用户手册。[^Vega_book]因此我们在这里对Vega的运行机制进行一些粗略的介绍。
 
 - **Context建立(master)**
 
@@ -377,7 +377,7 @@ ShuffleManager在生成依赖关系及RDD获取依赖关系过程中所需的计
 
 ### 文件系统
 
-作为一个分布式计算框架，Vega没有接入任何的文件系统，这显然不合理。我们考虑接入HDFS，首先Rust开源社区中有提供HDFS支持的包hdrs，且将其接入vega，可以增强对文件的支持。同时Spark原生支持HDFS，接入HDFS更容易融入Spark生态。以下我们对HDFS作进一步介绍。
+作为一个分布式计算框架，Vega没有接入任何的文件系统，这显然不合理。我们考虑接入HDFS，首先Rust开源社区中有提供HDFS支持的包hdrs，且将其接入Vega，可以增强对文件的支持。同时Spark原生支持HDFS，接入HDFS更容易融入Spark生态。以下我们对HDFS作进一步介绍。
 
 HDFS[^hdfs](Hadoop Distributed File System)是一个基于GFS[^gfs]的分布式文件系统，同时也是Hadoop的一部分。它具有GFS的许多特性，例如可靠性高，将文件分块存储，适合大文件存储，但延迟较高且无法高效存储小文件。
 
@@ -443,7 +443,7 @@ Spark自1.1.0版本起默认采用的是更先进的SortShuffle。数据会根�
 
 分析后我们发现，这些问题的原因是，当任务执行失败时需要为`on_event_failure`函数提供错误原因`TastEndReason`，其中需要包含`server_uri`, `shuffle_id`, `map_id`, `reduce_id`，而后三者在`submit_task`所在环境下不易获取。上图中显示的错误即后续的处理函数未能根据提供的`shuffle_id`获取正确的shuffle。
 
-后来我们选择跳出固有逻辑，采用新的方式来完成容错。我们利用循环队列存储从机ip，在某从机下线时，从队首取出一个从机，并将下线从机的任务重新分发给新选取的从机，然后将该从机放回队尾，并打印出相关Error信息以供用户检查（信息包括下线的从机编号，ip，未能成功处理的任务id，以及重新提交任务后接受任务的从机编号，ip等）。
+于是，我们选择跳出固有逻辑，采用新的方式来完成容错。我们利用循环队列存储从机ip，在某从机下线时，从队首取出一个从机，并将下线从机的任务重新分发给新选取的从机，然后将该从机放回队尾，并打印出相关Error信息以供用户检查（信息包括下线的从机编号，ip，未能成功处理的任务id，以及重新提交任务后接受任务的从机编号，ip等）。
 <div style="text-align:center"><img src="./src/FaultTolerance.png" width=50%/></div> 
 
 具体地，我们在调用`submit_task`函数时，使用`tokio::spawn`调用异步函数`submit_task_iter`，并将从机队列作为参数传入(直接修改 `submit_task`为异步函数会导致生命周期出错，难以修改且影响稳定性)。接着，在`submit_task_iter`函数中，当连续五次连接超时后，将会从队列中取出备选的从机的ip，并递归调用`submit_task_iter`，即尝试将任务重新发给另一台从机执行。
@@ -609,7 +609,7 @@ Vega继承了Spark的诸多优点。同样使用RDD，使得Vega拥有了简明�
 <div style="text-align:center"><img src="./src/looong%20type%20name%20in%20rust.png" width=80%/></div>
 
 #### 开发新的RDD算子
-Spark作为Apache基金会下的顶级项目，参与开源的开发人员众多，更新速度很快，每两个月就有一次中等程度的版本更新，而vega已经停止维护两年已久，因此不能即使更新RDD，这导致原有的RDD算子类型不够丰富，支持的计算函数都较为底层，[^big_float]可以开发更多的算子以支持各种各样的计算任务，同时可以利用将底层任务合并为高层任务时的优化空间。
+Spark作为Apache基金会下的顶级项目，参与开源的开发人员众多，更新速度很快，每两个月就有一次中等程度的版本更新，而Vega已经停止维护两年已久，因此不能即使更新RDD，这导致原有的RDD算子类型不够丰富，支持的计算函数都较为底层，[^big_float]可以开发更多的算子以支持各种各样的计算任务，同时可以利用将底层任务合并为高层任务时的优化空间。
 
 #### 实现更加可靠的容错
 Spark中的容错机制是基于Spark的Lineage（血统）机制实现的。在Spark中，每个RDD都有一个指向其父RDD的指针，这样就可以通过RDD的血统关系来实现容错。当某个RDD的分区数据丢失时，可以通过其父RDD的血统关系重新计算得到。这种机制可以保证Spark的容错性，但是当某个RDD的父RDD丢失时，就无法通过血统关系重新计算得到，这就需要重新从头开始计算，这样就会导致计算效率的降低。
@@ -624,7 +624,11 @@ Spark中的容错机制是基于Spark的Lineage（血统）机制实现的。在
 但是，受限于时间，这一点我们并没有具体实现，未来可以考虑将之完成。
 
 #### 实现跨平台的零成本移植
-vega在分布式运行时不需要在从机上下载环境，但是限于配置文件和平台依赖的库函数使用，这种移植还未进行实现和测试。但是利用Rust的条件编译`#[cfg(target os="windows")]`可以编写两套平台下的函数，以及在Context,env模块中编写解耦的配置加载逻辑理论上就可以实现跨平台的移植。Spark运行分布式时需要在从机上安装应用，而vega不需要。这样可以在未来的工作中实现跨平台的零成本移植.
+Vega在分布式运行时不需要在从机上下载环境，因此，借助Rust的条件编译`#[cfg(target os="windows")]`，编写两套平台下的函数，并在Context,env模块中编写解耦的配置加载逻辑，理论上就可以实现跨平台的移植。
+
+但是，限于配置文件和平台依赖的库函数使用，这种跨平台的零成本移植我们还未进行实现和测试。可以考虑在未来的工作中实现。
+
+此外，Spark运行分布式时需要在从机上安装应用，而Vega不需要。如果得以实现，这也将成为Vega的一大优势。
 
 #### 对性能监控模块进行改进
 
@@ -641,7 +645,7 @@ Vega是我们小组大多数人目前接触到的最大的项目。接手这样�
 
 同时，随着大数据处理、分布式计算的需求不断增长，分布式计算框架正发挥着日益重要的作用。这个项目让我们深入了解了Spark这一分布式计算框架的内核机制及调优，无论未来我们是要开发或是使用分布式计算框架，这样一段经历对我们都是非常有益的。
 
-总而言之，vega项目使我们小组每一个人都收获颇丰，感谢OSH大作业能够给我们这样一个契机来经手这一项目，感谢老师和助教的悉心指导！
+总而言之，Vega项目使我们小组每一个人都收获颇丰，感谢OSH大作业能够给我们这样一个契机来经手这一项目，感谢老师和助教的悉心指导！
 
 
 ## 参考文献
@@ -666,7 +670,7 @@ Vega是我们小组大多数人目前接触到的最大的项目。接手这样�
 
 [^FT3]:Cristian F. Understanding fault-tolerant distributed systems[J]. Communications of the ACM, 1991, 34(2): 56-78. https://dl.acm.org/doi/pdf/10.1145/102792.102801
 
-[^vega_book]:vega user guide book. https://rajasekarv.github.io/vega/chapter_1.html
+[^Vega_book]:vega user guide book. https://rajasekarv.github.io/vega/chapter_1.html
 
 [^spark_org]:Unified engine for large-scale data analytics. https://spark.apache.org/
 
