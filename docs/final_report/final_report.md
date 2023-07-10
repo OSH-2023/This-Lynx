@@ -423,7 +423,9 @@ Spark自1.1.0版本起默认采用的是更先进的SortShuffle。数据会根�
 
 使用两千万条shuffle记录的载量进行单元测试，测试结果如下：
 （Map端有M个分区，Reduce端有R个分区，$M\cdot R=20000000$）
-![ShuffleUp](src/ShuffleUp.png)
+<div style="text-align:center"><img src="./src/ShuffleUp.png" width=80%/></div> 
+
+
 | 时间/s |   1   |   2   |   3   | 平均  |
 | :----: | :---: | :---: | :---: | :---: |
 | 优化前 | 9.73  | 10.96 | 10.32 | 10.34 |
@@ -574,22 +576,30 @@ style F fill:#cf5,stroke:#f66,stroke-width:5px;
 
 <div style="text-align:center"><img src="./src/wordcount2.png" width=80%/></div>
 
+|序号|1|2|3|中位数|
+|-|-|-|-|-|
+|Spark用时(s)|52.4881|52.2066|26.5643|52.2066|
+|Vega用时(s)|10.7568|9.7214|8.6992|9.7214|
+
+> 我们这里选用中位数是因为反复读取同一位置数据自动启用了linux文件缓存机制，导致数据有所波动，为公平起见我们使用了中位数，测试平台在VMware ubuntu内，仅供同一组数据内参考。
+
 2. 200MB 分布式wordcount
+
+<div style="text-align:center"><img src="./src/wordcount_dis.png" width=80%/></div>
 
 |序号|1|2|3|4|5|平均|
 |-|-|-|-|-|-|-|
 |Spark用时(s)|35.312|30.75|24.55|21.56|22.35|26.9044|
 |Vega用时(s)|17.789|17.598|16.822|17.113|16.542|17.1728|
 
-<div style="text-align:center"><img src="./src/wordcount_dis.png" width=80%/></div>
-
 3. 蒙特卡洛方法计算Pi进行100,000,000次，运行时间单位ms
+
+<div style="text-align:center"><img src="./src/calc_pi.png" width=80%/></div>
 
 |序号|1|2|3|4|5|平均|
 |-|-|-|-|-|-|-|
 |Spark用时(ms)|8425.9|8482|8356.3|8435.8|8121.4|8364.28|
 |Vega用时(ms)|768.86|911.67|910.32|706.28|912.05|841.836|
-<div style="text-align:center"><img src="./src/calc_pi.png" width=80%/></div>
 
 > 结果分析:使用Rust相比于Spark减少了GC的资源开销，并且我们选择的任务属于计算密集型任务，在Rust接近C/C++的性能优势下可以使得运行结果速度有极为显著的提升。Rust多机部署相比于单机部署比较Spark的提升效果有所降低，这可能是因为JVM下的序列化的实现更加高效，而我们使用的Vega中的序列化特征"serde_traitobject"功能较弱，限制太强，因此传输时需要经过层层包装导致浪费了一部分CPU资源。
 
