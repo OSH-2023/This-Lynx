@@ -479,13 +479,13 @@ Spark自1.1.0版本起默认采用的是更先进的SortShuffle。数据会根�
 
 原版的Vega里是没有性能监控模块的，只有在命令行中输出的log，但实际上它是一个很复杂的分布式系统，如果某个地方出了问题是看log很难排查出具体的问题。因此我们认为，对某些关键信息进行监控并通过图形化的方式展现出来，可以方便调试，也便于了解系统的运行情况。
 
-Grafana和Prometheus的搭配是一套应用非常广泛的监控模式。其中Prometheus是一个开源时序数据库，用来存储各种数据，包括各种CPU时间信息，硬盘使用数据等等。而Grafana是一个开源可视化工具，提供了将Prometheus里数据转为仪表盘的功能。如下即为Prometheus查看监控目标的画面。
+Grafana[^grafana]和Prometheus[^prometheus]的搭配是一套应用非常广泛的监控模式。其中Prometheus是一个开源时序数据库，用来存储各种数据，包括各种CPU时间信息，硬盘使用数据等等。而Grafana是一个开源可视化工具，提供了将Prometheus里数据转为仪表盘的功能。如下即为Prometheus查看监控目标的画面。
 
 <div style="text-align:center"><img src="./src/prometheus.png" width=80%/></div>
 
-不过Prometheus本身只能获取比较少的信息，其中有关CPU运行情况的信息也不足以计算占用率，为了获得更加详细的监控数据，我们加入了node_exporter来给Prometheus中提供更全面的信息。
+不过Prometheus本身只能获取比较少的信息，其中有关CPU运行情况的信息也不足以计算占用率，为了获得更加详细的监控数据，我们加入了node_exporter[^node_exporter]来给Prometheus中提供更全面的信息。
 
-而对于Vega本身的运行情况就没有现成的开源实现了。同时对Rust应用进行性能监控的参考也比较少。在查阅了相关资料后，我们参考了这篇博客，[^prom]使用的是prometheus-client库。[^prom_client]
+而对于Vega本身的运行情况就没有现成的开源实现了。同时对Rust应用进行性能监控的参考也比较少。在查阅了相关资料后，我们参考了这篇博客，[^prom]使用的是prometheus-client库。[^prom-client]
 
 本质上说，Prometheus需要的是访问一个链接去获取对应的metrics内容，比如下图这样的就是node_exporter输出的CPU运行信息，然后Prometheus就会把数据存下来，以供后续查询。所以我们在Vega提供了异步函数`add_metric`，来提供出对应的信息。同时，这样的实现也给用户提供了选择，假如无需输出运行情况到Prometheus，不使用对应的函数即可，非常灵活。
 
@@ -637,7 +637,7 @@ vega在分布式运行时不需要在从机上下载环境，但是限于配置�
 
 Vega是我们小组大多数人目前接触到的最大的项目。接手这样一个大项目，要求我们要配置项目与环境以便成功编译运行，要在前人庞杂的代码、复杂的调用关系中理出逻辑关系，要接触到各种各样的第三方API。而更进一步，我们还要解决前人留下的BUG，要在巨大的项目中精确定位能改进的模块，在重构部分代码时要保证与项目其它部分的依赖关系不变。高强度的、贴近工业界真实开发场景的项目实践让我们每个人的系统编程、软件工程技能得到了充分锻炼。
 
-深入学习运用Rust，让我们深刻了解了函数式、内存安全、强大编译器等Rust独有的特性，让我们零距离体会到现代编程语言的魅力，由于Rust体现着未来语言的趋势，这也将帮助我们适应未来的编程语言。
+深入学习运用Rust，[^course.rs]让我们深刻了解了函数式、内存安全、强大编译器等Rust独有的特性，让我们零距离体会到现代编程语言的魅力，由于Rust体现着未来语言的趋势，这也将帮助我们适应未来的编程语言。
 
 同时，随着大数据处理、分布式计算的需求不断增长，分布式计算框架正发挥着日益重要的作用。这个项目让我们深入了解了Spark这一分布式计算框架的内核机制及调优，无论未来我们是要开发或是使用分布式计算框架，这样一段经历对我们都是非常有益的。
 
@@ -647,11 +647,15 @@ Vega是我们小组大多数人目前接触到的最大的项目。接手这样�
 ## 参考文献
 
 [^spark]:Zaharia, Matei, et al. “Spark: Cluster Computing With Working Sets.” IEEE International Conference on Cloud Computing Technology and Science, June 2010, p. 10. www2.eecs.berkeley.edu/Pubs/TechRpts/2010/EECS-2010-53.pdf.
+
 [^spark_optimize]:JiaLin Wang. Spark Kernel Mechanism Analysis and Performance Optimization. 2017.
-[^jni]:Rust jni crate https://crates.io/crates/jni
+
 [^capnp]: Cap’n Proto is an insanely fast data interchange format and capability-based RPC system. https://capnproto.org/
+
 [^hdfs]:HDFS Architecture. https://hadoop.apache.org/docs/r3.3.5/hadoop-project-dist/hadoop-hdfs/HdfsDesign.html
+
 [^gfs]:Ghemawat, Sanjay, Howard Gobioff, and Shun-Tak Leung. "The Google File System." Operating Systems Review (2003): 29-43. Web. https://ustc-primo.hosted.exlibrisgroup.com.cn/permalink/f/tp5o03/TN_cdi_proquest_miscellaneous_31620514
+
 [^prom]:Roman Kudryashov. Monitoring Rust web application with Prometheus and Grafana. https://romankudryashov.com/blog/2021/11/monitoring-rust-web-application/
 
 [^big_float]:High Precision Crate implemented for calculating pi. https://crates.io/crates/num-bigfloat
@@ -662,25 +666,21 @@ Vega是我们小组大多数人目前接触到的最大的项目。接手这样�
 
 [^FT3]:Cristian F. Understanding fault-tolerant distributed systems[J]. Communications of the ACM, 1991, 34(2): 56-78. https://dl.acm.org/doi/pdf/10.1145/102792.102801
 
-[^vega_book]:vega user guide book https://rajasekarv.github.io/vega/chapter_1.html
+[^vega_book]:vega user guide book. https://rajasekarv.github.io/vega/chapter_1.html
 
-[^spark_org]:Unified engine for large-scale data analytics https://spark.apache.org/
-
-[^vega_github]:A new arguably faster implementation of Apache Spark from scratch in Rust https://github.com/rajasekarv/vega
+[^spark_org]:Unified engine for large-scale data analytics. https://spark.apache.org/
 
 [^work_flow]:A workflow is a configurable automated process that will run one or more jobs.  https://docs.github.com/en/actions/using-workflows
 
-[^course.rs]:Rust tutorial for Chinese developer https://course.rs/about-book.html
+[^course.rs]:Rust tutorial for Chinese developer. https://course.rs/about-book.html
 
 [^mapreduce]: Dean, J., & Ghemawat, S. (2004). MapReduce: Simplified Data Processing on Large Clusters. In Proceedings of the 6th Conference on Symposium on Operating Systems Design & Implementation - Volume 6 (pp. 10-10). USENIX Association.
 
-[^code_repo]:ThisLynx code repo location https://github.com/XhyDds/vega/
+[^serde_traitobject]:open source crate for Serialization and Deserialization. https://crates.io/crates/serde_traitobject
 
-[^serde_traitobject]:open source crate for Serialization and Deserialization https://crates.io/crates/serde_traitobject
+[^spark_stream]:Spark Streaming Official Web URL. https://spark.apache.org/streaming/
 
-[^spark_stream]:Spark Streaming Official Web URL https://spark.apache.org/streaming/
-
-[^spark_examples]:Spark Examples for Python,which was referenced by us https://github.com/apache/spark/tree/master/examples/src/main/python
+[^spark_examples]:Spark Examples for Python. https://github.com/apache/spark/tree/master/examples/src/main/python
 
 [^Shuffle_Architecture]:x0FFF. “Spark Architecture: Shuffle.” Distributed Systems Architecture, 22 Apr. 2016, 0x0fff.com/spark-architecture-shuffle.
 
@@ -690,3 +690,9 @@ to build reliable and efficient software. https://www.rust-lang.org/
 [^scala]: The Scala Programming Language. https://www.scala-lang.org/
 
 [^prom-client]: Prometheus / OpenMetrics client library in Rust. https://github.com/prometheus/client_rust
+
+[^grafana]: Grafana: The open observability platform. https://grafana.com/
+
+[^prometheus]: Prometheus: Monitoring system & time series database. https://prometheus.io/
+
+[^node_exporter]: Node_exporter: Exporter for machine metrics. https://github.com/prometheus/node_exporter
