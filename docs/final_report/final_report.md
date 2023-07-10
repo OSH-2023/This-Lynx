@@ -94,7 +94,7 @@
 
 - **图计算系统**
 
-以Pregel框架等为代表，特点是将计算过程抽象为图，然后在不同节点分布式执行，适用于PageRank等任务。
+以Pregel框架等为代表，特点是将计算过程抽象为图，然后在不同节点分布式执行，适用于PageRank等任务。[^pregel]
 
 - **基于状态的系统**
 
@@ -357,7 +357,7 @@ Rust为了获取安全性和高性能，对程序员施加了较多的规则，�
 
 ### ShuffleManager
 
-Shuffle是将输入的M个分区内的数据“按一定规则”重新分配到R个分区上的过程。在Spark程序中，Shuffle是性能的最大瓶颈，因为Shuffle的过程往往伴随着大量的磁盘I/O与网络I/O等开销，因此Spark框架中Shuffle阶段的设计优劣是决定性能好坏的关键因素之一。实现一个优良的ShuffleManager，减少不必要的Shuffle开销至关重要。
+Shuffle是将输入的M个分区内的数据“按一定规则”重新分配到R个分区上的过程。在Spark程序中，Shuffle是性能的最大瓶颈，因为Shuffle的过程往往伴随着大量的磁盘I/O与网络I/O等开销，因此Spark框架中Shuffle阶段的设计优劣是决定性能好坏的关键因素之一。实现一个优良的`ShuffleManager`，减少不必要的Shuffle开销至关重要。
 
 在MapReduce框架中，Shuffle阶段是连接Map和Reduce之间的桥梁，Map阶段通过Shuffle过程将数据输出到Reduce阶段中。Spark本质上与MapReduce框架十分相似，因此也有自己的Shuffle过程实现。
 
@@ -365,15 +365,15 @@ Shuffle过程中，各个结点上的相同key都会先写入本地磁盘文件�
 
 #### ShuffleManager架构
 
-在Spark中，Driver和每个Executor的SparkEnv实例化过程中，都会创建一个ShuffleManager，用于管理Shuffle过程中产生的块数据，提供集群块数据的读写，包括数据的本地读写和读取远程RDD结点的块数据。在RDD间存在宽依赖时，需要进行Shuffle操作，此时便需要将Spark作业（Job）划分成多个Stage，并在划分Stage的关键点———构建ShuffleDependency时———利用ShuffleManager进行Shuffle注册，获取后续数据读写所需的ShuffleHandle。
+在Spark中，Driver和每个Executor的SparkEnv实例化过程中，都会创建一个`ShuffleManager`，用于管理Shuffle过程中产生的块数据，提供集群块数据的读写，包括数据的本地读写和读取远程RDD结点的块数据。在RDD间存在宽依赖时，需要进行Shuffle操作，此时便需要将Spark作业（Job）划分成多个Stage，并在划分Stage的关键点———构建`ShuffleDependency`时———利用`ShuffleManager`进行Shuffle注册，获取后续数据读写所需的`ShuffleHandle`。
 
-ShuffleManager中的shuffleBlockResolver是Shuffle的块解析器，该解析器为数据块的读写提供支撑层，便于抽象具体的实现细节。基于此，有宽依赖关系的RDD执行compute时就可以读取上一Stage为其输出的Shuffle数据，并将计算结果传入下一stage。[^spark_optimize]
+`ShuffleManager`中的`shuffleBlockResolver`是Shuffle的块解析器，该解析器为数据块的读写提供支撑层，便于抽象具体的实现细节。基于此，有宽依赖关系的RDD执行compute时就可以读取上一Stage为其输出的Shuffle数据，并将计算结果传入下一stage。[^spark_optimize]
 
-Vega中，划分Stage的点部分同样需要构建ShuffleDependency，它会将Shuffle过程中产生的数据写入一个Cache内，而Shuffle阶段后的reduce阶段将通过ShuffleFetcher从Cache读出shuffle数据，读请求将通过ShuffleService类以TCP服务器形式响应。
+Vega中，划分Stage的点部分同样需要构建`ShuffleDependency`，它会将Shuffle过程中产生的数据写入一个Cache内，而Shuffle阶段后的reduce阶段将通过`ShuffleFetcher`从Cache读出shuffle数据，读请求将通过`ShuffleService`类以TCP服务器形式响应。
 
 #### 可改进的点
 
-ShuffleManager在生成依赖关系及RDD获取依赖关系过程中所需的计算使用频繁，可以在rust中得到优化。同时，Shuffle算法也极为关键，必须使用当前的SOTA算法，如在Vega中，只实现了最基础的HashShuffleManager，而没有实现性能更高的SortShuffleManager，这也是可以优化的点。
+`ShuffleManager`在生成依赖关系及RDD获取依赖关系过程中所需的计算使用频繁，可以在rust中得到优化。同时，Shuffle算法也极为关键，必须使用当前的SOTA算法，如在Vega中，只实现了最基础的`HashShuffleManager`，而没有实现性能更高的`SortShuffleManager`，这也是可以优化的点。
 
 ### 文件系统
 
@@ -470,9 +470,9 @@ Spark自1.1.0版本起默认采用的是更先进的SortShuffle。数据会根�
 
 相比之下，写入的处理非常简单。由于写入时一个文件一次只能一台机器写入，因此直接提供写入到HDFS上文件的函数，调用时由master执行即可。
 
-为统一IO功能，我们提供了可供调用的HdfsIO类，其中的`read_to_vec`和`read_to_rdd`方法可以将HDFS上的文件读取为字节流或Rdd，`write_to_hdfs`方法可以对HDFS进行写入。另外，为了方便处理读取得到的字节流，我们还提供了对文件进行读取和解码的`read_to_vec_and_decode`函数，调用时只要在`read_to_rdd`的基础上多传入一个用于解码的decoder函数，即可得到一个从HdfsReadRdd包装得到的Rdd，该Rdd进行`compute()`之后即可读取文件并且得到解码后的文件内容。
+为统一IO功能，我们提供了可供调用的HdfsIO类，其中的`read_to_vec`和`read_to_rdd`方法可以将HDFS上的文件读取为字节流或Rdd，`write_to_hdfs`方法可以对HDFS进行写入。另外，为了方便处理读取得到的字节流，我们还提供了对文件进行读取和解码的`read_to_vec_and_decode`函数，调用时只要在`read_to_rdd`的基础上多传入一个用于解码的decoder函数，即可得到一个从`HdfsReadRdd`包装得到的Rdd，该Rdd进行`compute()`之后即可读取文件并且得到解码后的文件内容。
 
-另外，为方便运行和修复原作者的错误，我们按照类似与HDFS进行交互的方式，提供了LocalFsIO和LocalFsReadRdd，可用于调试时读取本地文件。
+另外，为方便运行和修复原作者的错误，我们按照类似与HDFS进行交互的方式，提供了`LocalFsIO`和`LocalFsReadRdd`，可用于调试时读取本地文件。
 
 
 ### 实时监控拓展模块
@@ -597,7 +597,7 @@ Vega继承了Spark的诸多优点。同样使用RDD，使得Vega拥有了简明�
 
 ### 未来的优化方向
 #### 减少序列化反序列化开销
-无论是Spark还是Vega在传递任务时都需要将任务序列化[^serde_traitobject][^capnp]以便于传输，传至目标主机后再反序列化用以执行。而由于序列化反序列化开销很大，Spark与Vega中任务的启动都要花费较长时间。我们可以尝试精简任务的描述方式，同时采用更高性能的序列化反序列化器，以此提高任务传输效率。
+无论是Spark还是Vega在传递任务时都需要将任务序列化[^serde_traitobject] [^capnp]以便于传输，传至目标主机后再反序列化用以执行。而由于序列化反序列化开销很大，Spark与Vega中任务的启动都要花费较长时间。我们可以尝试精简任务的描述方式，同时采用更高性能的序列化反序列化器，以此提高任务传输效率。
 
 <div style="text-align:center"><img src="./src/serialization%20and%20deserialization.png" width=80%/></div>
 
@@ -700,3 +700,5 @@ to build reliable and efficient software. https://www.rust-lang.org/
 [^prometheus]: Prometheus: Monitoring system & time series database. https://prometheus.io/
 
 [^node_exporter]: Node_exporter: Exporter for machine metrics. https://github.com/prometheus/node_exporter
+
+[^pregel]:G. Malewicz, M.H. Austern, A.J. Bik, J.C. Dehnert, I. Horn, N. Leiser, G. Czajkowski, Pregel: a system for large-scale graph processing, in SIGMOD (2010)
