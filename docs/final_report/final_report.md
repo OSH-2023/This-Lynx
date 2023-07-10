@@ -26,7 +26,7 @@
   - [实时监控拓展模块](#实时监控拓展模块)
   - [自动化测试](#自动化测试)
     - [本地测试效果](#本地测试效果)
-    - [Github workflow流程](#github-workflow流程)
+    - [GitHub workflow流程](#github-workflow流程)
     - [自动测试效果](#自动测试效果)
 - [测试结果](#测试结果)
 - [项目总结](#项目总结)
@@ -38,6 +38,7 @@
     - [实现更加可靠的容错](#实现更加可靠的容错)
     - [实现更合理的任务分区机制](#实现更合理的任务分区机制)
     - [实现跨平台的零成本移植](#实现跨平台的零成本移植)
+    - [对性能监控模块进行改进](#对性能监控模块进行改进)
   - [我们的收获](#我们的收获)
 - [参考文献](#参考文献)
 
@@ -117,7 +118,7 @@ Spark还提供了许多高级功能，例如机器学习、图计算、流处理
 
 Vega项目完全使用Rust从零写起，构建完成了一个较为简单的Spark内核。不过，这一项目已经有两年没有维护，刚接手时项目无法使用当前的rust-nightly直接编译，存在一定数量的error需要修复。此外，项目里还有不少算法及模块没有实现，特别是Spark一直在优化更新，因此有很大的优化空间。
 
-这一项目在Github上已获得2.2K颗Star，是一个较为有名的Rust项目，其[原仓库](https://github.com/rajasekarv/vega)页面如下：
+这一项目在GitHub上已获得2.2K颗Star，是一个较为有名的Rust项目，其[原仓库](https://github.com/rajasekarv/vega)页面如下：
 
 <div style="text-align:center"><img src="./src/git page.png" width=80%/></div> 
 
@@ -125,7 +126,7 @@ Vega项目完全使用Rust从零写起，构建完成了一个较为简单的Spa
 
 <div style="text-align:center"><img src="./src/blog.png" width=80%/></div> 
 
-以下对Vega的运行机制进行一些粗略的介绍。
+不过，原项目的相关文档较少，其只有一页的用户手册。[^vega_book]因此我们在这里对Vega的运行机制进行一些粗略的介绍。
 
 - **Context建立(master)**
 
@@ -486,7 +487,7 @@ Grafana和Prometheus的搭配是一套应用非常广泛的监控模式。其中
 
 而对于Vega本身的运行情况就没有现成的开源实现了。同时对Rust应用进行性能监控的参考也比较少。在查阅了相关资料后，我们参考了这篇博客，[^prom]使用的是prometheus-client库。[^prom_client]
 
-本质上说，Prometheus需要的是访问一个链接去获取对应的metrics内容，比如下图这样的就是node_exporter输出的CPU运行信息，然后Prometheus就会把数据存下来，以供后续查询。所以我们在Vega提供了异步函数`add_metric`，来提供出对应的信息。
+本质上说，Prometheus需要的是访问一个链接去获取对应的metrics内容，比如下图这样的就是node_exporter输出的CPU运行信息，然后Prometheus就会把数据存下来，以供后续查询。所以我们在Vega提供了异步函数`add_metric`，来提供出对应的信息。同时，这样的实现也给用户提供了选择，假如无需输出运行情况到Prometheus，不使用对应的函数即可，非常灵活。
 
 <div style="text-align:center"><img src="./src/metrics.png" width=80%/></div>
 
@@ -497,19 +498,37 @@ Grafana和Prometheus的搭配是一套应用非常广泛的监控模式。其中
 <div style="text-align:center"><img src="./src/distri_running.png" width=80%/></div>
 
 ### 自动化测试
-自动化实现提交到仓库后自动检查提交结果的正确性并进行自动测试。
 
-如果运行失败会发邮件提醒协作者提交结果测试失败。
+我们在项目仓库里进行了配置，提交commit到仓库后会自动测试提交结果的正确性。如果运行失败会发邮件提醒协作者提交结果测试失败。
 
-自动化测试使用Github Action提供的相关功能实现，在每次git push时触发，能够大大提高开发人员调试效率和保证提交内容完整可用。
+自动化测试使用GitHub Action提供的相关功能实现，在每次git push时触发，能够大大提高开发人员调试效率和保证提交内容完整可用。
+
+- 自动化：GitHub Workflow可以自动化构建、测试和部署流程，从而减少手动操作和减少错误。
+
+- 可重复性：GitHub Workflow可以确保构建、测试和部署流程在每次运行时都是相同的，从而提高可重复性。
+
+- 可视化：GitHub Workflow提供了一个可视化的界面，可以轻松地查看构建、测试和部署流程。
+
+- 可扩展性：GitHub Workflow可以轻松地扩展到其他工具和服务，例如Docker、AWS、Azure等。
+
+- 开放性：GitHub Workflow是开源的，因此可以自由地修改和定制它以满足需求。
+
 #### 本地测试效果
+
+本地测试使用如下命令。
+
 ```sh
 cargo build
 cargo test
 ```
-![unittest2](src/unittest2.png)
-#### Github workflow流程
 
+输出结果如下，可以看出单元测试均已通过。
+
+<div style="text-align:center"><img src="./src/unittest2.png" width=80%/></div>
+
+#### GitHub workflow流程
+
+下图为GitHub上配置的workflow在自动化测试时的流程。
 
 ```mermaid
 flowchart TD
@@ -544,32 +563,24 @@ style E fill:#ccf,stroke:#333,stroke-width:4px
 style F fill:#cf5,stroke:#f66,stroke-width:5px;
 ```
 #### 自动测试效果
-![Alt text](src/autotest.png)
 
-黄色圆框表示刚刚提交的结果正在进行测试，测试按照一定的流程进行，这个流程可以由开发者指定，并且Github提供了丰富的插件和环境便于我们使用，这个功能可以在仓库的Actions中添加Workflow[^work_flow]使用。
-- 自动化：GitHub Workflow可以自动化您的构建、测试和部署流程，从而减少手动操作和减少错误。
+<div style="text-align:center"><img src="./src/autotest.png" width=80%/></div>
 
-- 可重复性：GitHub Workflow可以确保您的构建、测试和部署流程在每次运行时都是相同的，从而提高可重复性。
-
-- 可视化：GitHub Workflow提供了一个可视化的界面，可以让您轻松地查看您的构建、测试和部署流程。
-
-- 可扩展性：GitHub Workflow可以轻松地扩展到其他工具和服务，例如Docker、AWS、Azure等。
-
-- 开放性：GitHub Workflow是开源的，因此您可以自由地修改和定制它以满足您的需求。
+黄色圆框表示刚刚提交的结果正在进行测试，测试按照一定的流程进行，这个流程可以由开发者指定，并且GitHub提供了丰富的插件和环境便于我们使用，这个功能可以在仓库的Actions中添加Workflow[^work_flow]使用。
 
 ## 测试结果
 
-> 100MB 单机模式wordcount[^spark_examples]
+1. 100MB 单机模式wordcount[^spark_examples]
 
-![wordcount2](src/wordcount2.png)
+<div style="text-align:center"><img src="./src/wordcount2.png" width=80%/></div>
 
-> 200MB 分布式wordcount
-> 
-![wordcount_dis](src/wordcount_dis.png)
+2. 200MB 分布式wordcount
 
-> 100,000,000次,运行时间单位ms
+<div style="text-align:center"><img src="./src/wordcount_dis.png" width=80%/></div>
 
-![calc_pi](src/calc_pi.png)
+3. 蒙特卡洛方法进行100,000,000次，运行时间单位ms
+
+<div style="text-align:center"><img src="./src/calc_pi.png" width=80%/></div>
 
 ## 项目总结
 ### 项目意义与前瞻性
@@ -584,19 +595,18 @@ Vega继承了Spark的诸多优点。同样使用RDD，使得Vega拥有了简明�
 
 我们相信，在效率、可靠性、可用性与可维护性上都有着更好表现的Vega，将为大数据处理提供了更高效、更安全的解决方案！
 
-
 ### 未来的优化方向
 #### 减少序列化反序列化开销
 无论是Spark还是Vega在传递任务时都需要将任务序列化[^serde_traitobject][^capnp]以便于传输，传至目标主机后再反序列化用以执行。而由于序列化反序列化开销很大，Spark与Vega中任务的启动都要花费较长时间。我们可以尝试精简任务的描述方式，同时采用更高性能的序列化反序列化器，以此提高任务传输效率。
 
-<img src="./src/serialization%20and%20deserialization.png">
+<div style="text-align:center"><img src="./src/serialization%20and%20deserialization.png" width=80%/></div>
 
 #### 构建更加用户友好的API
-由于Rust的类型机制较为复杂，使用Vega构建分布式计算应用时较为困难。比如，每次向RDD传递计算任务时传入时，获得结果的类型都会是包裹着计算任务的RDD类型，而在对RDD连续进行多次操作之后，得到的结果类型将会异常复杂，这不利于用户上手。[^vega_book]
+由于Rust的类型机制较为复杂，使用Vega构建分布式计算应用时较为困难。比如，每次向RDD传递计算任务时传入时，获得结果的类型都会是包裹着计算任务的RDD类型，而在对RDD连续进行多次操作之后，得到的结果类型将会异常复杂，这不利于用户上手。
 
-下图即为一例：
+下图即为一例Rust中长类型名，其既给用户阅读源码带来困难，也给调用增添了障碍。
 
-<img src="./src/looong%20type%20name%20in%20rust.png">
+<div style="text-align:center"><img src="./src/looong%20type%20name%20in%20rust.png" width=80%/></div>
 
 #### 开发新的RDD算子
 Spark作为Apache基金会下的顶级项目，参与开源的开发人员众多，更新速度很快，每两个月就有一次中等程度的版本更新，而vega已经停止维护两年已久，因此不能即使更新RDD，这导致原有的RDD算子类型不够丰富，支持的计算函数都较为底层，[^big_float]可以开发更多的算子以支持各种各样的计算任务，同时可以利用将底层任务合并为高层任务时的优化空间。
@@ -616,12 +626,18 @@ Spark中的容错机制是基于Spark的Lineage（血统）机制实现的。在
 #### 实现跨平台的零成本移植
 vega在分布式运行时不需要在从机上下载环境，但是限于配置文件和平台依赖的库函数使用，这种移植还未进行实现和测试。但是利用Rust的条件编译`#[cfg(target os="windows")]`可以编写两套平台下的函数，以及在Context,env模块中编写解耦的配置加载逻辑理论上就可以实现跨平台的移植。Spark运行分布式时需要在从机上安装应用，而vega不需要。这样可以在未来的工作中实现跨平台的零成本移植.
 
+#### 对性能监控模块进行改进
+
+现在实现的性能监控模块输出的运行信息还比较少，且因为借助网络请求，可能存在丢包的情况，导致部分数据没有被成功输出到Prometheus内。可以考虑使用中间件来使性能监控更加可靠。
+
+此外，当前的Docker部署仅在WSL/Docker下进行了测试，而移植到别的平台可能需要重新配置。
+
 ### 我们的收获
 在这一学期的Vega项目中，我们小组戮力同心、团结一致，每位组员都奋勇争先、鞠躬尽瘁，以高度的团队精神、奉献精神高质量地完成了OSH大作业。
 
 Vega是我们小组大多数人目前接触到的最大的项目。接手这样一个大项目，要求我们要配置项目与环境以便成功编译运行，要在前人庞杂的代码、复杂的调用关系中理出逻辑关系，要接触到各种各样的第三方API。而更进一步，我们还要解决前人留下的BUG，要在巨大的项目中精确定位能改进的模块，在重构部分代码时要保证与项目其它部分的依赖关系不变。高强度的、贴近工业界真实开发场景的项目实践让我们每个人的系统编程、软件工程技能得到了充分锻炼。
 
-同时深入学习运用Rust，让我们深刻了解了函数式、内存安全、强大编译器等Rust独有的特性，让我们零距离体会到现代编程语言的魅力，由于Rust体现着未来语言的趋势，这也将帮助我们适应未来的编程语言。
+深入学习运用Rust，让我们深刻了解了函数式、内存安全、强大编译器等Rust独有的特性，让我们零距离体会到现代编程语言的魅力，由于Rust体现着未来语言的趋势，这也将帮助我们适应未来的编程语言。
 
 同时，随着大数据处理、分布式计算的需求不断增长，分布式计算框架正发挥着日益重要的作用。这个项目让我们深入了解了Spark这一分布式计算框架的内核机制及调优，无论未来我们是要开发或是使用分布式计算框架，这样一段经历对我们都是非常有益的。
 
