@@ -1,0 +1,2204 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../Haoyu/">
+      
+      
+        <link rel="next" href="../XhyDds/">
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.18">
+    
+    
+      
+        <title>NanqiOPLiMulong - This-Lynx</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.26e3688c.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ecc896b0.min.css">
+      
+      
+
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="deep-orange">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#xrp-in-kernel-storage-functions-with-ebpf" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../.." title="This-Lynx" class="md-header__button md-logo" aria-label="This-Lynx" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            This-Lynx
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              NanqiOPLiMulong
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/OSH-2023/This-Lynx" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    OSH-2023/This-Lynx
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="This-Lynx" class="md-nav__button md-logo" aria-label="This-Lynx" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    This-Lynx
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/OSH-2023/This-Lynx" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    OSH-2023/This-Lynx
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        This-Lynx
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          Discussion
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          Discussion
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../discussion/3-11First/" class="md-nav__link">
+        3-11 第一次讨论记录
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../discussion/3-18Pre/" class="md-nav__link">
+        3-18 第二次讨论
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../discussion/3-26FormalTopic/" class="md-nav__link">
+        3-26 正式立项讨论
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../discussion/4-13FeasibilityDis2/" class="md-nav__link">
+        4-13 可行性报告
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../discussion/4-16FeasibilityDis3/" class="md-nav__link">
+        4-16 可行性报告讨论
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../discussion/4-22FeasibilityDis4/" class="md-nav__link">
+        4-22 可行性报告讨论
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../discussion/4-2TopicFinal/" class="md-nav__link">
+        4-2 选题最终方案
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../discussion/4-9FeasibilityDivision/" class="md-nav__link">
+        4-9 可行性报告分工
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../discussion/5-11LocateVega/" class="md-nav__link">
+        5-11 定位vega的讨论
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../discussion/5-14VegaDiscussion/" class="md-nav__link">
+        5-14
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../discussion/5-5Midterm/" class="md-nav__link">
+        中期汇报
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../discussion/5-7TryVega/" class="md-nav__link">
+        5-7 尝试运行vega
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../discussion/6-11Job/" class="md-nav__link">
+        6-11 工作安排
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../discussion/6-2Lab4Discussion/" class="md-nav__link">
+        6-2 关于Lab4
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../discussion/6-8Lab4/" class="md-nav__link">
+        6-8 完善Lab4
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../discussion/7-4/" class="md-nav__link">
+        7-4
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../discussion/7-5/" class="md-nav__link">
+        7-5
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../discussion/7-6/" class="md-nav__link">
+        7-6
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../discussion/7-7/" class="md-nav__link">
+        7-7
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../discussion/7.8/" class="md-nav__link">
+        7-8
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+          Feasibility report
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Feasibility report
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../feasibility_report/" class="md-nav__link">
+        可行性报告仓库
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../feasibility_report/FeasibilityReport/" class="md-nav__link">
+        可行性报告 <!-- omit in toc -->
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+          Division
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_3_3">
+          <span class="md-nav__icon md-icon"></span>
+          Division
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../feasibility_report/division/MapReduce%26Taskexec/" class="md-nav__link">
+        算子功能及任务提交/执行
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../feasibility_report/division/Rust%E4%BC%98%E5%8A%BF%E4%B8%8EFFI/" class="md-nav__link">
+        Rust优势与FFI
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../feasibility_report/division/ShufffleManager/" class="md-nav__link">
+        ShuffleManager
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../feasibility_report/division/SparkStreaming/" class="md-nav__link">
+        SparkStreaming
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../feasibility_report/division/Spark%E7%BC%96%E8%AF%91%E5%8F%8A%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/" class="md-nav__link">
+        Spark编译
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../feasibility_report/division/scheduler/" class="md-nav__link">
+        Scheduler
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          Final report
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          Final report
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../final_report/" class="md-nav__link">
+        结题报告仓库
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../final_report/final_ppt/" class="md-nav__link">
+        Final ppt
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../final_report/final_report/" class="md-nav__link">
+        结题报告 <!-- omit in toc -->
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+          Investigation
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+        <label class="md-nav__title" for="__nav_5">
+          <span class="md-nav__icon md-icon"></span>
+          Investigation
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../HaomingLuo/" class="md-nav__link">
+        OSDI前沿技术调研
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Haoyu/" class="md-nav__link">
+        MAGE: Nearly Zero-Cost Virtual Memory for Secure Computation
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          NanqiOPLiMulong
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        NanqiOPLiMulong
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#xrp-in-kernel-storage-functions-with-ebpf" class="md-nav__link">
+    XRP: In-Kernel Storage Functions with eBPF
+  </a>
+  
+    <nav class="md-nav" aria-label="XRP: In-Kernel Storage Functions with eBPF">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    提要：
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    创新点：
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    结果（只总结了一部分）：
+  </a>
+  
+    <nav class="md-nav" aria-label="结果（只总结了一部分）：">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    1. 延迟
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2" class="md-nav__link">
+    2.带宽
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    详细阅读
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    可行性：
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    分布式存储系统调研
+  </a>
+  
+    <nav class="md-nav" aria-label="分布式存储系统调研">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#gfsgoogle-file-system" class="md-nav__link">
+    GFS（Google File System）:
+  </a>
+  
+    <nav class="md-nav" aria-label="GFS（Google File System）:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    特点：
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    架构：
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_9" class="md-nav__link">
+    系统交互：
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#master" class="md-nav__link">
+    Master操作：
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_10" class="md-nav__link">
+    容错与错误诊断
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hdfs" class="md-nav__link">
+    HDFS：
+  </a>
+  
+    <nav class="md-nav" aria-label="HDFS：">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_11" class="md-nav__link">
+    特点：
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_12" class="md-nav__link">
+    架构：
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_13" class="md-nav__link">
+    容错与可靠性：
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#moosefs" class="md-nav__link">
+    MooseFS
+  </a>
+  
+    <nav class="md-nav" aria-label="MooseFS">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_14" class="md-nav__link">
+    特点：
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_15" class="md-nav__link">
+    架构：
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_16" class="md-nav__link">
+    容错与可靠性：
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_17" class="md-nav__link">
+    备注：
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#spark-streaming" class="md-nav__link">
+    Spark Streaming
+  </a>
+  
+    <nav class="md-nav" aria-label="Spark Streaming">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_18" class="md-nav__link">
+    简介：
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_19" class="md-nav__link">
+    架构：
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_20" class="md-nav__link">
+    运行过程：
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../XhyDds/" class="md-nav__link">
+        XhyDds
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../distributed-system-xhy/" class="md-nav__link">
+        有关分布式系统概况的调研
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../prometheus%26grafana%26node_exporter/" class="md-nav__link">
+        Prometheus&grafana&node exporter
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../yuriYanZeXuan/" class="md-nav__link">
+        yuriYanZeXuan
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_8" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5_8" id="__nav_5_8_label" tabindex="0">
+          Rust
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_8_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5_8">
+          <span class="md-nav__icon md-icon"></span>
+          Rust
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Rust/lml/" class="md-nav__link">
+        Lml
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Rust/xhy/" class="md-nav__link">
+        Xhy
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_9" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5_9" id="__nav_5_9_label" tabindex="0">
+          Spark
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_9_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5_9">
+          <span class="md-nav__icon md-icon"></span>
+          Spark
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Spark/Spark/" class="md-nav__link">
+        论文笔记
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_10" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5_10" id="__nav_5_10_label" tabindex="0">
+          Preresearch
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_10_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5_10">
+          <span class="md-nav__icon md-icon"></span>
+          Preresearch
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_10_1" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5_10_1" id="__nav_5_10_1_label" tabindex="0">
+          Deprecated
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_5_10_1_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5_10_1">
+          <span class="md-nav__icon md-icon"></span>
+          Deprecated
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../preresearch/deprecated/Concepts%26Principle/" class="md-nav__link">
+        Concepts&Principle
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../preresearch/deprecated/CoreProblem%26Solution/" class="md-nav__link">
+        分布式系统的核心问题
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../preresearch/deprecated/TechnologyStack/" class="md-nav__link">
+        TechnologyStack
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_11" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5_11" id="__nav_5_11_label" tabindex="0">
+          Src
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_11_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5_11">
+          <span class="md-nav__icon md-icon"></span>
+          Src
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_11_1" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5_11_1" id="__nav_5_11_1_label" tabindex="0">
+          Preresearch
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_5_11_1_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5_11_1">
+          <span class="md-nav__icon md-icon"></span>
+          Preresearch
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_11_1_1" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5_11_1_1" id="__nav_5_11_1_1_label" tabindex="0">
+          Deprecated
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_5_11_1_1_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5_11_1_1">
+          <span class="md-nav__icon md-icon"></span>
+          Deprecated
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../src/preresearch/deprecated/Concepts%26Principle/" class="md-nav__link">
+        Concepts&Principle
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../src/preresearch/deprecated/CoreProblem%26Solution/" class="md-nav__link">
+        分布式系统的核心问题
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../src/preresearch/deprecated/TechnologyStack/" class="md-nav__link">
+        TechnologyStack
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+          Midterm report
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_6">
+          <span class="md-nav__icon md-icon"></span>
+          Midterm report
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../midterm_report/report/" class="md-nav__link">
+        Report
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+          Research report
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_7">
+          <span class="md-nav__icon md-icon"></span>
+          Research report
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research_report/" class="md-nav__link">
+        调研报告仓库
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research_report/ResearchReport/" class="md-nav__link">
+        调研报告 - 基于Rust语言对Apache Spark性能瓶颈的优化 {ignore=true}
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+          Vega analysis
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_8">
+          <span class="md-nav__icon md-icon"></span>
+          Vega analysis
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vega_analysis/Runnig%20Process%20Sketch%20of%20Vega/" class="md-nav__link">
+        Runnig Process Sketch of Vega
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vega_analysis/benchmarkAnalysis/" class="md-nav__link">
+        benchmarkAnalysis
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vega_analysis/io/" class="md-nav__link">
+        Io
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vega_analysis/shuffle_in_vega/" class="md-nav__link">
+        shuffle_in_vega
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#xrp-in-kernel-storage-functions-with-ebpf" class="md-nav__link">
+    XRP: In-Kernel Storage Functions with eBPF
+  </a>
+  
+    <nav class="md-nav" aria-label="XRP: In-Kernel Storage Functions with eBPF">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    提要：
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    创新点：
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    结果（只总结了一部分）：
+  </a>
+  
+    <nav class="md-nav" aria-label="结果（只总结了一部分）：">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    1. 延迟
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2" class="md-nav__link">
+    2.带宽
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    详细阅读
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    可行性：
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    分布式存储系统调研
+  </a>
+  
+    <nav class="md-nav" aria-label="分布式存储系统调研">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#gfsgoogle-file-system" class="md-nav__link">
+    GFS（Google File System）:
+  </a>
+  
+    <nav class="md-nav" aria-label="GFS（Google File System）:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    特点：
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    架构：
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_9" class="md-nav__link">
+    系统交互：
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#master" class="md-nav__link">
+    Master操作：
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_10" class="md-nav__link">
+    容错与错误诊断
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hdfs" class="md-nav__link">
+    HDFS：
+  </a>
+  
+    <nav class="md-nav" aria-label="HDFS：">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_11" class="md-nav__link">
+    特点：
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_12" class="md-nav__link">
+    架构：
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_13" class="md-nav__link">
+    容错与可靠性：
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#moosefs" class="md-nav__link">
+    MooseFS
+  </a>
+  
+    <nav class="md-nav" aria-label="MooseFS">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_14" class="md-nav__link">
+    特点：
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_15" class="md-nav__link">
+    架构：
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_16" class="md-nav__link">
+    容错与可靠性：
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_17" class="md-nav__link">
+    备注：
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#spark-streaming" class="md-nav__link">
+    Spark Streaming
+  </a>
+  
+    <nav class="md-nav" aria-label="Spark Streaming">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_18" class="md-nav__link">
+    简介：
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_19" class="md-nav__link">
+    架构：
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_20" class="md-nav__link">
+    运行过程：
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+  <h1>NanqiOPLiMulong</h1>
+
+<h2 id="xrp-in-kernel-storage-functions-with-ebpf">XRP: In-Kernel Storage Functions with eBPF</h2>
+<h4 id="_1">提要：</h4>
+<p>随着存储设备的性能提升（如HDD-&gt;NVME SSD），在与存储设备交互时，Linux内核的开销占比越来越大（接近一半）。作者提出XRP，用以减少这部分开销，从而提升存储性能。</p>
+<h4 id="_2">创新点：</h4>
+<p>XRP允许用户定义的函数在NVME驱动层执行，并且在实现中采取了一些限制措施（如对访问的位置进行检测防止越界），从而得以安全地“绕开”Linux内核。</p>
+<h4 id="_3">结果（只总结了一部分）：</h4>
+<h5 id="1">1. 延迟</h5>
+<p>XRP在延迟方面优于read()和io_uring，但差于SPDK。不过XRP不需要轮询，因此相较SPDK对CPU的占用少。
+当线程数较多时，XRP的尾端延迟显著优于SPDK。</p>
+<h5 id="2">2.带宽</h5>
+<p>当index深度增加时，XRP的带宽较read()和io_uring更高。当线程数增加时，XRP的带宽增加也优于read()和io_uring，且线程数足够多时，带宽要优于SPDK。</p>
+<h4 id="_4">详细阅读</h4>
+<p>XRP利用（或者说借鉴？）了Linux的eBPF,这是一项可以将用户定义的函数注入Linux内核执行的技术。</p>
+<p>XRP事实上可以部署在内核中的任何一层，但NVME驱动最接近硬件层，可以带来最大的性能提升。</p>
+<p>对于中途需要大量访问磁盘内容，而用户程序并不关心中间的查找结果，只需要得到查找得到的数据的情况（这种情况很多，比如在二叉树中查找等），如果直接在用户程序层进行查找过程，那么每一次查找得到的某一个节点数据都需经内核传回用户程序，随后若查找还未结束，则用户程序还需通过内核取下一项数据。这样在硬件-内核-用户之间不断传递的过程开销很大且不必要。若利用XPR技术将这样的程序放到驱动中执行，则可越过大部分的内核层，且不需要大量的上下文切换。</p>
+<p>实现XRP的挑战主要在于：
+1. 地址转换和安全性。由于driver无法获取文件系统元数据，因此无法获得文件的实际地址。如果直接传递文件的物理地址，又会导致安全性问题（访问的位置不受限制）
+   作者采用的解决方式是将Linux的extent status tree缓存一份，通过一个查找函数在其中查找物理地址，这一查找函数同时还会检查文件访问是否越界；通过在合适的位置调用更新函数来更新这一缓存，同时还通过版本号等防止extent status tree不是最新。
+2. 同时访问问题（省流：摆烂了）。一份文件同时被读和写的情况对于XRP而言比较棘手，因为XRP无法得知写请求（因为在驱动里面），这可能导致XRP读取得到错误的数据。这一问题可以通过使用锁来解决，但XRP实现在NVMe interrupt handler中，使用锁的开销高昂。因此，XRP只适用于很少修改的数据结构，且大量数据结构确实很少修改。</p>
+<h4 id="_5">可行性：</h4>
+<p>硬件上，现如今的个人PC大多采用NVMe的SSD；软件上，作者开放了源代码（用的C语言，祖宗之法不可变），因此理论上可行（实际上开源项目巨大，我也不知道能不能行）。</p>
+<h2 id="_6">分布式存储系统调研</h2>
+<h3 id="gfsgoogle-file-system">GFS（Google File System）:</h3>
+<p>GFS是一个经典的分布式文件系统，是谷歌为海量搜索设计的专用文件系统，于2003年提出。不开源。</p>
+<h4 id="_7">特点：</h4>
+<ol>
+<li>GFS为处理大量的大文件（100MB以上，常见为若干GB）设计，支持小文件但不作优化。</li>
+<li>适用于大批量的流式读取，对随机读取不作优化。</li>
+<li>支持大量顺序追加写入，这种写入操作的典型操作规模与读取类似。写入后文件极少修改。支持随机写入但不保证效率。</li>
+<li>支持多客户端高效地同时追加写入。</li>
+<li>相比低延迟，更重视持续的高带宽。</li>
+</ol>
+<h4 id="_8">架构：</h4>
+<ol>
+<li>一个GFS集群由一个master和若干个chunkservers组成，并且可以由多个客户端访问。这些机器都是使用Linux操作系统的通用计算机。</li>
+<li>文件在GFS中被分成固定大小的分块，每一个块用一个独一无二的64位chunk handle识别（这一识别码在分块创建时确定）。分块以Linux文件的形式存储在chunkservers上，读写时用chunk handle和字节范围指定。每一个分块都存在多个（默认3个）chunkservers上。</li>
+<li>master在内存中存储文件系统元数据，包括命名空间，文件到块的映射和块的分布。块的分布不是永久存放在master上的（即没有存放在如硬盘这种不易失存储器上），而是在master启动时轮询每一chunkserver获得，并且通过心跳信息（Heart Beat message，即定时发送的信息）维护。这一设计使得  master无需与chunkserver保持同步，否则chunkserver加入或退出时总是要修改记录（这种情况经常发生）。
+   master永久存储元数据的关键改动（日志）。日志会被远程备份。日志超过一定规模便会生成存档点（checkpoints），master重启时会从最近的存档点以及之后的少量日志恢复自身状态。</li>
+<li>一致性：
+   GFS对文件的不同状态定义如下：如果所有clients看到的数据都相同，则该文件区域是consistent。如果所有client看到的数据不仅相同，还能完整的看到改动的记录，则该文件区域是defined。并发的改动操作会让文件区域保持consistent，但是undefined，因为可能无法看到所有的数据变化（可能存在并发修改同一条记录，之前的修改记录被覆盖的情况）。一次失败的数据改动会造成文件系统unconsistent，不同的clients可能获取到的是不同的数据。GFS应用可以区分文件区域是undefined还是defined。在一系列成功的修改操作后，GFS可以通过这些机制保证文件的defined特性：(a) chunk上的数据改动顺序与其副本一致；(b)用版本号区分chunk副本是否已过时。
+   使用GFS的应用程序可以利用一些简单技术实现宽松的一致性，包括：尽量采用追加写入而不是覆盖，Checkpoint，自验证的写入操作，自标识的记录。checkpoint可以包含校验和。同时应用程序也应加强自身的幂等性。</li>
+</ol>
+<h4 id="_9">系统交互：</h4>
+<ol>
+<li>master会定期选择一个chunk的主副本（primary ），其余副本为二级副本（secondary），chunk变更时的顺序由主副本规定。一个副本成为主副本的租约时间为60秒，这样即使master或primary宕机，只需等待60秒，随后指定新的primary即可。确定主副本的过程（lease）如下：
+   <img alt="leases.png" src="../src/leases.png" /></li>
+<li>GFS的控制流与数据流分离，数据流按线性的流水线方式传输。每个chunkserver将数据发送给离自己最近的还未收到数据的chunkserver。这样可以使每台chunkserver用最大的带宽发送数据，而不必在各个接收者之间分配带宽，同时可以降低延迟。距离可以用IP地址计算出。</li>
+<li>GFS提供原子（atomically）的追加写入（record append）操作，这一操作中client只提供数据，由GFS选择一个offset写入并返回给client。如果写入时数据可以被当前块容纳，则GFS直接写入；否则GFS让主副本和次副本将当前块填满，并回复client这一操作需要在下一个块中重试。如果某次追加写入失败，则client重新执行写入，因此GFS不保证数据在字节级别上的一致性，它只保证每一个数据至少被追加写入了一次。</li>
+<li>GFS提供snapshot操作来对文件和目录进行快速复制，且几乎不影响正在执行的修改操作。snapshot的流程如下：
+   <img alt="snapshot.png" src="../src/snapshot.png" /></li>
+</ol>
+<h4 id="master">Master操作：</h4>
+<ol>
+<li>由于master operation都比较耗时，如snapshot，创建chunk等，因此为了减小master operations之间的影响，GFS master采用了以命名空间为单位的分段加锁机制。GFS对namespace tree中的每一个节点，无论是文件名还是目录名，都设置了一个read-write lock。 每个master operation在执行前都会获得一系列的read-write lock。如果master operation想要访问/d1/d2/.../dn/leaf，它会获得/d1, /d1/d2, ..., /d1/d2.../dn 的read-locks并获得 /d1/d2/.../dn/leaf 的read-lock或write-lock。这样加锁可以防止文件在对应目录执行snapshot时被创建，且支持并行的文件创建（writer只在创建的文件处获得write-lock）。
+   为了保证最大的可靠性和可用性，以及尽可能大的带宽，GFS将一个chunk的多个副本放置在处于不同机架的chunkservers上。代价是写操作需要跨越机架（即很可能需要跨越不同的交换机）。</li>
+<li>GFS在创建、重新复制和平衡副本时，会考虑3个因素：放在disk空间利用率低于平均值的chunkserver上；限制每个chunkserver的replicas数量，尽量负载均衡；部署在不同的机架中。同时，GFS会在chunk可用的replicas数量由于chunkserver故障等原因低于用户定义的数量时执行重新复制，重复制的优先级如下：replicas数量越少，优先级越高；alive file对应的chunk的优先级高于recently deleted files对应的chunk的优先级；阻塞了client处理程序的chunk优先级更高。并且，master会周期性的检查系统状态来执行rebalances操作。master会定期查看replicas在chunkservert上的分布，将replicas移动到其他chunkserver上，以均衡disk space和load balance。 通过这种方式，对于新加入的chunkserver，master会逐渐的填满它，而不是立即给它大量的chunk。</li>
+<li>垃圾回收机制上，GFS并不会立即释放被删除的文件。当一个文件被删除时，GFS将它改名为包含删除时间的时间戳的文件，当这样的文件存在超过3天后空间才将被释放（3天这个时间可以调）。该文件被（彻底）删除后，这个文件所有的chunk都将无法被取得。master周期性地扫描chunk namespace，会删除所有的孤儿chunk和相应的metadata。在与chunkserver进行通信的heartbear message中，master会告诉哪些metadata已经不存在了，chunkserver会删除存储的相应的chunk。另外，master节点会维护chunk版本号。每当master赋予新的chunkserver租约（选择新的primary）时，它将更新版本号。如果有chunkservers在更新版本号时不可用，则它的版本号不会被更新。在它重新启动向master汇报自己的版本号后，master将会发现它有过时的副本，并在定期的垃圾清理中清理过时副本。如果master发现有chunkservers的版本号比自己大，则它会认为自己在发放租约并更新版本号时崩溃了，此时它会更新自己的版本号。</li>
+</ol>
+<h4 id="_10">容错与错误诊断</h4>
+<ol>
+<li>master和chunkservers具有快速启动功能。GFS并不区分正常和非正常的关闭，在实际使用中也是通过直接kill掉进程来关闭服务器的，因此无论在哪种情况下停止运行，服务器都能在几秒内快速恢复。
+   另外，前面已经提到了chunk会被复制到不同的机架的服务器上，并且用户可以为不同命名空间设置不同的复制等级，因此充足的副本可以保证部分chunkservers宕机时不影响可用性。同时Google也在探寻采用奇偶校验和纠删码等解决方案。
+   同时，master的状态也有多个副本，如果Master进程所在的机器或者磁盘失效了，处于GFS系统外部的监控进程会在其它的存有完整操作日志的机器上启动一个新的Master进程。客户端使用规范的名字访问Master（比如gfs-test）节点，这个名字类似DNS别名，因此也就可以在Master进程转到别的机器上执行时，通过更改别名的实际指向访问新的Master节点。master还有多个影子服务器（不是镜像服务器），影子服务器的数据可能比master稍慢，对于一些情况（如应用程序对数据是否最新不敏感，或读取的文件不常改变）可以提高读取效率。</li>
+<li>GFS使用了checksum来检查副本是否损坏。每一个chunk都被分成64KB的块，每一块对应一个32位的checksum。每次读取操作之前，chunkservers会使用checksum来检验数据的正确性，如果检验结果不正确，则chunkserver返回错误，并向master报告。master会为其从其他副本恢复数据，随后删除错误数据。另外，chunkserver空闲时会扫描不常用的文件是否损坏，防止不常用文件缺少足够的有效副本。</li>
+<li>GFS有包含关键事件（比如chunkservers的启动和关闭）以及所有RPC请求和回复的诊断日志。可用于诊断问题，进行性能分析等。</li>
+</ol>
+<h3 id="hdfs">HDFS：</h3>
+<h4 id="_11">特点：</h4>
+<p>基于GFS开发，因此具有GFS的许多特性，例如可靠性高，将文件分块存储，适合大文件存储，但延迟较高且无法高效存储小文件等。</p>
+<h4 id="_12">架构：</h4>
+<p><img alt="HDFS_ARC.webp" src="../src/HDFS_ARC.webp" />
+   1. NameNode：类似（或者说就是）GFS中的Master，负责整个分布式文件系统的元数据（MetaData）管理和响应客户端请求。
+   2. DataNode：GFS中的chunkserver，负责存储数据块，通过心跳信息向NameNode报告自身状态。</p>
+<h4 id="_13">容错与可靠性：</h4>
+<ol>
+<li>每一个数据块有多个副本（默认3个），副本的存放策略为：第一个副本会随机选择，但是不会选择存储过满的节点，第二个副本放在和第一个副本不同且随机选择的机架，第三个和第二个放在同一机架上的不同节点，剩余副本完全随机节点。</li>
+<li>checksum校验，DataNode宕机时对缺失副本的数据块增加副本数量（与GFS相同）</li>
+<li>主从NameNode，主NameNode宕机时副NameNode成为主NameNode。</li>
+</ol>
+<h3 id="moosefs">MooseFS</h3>
+<h4 id="_14">特点：</h4>
+<p>GFS的一种C实现，具有GFS的许多特性。支持POSIX，支持随机写入。</p>
+<h4 id="_15">架构：</h4>
+<p><img alt="MooseFS_ARC" src="../src/MooseFS_ARC.jpg" />
+   架构与GFS几乎一致。
+   1. Managing Server（Master）：负责管理元数据，控制chunkservers中的数据拷贝等。
+   2. Metadata backup servers：备份metadata日志的服务器，使得当Master宕机时，可以快速让新服务器接管Master的工作。
+   3. Data Servers（chunkservers）：存放数据的服务器。</p>
+<h4 id="_16">容错与可靠性：</h4>
+<p>与GFS基本相同，但为了支持随机写入，chunk可以修改，可能会导致出错。</p>
+<h4 id="_17">备注：</h4>
+<p>MooseFS不同于GFS和HDFS，后两者都是专用文件系统（GFS是给谷歌自己的搜索引擎用的，HDFS是Hadoop的一部分），MooseFS是一个商用的通用分布式文件系统，最初是闭源（且收费）的，后来才推出了开源的社区版，但功能有限制。因此官方给出了比较详细的关于如何部署该文件系统的文档，网络上也有教多这方面的教程，但关于技术方面的细节介绍比较少（鉴于我们重点不在存储系统，可能MooseFS比较适合我们）。</p>
+<h2 id="spark-streaming">Spark Streaming</h2>
+<h3 id="_18">简介：</h3>
+<p>Spark Streaming是Spark API的一个扩展，它使得Spark可以支持可扩展、高吞吐量、容错的实时数据流处理。数据的来源可以是多种多样的（如Kafka, Kinesis和TCP sockets），数据可以使用通过map，reduce，join和window等高级函数描述的算法处理。结果可以输出到文件系统、数据库等。</p>
+<h3 id="_19">架构：</h3>
+<p>Spark Streaming采用微批次的方式实现，即将流式计算当作一系列小规模的批处理来执行。
+Spark Streaming提供了表示连续数据流的，高度抽象的Dstream（discretized stream），Dstream可以由数据源产生的输入数据流创建，也可以由其它Dstream使用map，reduce等操作创建。Dstream本质上是RDD序列。
+Streaming Context</p>
+<h3 id="_20">运行过程：</h3>
+<ol>
+<li>初始化Streaming Context对象。在该对象的启动过程中实例化DStreamGraph和JobScheduler。DStreamGraph中包含DStream和它们之间的依赖关系；JobScheduler中包含ReceiverTracker和JobGenerator实例。</li>
+<li>ReceiverTracker启动时会通知ReceiverSupervisor启动，ReceiverSupervisor会启动流数据接收器Receiver。Receiver会不断接收实时流数据，交给ReceiverSupervisor存储为blocks，存储完毕后ReceiverSupervisor会将元数据发给ReceiverTracker，ReceiverTracker再将数据转发给ReceiverBlockTracker，由它管理元信息。</li>
+<li>JobGenerator中维护一个定时器，它在批处理时间到来时会生成作业，作业执行过程如下：
+(1)通知ReceiverTracker将接收到的数据进行提交，在提交时采用synchronized关键字进行处理，保证每条数据被划入一个且只被划入一个批次中。
+(2)要求DStreamGraph根据DStream依赖关系生成作业序列Seq[Job]。
+(3)从第一步中ReceiverTracker获取本批次数据的元数据。
+(4)把批处理时间time、作业序列Seq[Job]和本批次数据的元数据包装为JobSet，调用JobScheduler.submitJobSet(JobSet)提交给JobScheduler，JobScheduler将把这些作业发送给Spark核心进行处理，由于该执行为异步，因此本步执行速度将非常快。
+(5)只要提交结束（不管作业是否被执行），SparkStreaming对整个系统做一个检查点（Checkpoint）。</li>
+<li>Spark核心处理作业队数据，处理完毕输出到外部系统。</li>
+</ol>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.74e28a9f.min.js", "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.220ee61c.min.js"></script>
+      
+    
+  </body>
+</html>

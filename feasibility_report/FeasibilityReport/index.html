@@ -1,0 +1,2688 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../">
+      
+      
+        <link rel="next" href="../division/MapReduce%26Taskexec/">
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.18">
+    
+    
+      
+        <title>可行性报告 - This-Lynx</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.26e3688c.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ecc896b0.min.css">
+      
+      
+
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="deep-orange">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#_1" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../.." title="This-Lynx" class="md-header__button md-logo" aria-label="This-Lynx" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            This-Lynx
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              可行性报告 <!-- omit in toc -->
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/OSH-2023/This-Lynx" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    OSH-2023/This-Lynx
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="This-Lynx" class="md-nav__button md-logo" aria-label="This-Lynx" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    This-Lynx
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/OSH-2023/This-Lynx" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    OSH-2023/This-Lynx
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        This-Lynx
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          Discussion
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          Discussion
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../discussion/3-11First/" class="md-nav__link">
+        3-11 第一次讨论记录
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../discussion/3-18Pre/" class="md-nav__link">
+        3-18 第二次讨论
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../discussion/3-26FormalTopic/" class="md-nav__link">
+        3-26 正式立项讨论
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../discussion/4-13FeasibilityDis2/" class="md-nav__link">
+        4-13 可行性报告
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../discussion/4-16FeasibilityDis3/" class="md-nav__link">
+        4-16 可行性报告讨论
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../discussion/4-22FeasibilityDis4/" class="md-nav__link">
+        4-22 可行性报告讨论
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../discussion/4-2TopicFinal/" class="md-nav__link">
+        4-2 选题最终方案
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../discussion/4-9FeasibilityDivision/" class="md-nav__link">
+        4-9 可行性报告分工
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../discussion/5-11LocateVega/" class="md-nav__link">
+        5-11 定位vega的讨论
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../discussion/5-14VegaDiscussion/" class="md-nav__link">
+        5-14
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../discussion/5-5Midterm/" class="md-nav__link">
+        中期汇报
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../discussion/5-7TryVega/" class="md-nav__link">
+        5-7 尝试运行vega
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../discussion/6-11Job/" class="md-nav__link">
+        6-11 工作安排
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../discussion/6-2Lab4Discussion/" class="md-nav__link">
+        6-2 关于Lab4
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../discussion/6-8Lab4/" class="md-nav__link">
+        6-8 完善Lab4
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../discussion/7-4/" class="md-nav__link">
+        7-4
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../discussion/7-5/" class="md-nav__link">
+        7-5
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../discussion/7-6/" class="md-nav__link">
+        7-6
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../discussion/7-7/" class="md-nav__link">
+        7-7
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../discussion/7.8/" class="md-nav__link">
+        7-8
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+          Feasibility report
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Feasibility report
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        可行性报告仓库
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          可行性报告 <!-- omit in toc -->
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        可行性报告 <!-- omit in toc -->
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    小组成员 
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    引言
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    理论依据
+  </a>
+  
+    <nav class="md-nav" aria-label="理论依据">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#spark-build" class="md-nav__link">
+    Spark build
+  </a>
+  
+    <nav class="md-nav" aria-label="Spark build">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#maven-java" class="md-nav__link">
+    Maven--用于Java项目的构建自动化工具
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    调度
+  </a>
+  
+    <nav class="md-nav" aria-label="调度">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dag" class="md-nav__link">
+    DAG调度的过程
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    调度算法
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    调度任务类
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    调度部分可以改进的内容
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_9" class="md-nav__link">
+    向调度部分添加内容时的注意事项
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#shufflemanager" class="md-nav__link">
+    ShuffleManager
+  </a>
+  
+    <nav class="md-nav" aria-label="ShuffleManager">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#shufflemanager_1" class="md-nav__link">
+    ShuffleManager架构
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_10" class="md-nav__link">
+    可改进的点
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_11" class="md-nav__link">
+    计算引擎核心类
+  </a>
+  
+    <nav class="md-nav" aria-label="计算引擎核心类">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#externalsorter" class="md-nav__link">
+    ExternalSorter
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#appendonlymapexternalappendonlymap" class="md-nav__link">
+    AppendOnlyMap/ExternalAppendOnlyMap
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spark-streaming" class="md-nav__link">
+    Spark Streaming
+  </a>
+  
+    <nav class="md-nav" aria-label="Spark Streaming">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_12" class="md-nav__link">
+    架构
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_13" class="md-nav__link">
+    源码分析
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_14" class="md-nav__link">
+    可改进的内容
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_15" class="md-nav__link">
+    技术依据
+  </a>
+  
+    <nav class="md-nav" aria-label="技术依据">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#jni" class="md-nav__link">
+    JNI交互
+  </a>
+  
+    <nav class="md-nav" aria-label="JNI交互">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rustscala" class="md-nav__link">
+    Rust调用Scala
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scalarust" class="md-nav__link">
+    Scala调用Rust
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#capn-proto" class="md-nav__link">
+    Cap'n Proto
+  </a>
+  
+    <nav class="md-nav" aria-label="Cap'n Proto">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_16" class="md-nav__link">
+    优势
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_17" class="md-nav__link">
+    创新点
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_18" class="md-nav__link">
+    概要设计报告
+  </a>
+  
+    <nav class="md-nav" aria-label="概要设计报告">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_19" class="md-nav__link">
+    可行方案
+  </a>
+  
+    <nav class="md-nav" aria-label="可行方案">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sparkrust" class="md-nav__link">
+    源码基础上对Spark性能瓶颈的Rust重写
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rustsparkvega" class="md-nav__link">
+    基于不完善的Rust版Spark开源项目vega的实现
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_20" class="md-nav__link">
+    最终选定方案
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_21" class="md-nav__link">
+    进度管理
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+          Division
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_3_3">
+          <span class="md-nav__icon md-icon"></span>
+          Division
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../division/MapReduce%26Taskexec/" class="md-nav__link">
+        算子功能及任务提交/执行
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../division/Rust%E4%BC%98%E5%8A%BF%E4%B8%8EFFI/" class="md-nav__link">
+        Rust优势与FFI
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../division/ShufffleManager/" class="md-nav__link">
+        ShuffleManager
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../division/SparkStreaming/" class="md-nav__link">
+        SparkStreaming
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../division/Spark%E7%BC%96%E8%AF%91%E5%8F%8A%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/" class="md-nav__link">
+        Spark编译
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../division/scheduler/" class="md-nav__link">
+        Scheduler
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          Final report
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          Final report
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../final_report/" class="md-nav__link">
+        结题报告仓库
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../final_report/final_ppt/" class="md-nav__link">
+        Final ppt
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../final_report/final_report/" class="md-nav__link">
+        结题报告 <!-- omit in toc -->
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+          Investigation
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5">
+          <span class="md-nav__icon md-icon"></span>
+          Investigation
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../investigation/HaomingLuo/" class="md-nav__link">
+        OSDI前沿技术调研
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../investigation/Haoyu/" class="md-nav__link">
+        MAGE: Nearly Zero-Cost Virtual Memory for Secure Computation
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../investigation/NanqiOPLiMulong/" class="md-nav__link">
+        NanqiOPLiMulong
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../investigation/XhyDds/" class="md-nav__link">
+        XhyDds
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../investigation/distributed-system-xhy/" class="md-nav__link">
+        有关分布式系统概况的调研
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../investigation/prometheus%26grafana%26node_exporter/" class="md-nav__link">
+        Prometheus&grafana&node exporter
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../investigation/yuriYanZeXuan/" class="md-nav__link">
+        yuriYanZeXuan
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_8" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5_8" id="__nav_5_8_label" tabindex="0">
+          Rust
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_8_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5_8">
+          <span class="md-nav__icon md-icon"></span>
+          Rust
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../investigation/Rust/lml/" class="md-nav__link">
+        Lml
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../investigation/Rust/xhy/" class="md-nav__link">
+        Xhy
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_9" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5_9" id="__nav_5_9_label" tabindex="0">
+          Spark
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_9_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5_9">
+          <span class="md-nav__icon md-icon"></span>
+          Spark
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../investigation/Spark/Spark/" class="md-nav__link">
+        论文笔记
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_10" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5_10" id="__nav_5_10_label" tabindex="0">
+          Preresearch
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_10_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5_10">
+          <span class="md-nav__icon md-icon"></span>
+          Preresearch
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_10_1" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5_10_1" id="__nav_5_10_1_label" tabindex="0">
+          Deprecated
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_5_10_1_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5_10_1">
+          <span class="md-nav__icon md-icon"></span>
+          Deprecated
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../investigation/preresearch/deprecated/Concepts%26Principle/" class="md-nav__link">
+        Concepts&Principle
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../investigation/preresearch/deprecated/CoreProblem%26Solution/" class="md-nav__link">
+        分布式系统的核心问题
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../investigation/preresearch/deprecated/TechnologyStack/" class="md-nav__link">
+        TechnologyStack
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_11" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5_11" id="__nav_5_11_label" tabindex="0">
+          Src
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_11_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5_11">
+          <span class="md-nav__icon md-icon"></span>
+          Src
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_11_1" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5_11_1" id="__nav_5_11_1_label" tabindex="0">
+          Preresearch
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_5_11_1_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5_11_1">
+          <span class="md-nav__icon md-icon"></span>
+          Preresearch
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_11_1_1" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5_11_1_1" id="__nav_5_11_1_1_label" tabindex="0">
+          Deprecated
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_5_11_1_1_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5_11_1_1">
+          <span class="md-nav__icon md-icon"></span>
+          Deprecated
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../investigation/src/preresearch/deprecated/Concepts%26Principle/" class="md-nav__link">
+        Concepts&Principle
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../investigation/src/preresearch/deprecated/CoreProblem%26Solution/" class="md-nav__link">
+        分布式系统的核心问题
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../investigation/src/preresearch/deprecated/TechnologyStack/" class="md-nav__link">
+        TechnologyStack
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+          Midterm report
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_6">
+          <span class="md-nav__icon md-icon"></span>
+          Midterm report
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../midterm_report/report/" class="md-nav__link">
+        Report
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+          Research report
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_7">
+          <span class="md-nav__icon md-icon"></span>
+          Research report
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research_report/" class="md-nav__link">
+        调研报告仓库
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research_report/ResearchReport/" class="md-nav__link">
+        调研报告 - 基于Rust语言对Apache Spark性能瓶颈的优化 {ignore=true}
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+          Vega analysis
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_8">
+          <span class="md-nav__icon md-icon"></span>
+          Vega analysis
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vega_analysis/Runnig%20Process%20Sketch%20of%20Vega/" class="md-nav__link">
+        Runnig Process Sketch of Vega
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vega_analysis/benchmarkAnalysis/" class="md-nav__link">
+        benchmarkAnalysis
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vega_analysis/io/" class="md-nav__link">
+        Io
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vega_analysis/shuffle_in_vega/" class="md-nav__link">
+        shuffle_in_vega
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    小组成员 
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    引言
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    理论依据
+  </a>
+  
+    <nav class="md-nav" aria-label="理论依据">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#spark-build" class="md-nav__link">
+    Spark build
+  </a>
+  
+    <nav class="md-nav" aria-label="Spark build">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#maven-java" class="md-nav__link">
+    Maven--用于Java项目的构建自动化工具
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    调度
+  </a>
+  
+    <nav class="md-nav" aria-label="调度">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dag" class="md-nav__link">
+    DAG调度的过程
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    调度算法
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    调度任务类
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    调度部分可以改进的内容
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_9" class="md-nav__link">
+    向调度部分添加内容时的注意事项
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#shufflemanager" class="md-nav__link">
+    ShuffleManager
+  </a>
+  
+    <nav class="md-nav" aria-label="ShuffleManager">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#shufflemanager_1" class="md-nav__link">
+    ShuffleManager架构
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_10" class="md-nav__link">
+    可改进的点
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_11" class="md-nav__link">
+    计算引擎核心类
+  </a>
+  
+    <nav class="md-nav" aria-label="计算引擎核心类">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#externalsorter" class="md-nav__link">
+    ExternalSorter
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#appendonlymapexternalappendonlymap" class="md-nav__link">
+    AppendOnlyMap/ExternalAppendOnlyMap
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spark-streaming" class="md-nav__link">
+    Spark Streaming
+  </a>
+  
+    <nav class="md-nav" aria-label="Spark Streaming">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_12" class="md-nav__link">
+    架构
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_13" class="md-nav__link">
+    源码分析
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_14" class="md-nav__link">
+    可改进的内容
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_15" class="md-nav__link">
+    技术依据
+  </a>
+  
+    <nav class="md-nav" aria-label="技术依据">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#jni" class="md-nav__link">
+    JNI交互
+  </a>
+  
+    <nav class="md-nav" aria-label="JNI交互">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rustscala" class="md-nav__link">
+    Rust调用Scala
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scalarust" class="md-nav__link">
+    Scala调用Rust
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#capn-proto" class="md-nav__link">
+    Cap'n Proto
+  </a>
+  
+    <nav class="md-nav" aria-label="Cap'n Proto">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_16" class="md-nav__link">
+    优势
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_17" class="md-nav__link">
+    创新点
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_18" class="md-nav__link">
+    概要设计报告
+  </a>
+  
+    <nav class="md-nav" aria-label="概要设计报告">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_19" class="md-nav__link">
+    可行方案
+  </a>
+  
+    <nav class="md-nav" aria-label="可行方案">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sparkrust" class="md-nav__link">
+    源码基础上对Spark性能瓶颈的Rust重写
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rustsparkvega" class="md-nav__link">
+    基于不完善的Rust版Spark开源项目vega的实现
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_20" class="md-nav__link">
+    最终选定方案
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_21" class="md-nav__link">
+    进度管理
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="_1">可行性报告 <!-- omit in toc --></h1>
+<ul>
+<li><a href="#引言">引言</a></li>
+<li><a href="#理论依据">理论依据</a></li>
+<li><a href="#spark-build">Spark build</a><ul>
+<li><a href="#maven--用于java项目的构建自动化工具">Maven--用于Java项目的构建自动化工具</a></li>
+</ul>
+</li>
+<li><a href="#调度">调度</a><ul>
+<li><a href="#dag调度的过程">DAG调度的过程</a></li>
+<li><a href="#调度算法">调度算法</a></li>
+<li><a href="#调度任务类">调度任务类</a></li>
+<li><a href="#调度部分可以改进的内容">调度部分可以改进的内容</a></li>
+<li><a href="#向调度部分添加内容时的注意事项">向调度部分添加内容时的注意事项</a></li>
+</ul>
+</li>
+<li><a href="#shufflemanager">ShuffleManager</a><ul>
+<li><a href="#shufflemanager架构">ShuffleManager架构</a></li>
+<li><a href="#可改进的点">可改进的点</a></li>
+</ul>
+</li>
+<li><a href="#计算引擎核心类">计算引擎核心类</a><ul>
+<li><a href="#externalsorter">ExternalSorter</a></li>
+<li><a href="#appendonlymapexternalappendonlymap">AppendOnlyMap/ExternalAppendOnlyMap</a></li>
+</ul>
+</li>
+<li><a href="#spark-streaming">Spark Streaming</a><ul>
+<li><a href="#架构">架构</a></li>
+<li><a href="#源码分析">源码分析</a></li>
+<li><a href="#可改进的内容">可改进的内容</a></li>
+</ul>
+</li>
+<li><a href="#技术依据">技术依据</a></li>
+<li><a href="#jni交互">JNI交互</a><ul>
+<li><a href="#rust调用scala">Rust调用Scala</a></li>
+<li><a href="#scala调用rust">Scala调用Rust</a></li>
+</ul>
+</li>
+<li><a href="#capn-proto">Cap'n Proto</a><ul>
+<li><a href="#优势">优势</a></li>
+</ul>
+</li>
+<li><a href="#创新点">创新点</a></li>
+<li><a href="#概要设计报告">概要设计报告</a></li>
+<li><a href="#可行方案">可行方案</a><ul>
+<li><a href="#源码基础上对spark性能瓶颈的rust重写">源码基础上对Spark性能瓶颈的Rust重写</a></li>
+<li><a href="#基于不完善的rust版spark开源项目vega的实现">基于不完善的Rust版Spark开源项目vega的实现</a></li>
+<li><a href="#最终选定方案">最终选定方案</a></li>
+</ul>
+</li>
+<li><a href="#进度管理">进度管理</a></li>
+</ul>
+<h2 id="_2">小组成员 <!-- omit in toc --></h2>
+<p>闫泽轩 李牧龙 罗浩铭 汤皓宇 徐航宇</p>
+<h2 id="_3">引言</h2>
+<p>本文针对本小组选题<strong>基于Rust语言对Apache Spark性能瓶颈的优化</strong>进行了可行性的报告。本小组经过阅读Spark源码，查阅文档，查找了相关资料，给出了两条可行方案，并最终确立了最终方案。</p>
+<h2 id="_4">理论依据</h2>
+<h3 id="spark-build">Spark build</h3>
+<h4 id="maven-java">Maven--用于Java项目的构建自动化工具</h4>
+<p><strong>Maven</strong>是用于Java项目的构建自动化工具，而Spark使用Scala编写，Scala与Java共享JVM生态，因此Spark可以使用Maven进行构建和编译.
+Maven解决了构建软件的两个方面:如何构建软件及其依赖关系。[^wiki]
+[^wiki]:Apach_Maven https://en.wikipedia.org/wiki/Apache_Maven
+- 普通管用Maven项目的目录具有以下目录条目</p>
+<table>
+<thead>
+<tr>
+<th>目录名称</th>
+<th>目的</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>项目主页</td>
+<td>包含 pom.xml 和所有子目录。</td>
+</tr>
+<tr>
+<td>src/main/java</td>
+<td>包含项目的可交付结果 Java 源代码。</td>
+</tr>
+<tr>
+<td>SRC/main/src</td>
+<td>包含项目的可交付结果资源，例如属性文件。</td>
+</tr>
+<tr>
+<td>src/test/java</td>
+<td>包含项目的测试 Java 源代码（例如 JUnit 或 TestNG 测试用例）。</td>
+</tr>
+<tr>
+<td>src/test/resources</td>
+<td>包含测试所需的资源。</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Maven 常用命令<ul>
+<li>mvn clean: 清理</li>
+<li>mvn compile: 编译主程序</li>
+<li>mvn test-compile: 编译测试程序</li>
+<li>mvn test: 执行测试</li>
+<li>mvn package: 打包</li>
+<li>mvn install: 安装</li>
+</ul>
+</li>
+<li>下载源码
+    <a href="https://spark.apache.org/downloads.html">SparkDownload</a>
+    注意:<ol>
+<li>Choose a Spark release:3.2.3(Nov 28,2022)</li>
+<li>Choose a package type:Source Code</li>
+<li>Download Spark:spark-3.2.3.tgz</li>
+</ol>
+</li>
+<li>构建命令
+    <code>shell
+    ./build/mvn -Phadoop-3.2 -Pyarn -Dhadoop.version=3.2.2 -Phive -Phive-thriftserver -DskipTests clean package</code>
+<img alt="SparkBuild" src="../src/SparkBuild.png" /></li>
+</ul>
+<h3 id="_5">调度</h3>
+<p>在Spark里，与调度相关的程序位于<code>Spark-3.2.3/core/src/main/scala/org/apache/Spark/scheduler/</code>目录下。</p>
+<h4 id="dag">DAG调度的过程</h4>
+<p>我们首先给出一个宏观的说法，其中的不同的名称会在后文进行解释。总的来说，调度由<code>DAGScheduler</code>控制，其通过RDD算子构建<code>DAG</code>，再基于RDD算子之间的依赖来切分所涉算子，最终得到一些<code>Stage</code>对象。每个<code>Stage</code>再基于<code>Partitioner</code>生成多个<code>Task</code>，每个<code>Stage</code>中的<code>Task</code>集合包装成一个<code>TaskSet</code>，生成一个<code>TaskSetManager</code>。这些<code>TaskSetManager</code>与其他的<code>Pool</code>被嵌套地放在<code>Pool</code>中，进行宏观的任务调度。[^Spark]</p>
+<p><img alt="submitJob" src="../src/submitjob.png" /></p>
+<p>具体来说，<code>DAGScheduler</code>会为每个<code>Job</code>计算一个有向无环图，追踪哪些RDD和<code>Stage</code>输出可以被实现，找到运行最短的方式。之后，将<code>Stage</code>打包成<code>Taskset</code>提交给<code>TaskScheduler</code>。一个<code>TaskSet</code>中只包含可以在某个节点上独立运行的<code>Task</code>。</p>
+<p><code>Stage</code>根据RDD图上的shuffle边界分割而成。像<code>map()</code>和<code>filter()</code>这样的有着“窄”依赖的RDD操作，会被分到单个<code>Stage</code>中，但有着shuffle依赖的操作就需要被分到不同<code>Stage</code>上面。最终得到的每个<code>Stage</code>只与其他<code>Stage</code>有着依赖，而其内部的<code>Task</code>间不存在依赖，保证可以时运行。对这些任务进行的分割操作发生在<code>RDD.compute()</code>函数上。</p>
+<p>除了产生<code>Stage</code>间的有向无环图，<code>DAGScheduler</code>还根据当前缓存状态决定在哪里运行哪个任务。之后其把任务交给低一级的<code>TaskScheduler</code>。在输出文件丢失时，它还要做错误处理，即重新提交之前的<code>Stage</code>。在<code>Stage</code>内部的错误会被交给<code>TaskScheduler</code>处理，在取消整个<code>Stage</code>之前会多次重试每一个Task。</p>
+<p>为了从失败中恢复，相同的<code>Stage</code>可能需要运行多次.如果<code>TaskScheduler</code> 报告一个Task失败，因为来自前一个<code>Stage</code>的map输出文件已丢失，需要由<code>DAGScheduler</code>重新提交丢失的<code>Stage</code>. 这些通过CompletionEvent 伴随 FetchFailed, 或者ExecutorLost 事件被检测到. The <code>DAGScheduler</code> 会等待一定时间来看是否有其余的节点或 <code>Task</code> 也失败，然后为计算错误的<code>Task</code>所在的<code>Stage</code>重新提交。作为这一过程的一部分，我们还需要为旧的<code>Stage</code>重新创建<code>Stage</code>对象，这些<code>Stage</code>可能已经被清空。需要注意保证不同的任务正确地处在对应的<code>Stage</code>中。</p>
+<p>此外，还有缓存追踪机制以及清空机制。<code>DAGScheduler</code>判断哪个RDD被缓存，记忆哪些shuffle map 的<code>Stage</code>已经产生输出文件以避免重新计算或重复运行shuffle的map阶段。当相关的<code>Task</code>结束时，<code>DAGScheduler</code>会清空<code>Stage</code>，以避免内存泄露。</p>
+<p>与上有关的函数包括<code>sumbitJob</code>,<code>submitMapStage</code>,<code>submitStage</code>,<code>submitMissingTasks</code>,<code>submitWaitingChildStage</code>等。</p>
+<h4 id="_6">调度算法</h4>
+<p>在<code>SchedulingAlgorithm.scala</code>中描述，只有两种继承算法<code>FIFOSchedulingAlgorithm</code>和<code>FairSchedulingAlgorithm</code>，其中的方法<code>comparator</code>，返回<code>boolean</code>值，用于在调度时进行排序。</p>
+<p>以下以<code>comparator(A,B)</code>为例.
+- FIFO方法，先比较优先级，小的优先，如果同级，则比较提交时间(通过<code>StageID</code>判断，小的代表提交时间早)，早的优先。可以判断，<code>priority</code>越小，优先级越高。
+- Fair方法，如果<code>A</code>满足<code>runningTasks</code>比<code>minShare</code>小，而<code>B</code>不满足，则先处理<code>A</code>，反之亦然。如果都满足，则比较<code>runningTasks/minShare</code>的比值，低的优先。如果都不满足，则比较<code>runningTasks/weight</code>的比值，低的优先。当这些比值相同时，比较<code>name</code>。总的来说，即资源使用率低的优先。</p>
+<h4 id="_7">调度任务类</h4>
+<p><code>Job</code>类是提交给调度器的最高层的工作对象。当用户启动一个操作，比如<code>count()</code>时，一个<code>Job</code>会通过<code>submitJob</code>被提交。每个<code>Job</code>中间层的数据需要多个<code>Stage</code>的执行来得到。</p>
+<p><code>Stage</code>类是<code>Task</code>的集合，这些<code>Task</code>计算<code>Job</code>中间层的结果。每个<code>Task</code>在相同RDD的分割下计算相同的函数，因此有着相同的shuffle依赖。<code>Stage</code>在shuffle边界上被分开。有两种<code>Stage</code>：用于最终执行的<code>ResultStage</code>，直接计算一个Spark操作(如<code>count()</code>, <code>save()</code>)；以及中间层的<code>ShuffleMapStage</code>，其结果用于下一个<code>Stage</code>的输入。当多个任务共用相同的RDD时，<code>Stage</code>常被在这些任务间共享。因此<code>Stage</code>间遵循拓扑排序的来依次执行。每个<code>Stage</code>有一个成员<code>firstJobId</code>，标识首个提交该<code>Stage</code>的<code>Job</code>。当使用FIFO调度时，这允许先计算或在失败时更快恢复早期<code>Job</code>的<code>Stage</code>。如果失败，单个<code>Stage</code>可以被多次重新执行。在这种情况下，<code>Stage</code>对象会跟踪多个<code>StageInfo</code>对象，传递给监听器或web UI。最新的<code>StageInfo</code>对象可以通过<code>latestInfo</code>访问。</p>
+<p><code>Task</code>类，任务本身，包含了任务的一些信息，如<code>TaskId</code>，<code>index</code>，<code>attemptNumber</code>等。其由<code>executor</code>执行。每个<code>Task</code>会在单个机器上运行。</p>
+<p><code>TaskSet</code>类，任务集，是<code>Task</code>的集合。</p>
+<p><code>ShuffleMapTask</code>和<code>ResultTask</code>分别继承了<code>Task</code>类，对应之前的<code>ShuffleMapStage</code>和<code>ResultStage</code>。
+- <code>ShuffleMapTask</code>是shuffle map任务，其<code>partitionId</code>是该任务所在的分区，<code>mapId</code>是该任务的map id，<code>mapIndex</code>是该任务的map index，<code>mapStatus</code>是该任务的map状态。
+- <code>ResultTask</code>是结果任务，其<code>partitionId</code>是该任务所在的分区，<code>resultId</code>是该任务的结果id，<code>resultIndex</code>是该任务的结果index，<code>resultStatus</code>是该任务的结果状态。</p>
+<p><code>Schedulable</code>类，其中一些成员变量比较重要，列举如下：[^schedulable]
+- <code>weight</code>，用于控制不同该类之间的权重，初始为1，而如果一个类有双倍的权重，则会获得双倍的资源。当设置很高的权重时，无论是否有活动，都会优先获得资源。
+- <code>minShare</code>，用于控制最少分配的资源(比如CPU核数)，公平调度器倾向于满足所有活动类的最小要求。默认为0。
+- <code>runningTasks</code>，当前在运行的任务数量。</p>
+<p><code>Pool</code>和<code>TaskSetManager</code>分别继承了<code>Schedulable</code>类。
+- <code>TaskSetManager</code>是任务集管理器，其<code>Tasks</code>存放了任务
+- <code>Pool</code>是调度池，其中存在<code>schedulableQueue</code>存放调度队列，这是一个嵌套结构，即调度池里可能同时存在子调度池和任务集管理器。举例如下图<img alt="Pool" src="../src/pool.png" />
+调度池中的一些方法均是递归式的操作，如果是<code>Pool</code>类，则继续递归，如果是<code>TaskSetManager</code>则调用对应的操作方法</p>
+<p>因此，我们有如下的过程：</p>
+<pre><code class="language-mermaid">graph LR
+Job --1 to N --&gt; Stage --1 to N--&gt; Task --N to 1 --&gt; TaskSet --1 to 1 --&gt; TaskSetManager
+</code></pre>
+<h4 id="_8">调度部分可以改进的内容</h4>
+<p>添加调度算法，如调研报告内提到的利用协程方法实现随时将当前在进行处理的批数据暂停，切换到需要低延迟的流数据上去，在处理完流数据之后，再切换回批数据，在保证了流数据的低延迟的同时兼顾批数据的处理。[^neptune]</p>
+<h4 id="_9">向调度部分添加内容时的注意事项</h4>
+<p><code>DAGScheduler</code>源码中的注释提示如下：
+ - 当有关的job结束之后，所有的数据结构应该被清空，以避免在长时间运行程序中的状态无限增加。
+ - 添加新数据结构时，更新<code>DAGSchedulerSuite.assertDataStructuresEmpty</code>函数，这有助于找到内存泄露。</p>
+<p>[^schedulable]: Apache. Job Scheduling. Apache Spark Documents. [EB/OL]. [2023-04-20]. https://Spark.apache.org/docs/latest/job-scheduling.html</p>
+<p>[^Spark]: IWBS. Spark. CSDN. [EB/OL]. [2023-04-20]. https://blog.csdn.net/asd491310/category_7797537.html</p>
+<p>[^neptune]:Panagiotis Garefalakis, Konstantinos Karanasos, and Peter Pietzuch. 2019. Neptune: Scheduling Suspendable Tasks for Unified Stream/Batch Applications. In ACM Symposium on Cloud Computing (SoCC ’19), November 20–23, 2019, Santa Cruz, CA, USA. ACM, New York, NY, USA, 13 pages. https://doi.org/10.1145/3357223.3362724</p>
+<h3 id="shufflemanager">ShuffleManager</h3>
+<p>在Spark框架中，Shuffle阶段的设计优劣是决定性能好坏的关键因素之一。实现一个优良的ShuffleManager，减少不必要的Shuffle开销至关重要。</p>
+<p>在MapReduce框架中，Shuffle阶段是连接Map和Reduce之间的桥梁，Map阶段通过Shuffle过程将数据输出到Reduce阶段中。由于Shuffle涉及十分密集的磁盘的读写和网络I／O，因此Shuffle性能的高低直接影响整个程序的性能。Spark本质上与MapReduce框架十分相似，因此也有自己的Shuffle过程实现。</p>
+<h4 id="shufflemanager_1">ShuffleManager架构</h4>
+<p>在Driver和每个Executor的SparkEnv实例化过程中，都会创建一个ShuffleManager，用于管理块数据，提供集群块数据的读写，包括数据的本地读写和读取远程RDD结点的块数据。在RDD间存在宽依赖时，需要进行Shuffle操作，此时便需要将Spark作业（Job）划分成多个Stage，并在划分Stage的关键点———构建ShuffleDependency时———利用ShuffleManager进行Shuffle注册，获取后续数据读写所需的ShuffleHandle。</p>
+<p>ShuffleManager中的shuffleBlockResolver是Shuffle的块解析器，该解析器为数据块的读写提供支撑层，便于抽象具体的实现细节。基于此，有宽依赖关系的RDD执行compute时就可以读取上一Stage为其输出的Shuffle数据，并将计算结果传入下一stage。[^spark_optimize]</p>
+<h4 id="_10">可改进的点</h4>
+<p>ShuffleManager在生成依赖关系及RDD获取依赖关系过程中所需的计算使用频繁，可以在rust中得到优化。同时，Shuffle算法也极为关键，必须使用当前的SOTA算法，如在Vega中，只实现了最基础的HashShuffleManager，而没有实现性能更高的SortShuffleManager，这是极为明显的可以优化的点</p>
+<h3 id="_11">计算引擎核心类</h3>
+<h4 id="externalsorter">ExternalSorter</h4>
+<p><img alt="ExternalSorter" src="../src/ExternalSorter.png" />
+构造参数:
+- aggregator 可选的聚合器，带有combine function
+- partitioner 可选的划分，partition ID用于排序,然后是key
+- ordering 在partition内部使用的排序顺序</p>
+<p>主要方法:
+1. <code>spillMemoryIteratorToDisk(WriteablePartitionedIterator[K,C])-&gt;SpilledFile</code>
+将溢出的内存里的迭代器对应的内容放到临时磁盘中
+2. <code>insertAll(Iterator[Product2[K,V]])-&gt;Unit</code>
+利用自定义的AppendOnlyMap将records进行更新（缓存聚合）
+3. </p>
+<pre><code class="language-java">    mergeWithAggregation(
+        iterators: Seq[Iterator[Product2[K, C]]],
+        mergeCombiners: (C, C) =&gt; C,
+        comparator: Comparator[K],
+        totalOrder: Boolean)
+    -&gt;Iterator[Product2[K, C]]
+</code></pre>
+<p>将一系列(K,C)迭代器按照key进行聚合，假定每一个迭代器都已经按照key使用给定的比较器排序.</p>
+<h4 id="appendonlymapexternalappendonlymap">AppendOnlyMap/ExternalAppendOnlyMap</h4>
+<p>类型签名:
+<code>class AppendOnlyMap[K, V](initialCapacity: Int = 64) extends Iterable[(K, V)] with Serializable</code></p>
+<p>功能介绍:
+本质上是一种简单的哈希表，对于append-only的情况进行了优化，也就是说keys不会被移除，但是每一种Key的value可能发生改变。
+这个实现使用了平方探测法，哈希表的大小是2^n，保证对于每一个key都能浏览所有的空间。
+hash的函数使用了Murmur3_32函数（外部库）
+空间上界:<code>375809638 (0.7 * 2 ^ 29)</code> elements.</p>
+<p>成员变量功能:
+- LOAD_FACTOR: 负载因子，常量值=0.7
+- initialCapacity: 初始容量值64
+- capacity: 容量，初始时=initialCapacity
+- curSize: 记录当前已经放入data的key与聚合值的数量
+- data: 数组，初始大小为2<em>capacity,data数组的实际大小之所以是capacity的2倍是因为key和聚合值各占一位
+- growThreshhold:data数组容量增加的阈值
+$growThreshold=LOAD_FACTOR</em>capacity$
+- mask: 计算数据存放位置的掩码值，表达式为capacity-1
+- k: 要放入data的key
+- pos: k将要放入data的索引值
+- curKey: data[2*pos]位置的当前key
+- newValue: key的聚合值</p>
+<h3 id="spark-streaming">Spark Streaming</h3>
+<p>Spark Streaming[^SparkStreamingStructure]是Spark的一个扩展模块，它使得Spark可以支持可扩展、高吞吐量、容错的实时数据流处理。</p>
+<h4 id="_12">架构</h4>
+<p><strong>实现思想</strong>
+<img alt="SparkStreamingStructure" src="http://Spark.incubator.apache.org/docs/latest/img/streaming-flow.png" />
+Spark Streaming采用微批次的思想，把输入的数据按时间间隔打包成作业提交（该时间间隔可以由用户指定），交由Spark核心进行计算。因此Spark Streaming本身并不进行计算任务。
+<strong>组件</strong>
+<img alt="SparkStreamingItems" src="../src/SparkStreamingItems.png" />
+<strong>StreamingContext类：</strong> Spark Streaming的起始点，流式计算的启动和停止都通过它来完成（调用<code>context.start()</code> 和 <code>context.stop()</code>）。
+<strong>DStreamGraph类：</strong> 包含DStream和它们之间的依赖关系。
+<strong>DStream类：</strong> 意为离散化数据流，是用于封装流式数据的数据结构，其内部由一系列连续的RDDs构成，每个RDD代表特定时间间隔内的一批数据。这个类是一个抽象类，具体实现由继承它的具体的DStream（如InputDStream）完成。
+<strong>JobScheduler类：</strong> 负责调度在Spark上执行的作业，内部主要有JobGenerator和ReceiverTracker。
+<strong>JobGenerator类：</strong> JobGenerator负责从DStream产生jobs。其内部有一个定时器，会定时调用generateJobs方法。
+<strong>ReceiverTracker类：</strong> 负责管理和控制receiver的状态。</p>
+<h4 id="_13">源码分析</h4>
+<p>在对Spark Streaming源码的分析中，省略了大部分的变量、方法和所有方法的具体实现，只保留了关键的变量/常量和关键方法的声明。
+<strong>StreamingContext</strong></p>
+<pre><code class="language-scala">class StreamingContext private[streaming] (
+_sc: SparkContext,
+_cp: Checkpoint,
+_batchDur: Duration
+) extends Logging {
+    //省略部分方法、变量以及具体实现。
+    private[streaming] val sc: SparkContext
+    private[streaming] val graph: DStreamGraph
+    private[streaming] val scheduler = new JobScheduler(this)
+    def start(): Unit
+    def stop(stopSparkContext: Boolean, stopGracefully: Boolean): Unit
+}
+</code></pre>
+<p>具体分析：
+SparkContext是Spark的上下文。
+DStreamGraph用来管理DStream和它们之间的依赖。
+JobScheduler用于调度在Spark上运行的任务。
+<code>start()</code>方法用于启动流式计算。这一方法中的关键部分在于，它注册了一个ProgressListener，用于监听所有Streaming Jobs的进度；并且启动了JobScheduler，它会对任务进行调度。
+<code>stop()</code>方法与<code>start()</code>相对应，它会注销/停止<code>start()</code>中启动的各种模块（如注销progressListener，停止scheduler等），另外还可以根据传入的参数额外执行停止SparkContext/等待所有接收到的数据处理完成等。
+<strong>DStream</strong></p>
+<pre><code class="language-scala">abstract class DStream[T: ClassTag] (
+    @transient private[streaming] var ssc: StreamingContext
+  ) extends Serializable with Logging {
+    //省略部分方法、变量以及具体实现。
+    def dependencies: List[DStream[_]]
+    private[streaming] var generatedRDDs = new HashMap[Time, RDD[T]]()
+    private[streaming] var zeroTime: Time
+    private[streaming] final def getOrCompute(time: Time): Option[RDD[T]]
+    private[streaming] def generateJob(time: Time): Option[Job]
+}
+</code></pre>
+<p>具体分析：
+dependencies是该DStream依赖的父DStream列表。
+generatedRDDs是已经产生的RDD，按产生时间使用哈希表存储。
+zeroTime是DStream的时间零点，用于标识该DStream是否被初始化，以及检查传入的时间参数是否合法。
+<code>getOrCompute(time: Time)</code>方法用于取得或产生RDD。若传入的时间参数已有对应的RDD，则取出并返回该RDD；否则产生新的RDD并放入generatedRDDs中，并返回。
+<code>generateJob(time: Time)</code>方法用于取得指定时间产生的RDD，并用它们生成Job。
+<strong>DStreamGraph</strong></p>
+<pre><code class="language-scala">final private[streaming] class DStreamGraph extends Serializable with Logging {
+    //省略部分方法、变量以及具体实现。
+    private var inputStreams = mutable.ArraySeq.empty[InputDStream[_]]
+    private var outputStreams = mutable.ArraySeq.empty[DStream[_]]
+    def start(time: Time): Unit
+    def stop()
+    def generateJobs(time: Time): Seq[Job]
+}
+</code></pre>
+<p>具体分析：
+inputStreams是输入数据源的集合。
+outputStreams是DStream的集合。
+<code>start()</code>方法用于启动DStreamGraph。该方法中设置zeroTime和startTime，初始化各个outputStream，计算Receiver的数量，记录inputStream，最后启动各个inputStream（这会让inputStream开始接收数据）。
+<code>stop()</code>方法只需停止所有inputStream
+<code>generateJobs(time: Time)</code>方法会对outputStream中的每一个DStream调用generateJob方法。每个DStream都会生成Job，因此会返回一个Job序列。
+<strong>JobScheduler</strong></p>
+<pre><code class="language-scala">class JobScheduler(val ssc: StreamingContext) extends Logging {
+    //省略部分方法、变量以及具体实现。
+    private val jobSets: java.util.Map[Time, JobSet] = new ConcurrentHashMap[Time, JobSet]
+    private val jobExecutor =
+    ThreadUtils.newDaemonFixedThreadPool(numConcurrentJobs, &quot;streaming-job-executor&quot;)
+    private[streaming] val jobGenerator = new JobGenerator(this)
+    private var eventLoop: EventLoop[JobSchedulerEvent] = null
+    def start(): Unit
+    def stop(processAllReceivedData: Boolean): Unit
+}
+</code></pre>
+<p>具体分析：
+jobSets按时间存放JobSet。
+jobExecutor是一个线程池，用于执行任务。
+jobGenerator负责生成作业。
+eventLoop则负责循环处理各种事件（如job的开始/完成）
+<code>start()</code>方法用于启动JobScheduler，它会创建并启动eventLoop、receiverTracker等组件，并启动jobGenerator。
+<code>stop()</code>方法则负责停止JobScheduler和它启动的各种组件。</p>
+<h4 id="_14">可改进的内容</h4>
+<p>Spark Streaming是一个扩展模块，不是Spark的核心组件，因此在我们项目中的优先级应该比较靠后。
+若采用在源码基础上重写的方案，由于Spark Streaming本身并不承担计算任务，因此对其进行优化不会带来较大性能提升，可选择将其忽略。
+但vega目前还未实现流计算相关功能。若在vega的基础上进行改进，在有余力的情况下可以尝试在其基础上实现Streaming模块。</p>
+<p>[^SparkStreamingStructure]: Spark Streaming Programming Guide https://spark.apache.org/docs/latest/streaming-programming-guide.html</p>
+<h2 id="_15">技术依据</h2>
+<h3 id="jni">JNI交互</h3>
+<p>Scala是在JVM上运行的语言，和Java比较相似，二者可以无缝衔接。在与其他语言交互时，主要有JNI(Java Native Interface), JNA(Java Native Access), OpenJDK project Panama三种方式。其中最常用的即为JNI接口。借由JNI，Scala可以与Java代码无缝衔接，而Java可以与C也通过JNI来交互。而Rust可通过二进制接口的方式与其他语言进行交互，特别是可以通过Rust的extern语法，十分方便地与C语言代码交互，按照C的方式调用JNI。这一套机制的组合之下，Scala和Rust的各类交互得到了保障。</p>
+<p>同时，正如我们通常不会直接在Rust中通过二进制接口调用C的标准库函数，而是使用libc crate一样，直接使用JNI对C的接口会使得编程较为繁琐且不够安全，代码中的大量unsafe块使得程序稳定性大大下降，所以，我们将选择对JNI进行了安全的封装的接口：<strong>jni[^jni] crate</strong>。</p>
+<h4 id="rustscala">Rust调用Scala</h4>
+<p><strong>数据交互</strong></p>
+<p>两种语言在进行交互时，必须使用两边共有的数据类型。</p>
+<p>对于基础的参数类型，可以直接用<code>jni::sys::*</code>模块提供的系列类型来声明，对照表如下：</p>
+<table>
+<thead>
+<tr>
+<th>Scala 类型</th>
+<th>Native 类型</th>
+<th>类型描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>boolean</td>
+<td>jboolean</td>
+<td>unsigned 8 bits</td>
+</tr>
+<tr>
+<td>byte</td>
+<td>jbyte</td>
+<td>signed 8 bits</td>
+</tr>
+<tr>
+<td>char</td>
+<td>jchar</td>
+<td>unsigned 16 bits</td>
+</tr>
+<tr>
+<td>short</td>
+<td>jshort</td>
+<td>signed 16 bits</td>
+</tr>
+<tr>
+<td>int</td>
+<td>jint</td>
+<td>signed 32 bits</td>
+</tr>
+<tr>
+<td>long</td>
+<td>jlong</td>
+<td>signed 64 bits</td>
+</tr>
+<tr>
+<td>float</td>
+<td>jfloat</td>
+<td>32 bits</td>
+</tr>
+<tr>
+<td>double</td>
+<td>jdouble</td>
+<td>64 bits</td>
+</tr>
+<tr>
+<td>void</td>
+<td>void</td>
+<td>not applicable</td>
+</tr>
+</tbody>
+</table>
+<p>对于复合类型，如对象等，则可以统一用<code>jni::objects::JObject</code>类型声明。该类型封装了由JVM返回的对象指针，并为该指针赋予了生命周期，以保证在Rust代码中的安全性。</p>
+<p><strong>方法交互</strong></p>
+<p>由于语言间对对象及其特性的实现不同，很难直接调用对方语言中的函数或方法。于是通常需要使用server-client模型，将执行函数或方法的任务交给sever语言，即：client传递所需的数据参数，并由server执行计算任务，并将最终结果返回给client。</p>
+<p>基于这种模型的设计，jni提供了调用scala中函数、对象方法以及获取对象数据域的方法。它们定义于<code>jni::JNIEnv</code>中，如接受对象、方法名和方法的签名与参数的<code>jni::JNIEnv::call_method</code>，接受对象、成员名、类型的<code>jni::JNIEnv::get_field</code>等
+此外，jni额外实现了一个<code>jni::objects::JString</code>接口，用以方便地实现字符串的传输。</p>
+<h4 id="scalarust">Scala调用Rust</h4>
+<p>Rust可以通过<code>pub unsafe extern "C" fn{}</code>来创建导出函数，或通过jni封装的函数<code>JNIEnv::register_native_methods</code>动态注册native方法。</p>
+<p>导出函数会通过函数名为Scala的对应类提供一个native的静态方法。</p>
+<p>动态注册会在JNI_Onload这个导出函数里执行，jvm加载jni动态库时会执行这个函数，从而加载注册的函数。在Rust中定义这些函数时，同样需要遵循上面的那些交互方法和规范。</p>
+<h3 id="capn-proto">Cap'n Proto</h3>
+<p>Cap'n Proto [^capnp] 是一种速度极快的数据交换格式，以及能力强大的RPC系统.
+<img alt="capnp" src="../src/Capnp.png" /></p>
+<h4 id="_16">优势</h4>
+<ol>
+<li>递增读取:可以在整个Cap'n Proto 信息完全传递之前进行处理，这是因为外部对象完全出现在内部对象以前。</li>
+<li>随机访问:你可以仅读取一条信息的一个字段而无需将整个对象翻译。</li>
+<li>MMAP:通过memory-mapping读取一个巨型文件，OS甚至不会读取你未访问的部分。</li>
+<li>跨语言通讯:避免了从脚本语言调用C++代码的痛苦。使用Cap'n Proto可以让多种语言轻松地在同一个内存中的数据结构上进行操作。</li>
+<li>通过共享内存可以让在同一台机器上多线程共同访问。不需要通过内核来产生管道来传输数据。</li>
+<li>Arena Allocation:Cap'n Proto对象始终以"arena"或者"region"风格进行分配，因此更快并且提升了缓存局部性。</li>
+<li>微小生成代码:Protobuf为每个消息类型产生专一的解析和序列化代码，这种代码会变得庞大无比。但是Cap'n Proto 产生的代码要小一个级别.事实上，通常都只是一些内联访问器方法。</li>
+<li>微小运行时库:得益于Cap'n的格式，运行时库可以变得很小</li>
+<li>极快的运行时:Cap'np实现了极快的RPC调用以至于调用结果的返回可以快于请求发出。</li>
+</ol>
+<h2 id="_17">创新点</h2>
+<p>在对Spark的实现问题上，Rust与Scala（Spark所使用的语言）相比有诸多优势：</p>
+<p><strong>安全性</strong></p>
+<p>scala 所有的对象都是在堆中的，有 Head 的，生命周期由 GC 管控的。虽然有不用关心分配、释放的自由。却也导致了 STW 和更大的内存占用。</p>
+<p>Rust 通过静态内存安全管理和所有权系统，可以避免许多 Spark 运行时错误，例如内存泄漏、垂悬指针异常等。而与Scala相比，Rust的内存管理发生在编译期，其所有权和声明周期的计算与检查都在编译期执行，这使得它无需消耗较大性能的GC机制，就能保证内存安全。</p>
+<p>此外，Rust将运行时错误划分为两类，通过模式匹配的控制方式，在面对可恢复的错误时执行对应的错误处理代码，而面对不可恢复的错误时发生panic停止程序，既进一步保证了安全，又提高了用户的体验。</p>
+<p>在Spark的内存密集阶段，可以使用Rust改写，以减少内存占用、提高程序性能。</p>
+<p><strong>高性能</strong></p>
+<p>Rust 秉承零成本抽象原则，通过无运行时开销的特性，将许多其他语言的运行时开销（如GC）放置到了编译期，并将顶层的代码编译为较为高效的机器码，使得程序员在进行抽象时，不必担心性能的下降。</p>
+<p>使用 Rust 进行 Spark 的性能瓶颈优化可以提高数据处理速度和效率，减少资源浪费和计算成本。</p>
+<p><strong>并发性</strong></p>
+<p>Spark 是一个分布式计算框架，具有良好的并发性能。而 Rust 则通过所有权和类型系统，将许多并发错误转化为了编译时错误，从而避免在部署到生产环境后修复代码或出现竞争、死锁或其他难以复现和修复的 bug ，实现了高效而安全的并发设计。</p>
+<p>安全高效的并行与函数式编程息息相关。Scala正是由于其函数式编程的特性被Spark选中，而同样作为函数式的语言，Rust对并行的支持更好。使用 Rust 对 Spark 的高并发场景进行优化，可以进一步提高 Spark 的并发性能和安全性，从而提高整个应用程序的性能。</p>
+<p>Rust为了获取安全性和高性能，对程序员施加了较多的规则，在编译期进行了较为严格的检查（内存安全正），使得编程难度显著提高。但是如果熟悉了它的编程风格，就可以轻松写出安全而高效的代码。此外，用Rust编写的代码，只要能够通过编译，基本就可以正常运行，且在调试代码时，可以分模块测试而不用担心它们的互相影响————这提高了调试代码的效率，而且适于多人协作开发（在函数式编程方式下尤是如此）。</p>
+<h2 id="_18">概要设计报告</h2>
+<h3 id="_19">可行方案</h3>
+<p>为了实现对Spark瓶颈的优化，我们经过调研，找到了两条可行的路线，分别为直接在Apache Spark源码基础上进行重写，以及基于一个不完善的开源项目进行修改。</p>
+<h4 id="sparkrust">源码基础上对Spark性能瓶颈的Rust重写</h4>
+<p>在源代码上进行修改，考虑使用Rust重写其中的性能瓶颈模块，特别是内存密集型、CPU密集型的部分，同时保留源码的非关键部分，尤其是Spark中原生的丰富API，以此达到以小范围的修改达到较为显著的性能提升的效果。</p>
+<p>在Spark的Scala源码与Rust代码间的交互是这一方案中需要特别关注的点，主要是由于scala基于JVM，与非JVM语言的Rust之间，有较大的交互困难。我们考虑使用Scala的JNI(Java Native Interface)与Rust进行交互，我们这里使用jni crate来实现两种语言间的交互。</p>
+<p>优势：Spark文档比较详细，编译相对较为方便，且没有无法使用的风险。</p>
+<p>缺陷：Spark代码庞杂，显然无法全部重写，只能考虑回调，但从Rust回调scala又极少有人进行尝试，需要自行探索。</p>
+<h4 id="rustsparkvega">基于不完善的Rust版Spark开源项目vega的实现</h4>
+<p>由于Rust语言的诸多优点，用Rust重写Spark是一个非常有诱惑力的方案。此前，就已经有一个较为粗浅的基于Rust的Spark项目：vega（<a href="https://github.com/rajasekarv/vega">Github仓库</a>）。这一项目完全使用Rust从零写起，构建完成了一个较为简单的Spark内核。不过，这一项目已经有两三年没有维护，项目里还有不少算法没有实现，特别是Spark后来的诸多优化更新，这些都可以是我们的改进空间。</p>
+<p>优势：vega总代码量较少，修改起来较方便。且为原生Rust项目，不需要回调。</p>
+<p>缺陷：vega文档不够详细，且已经不再处于被维护状态，假如遇到问题，可能很难解决。</p>
+<h4 id="_20">最终选定方案</h4>
+<p>综合考虑，我们选定<strong>基于不完善的Rust版Spark开源项目vega的实现</strong>，虽然两者都有一定缺陷，但是利用JNI技术的实例资料十分匮乏，尤其是rust与Scala都作为新兴语言，相关接口支持不够充分，而且跨语言调用面临对象转化的问题，无法保证开发进度。而vega作为开源项目，已经收获1.9k Star,但是因为缺乏维护而不支持许多新版特性显得十分可惜。这既是缺陷，也是优化的对象。使用vega完全面向rust,避免了跨语言调用的困难。因此，我们最终选定就vega的实现。</p>
+<h2 id="_21">进度管理</h2>
+<table>
+<thead>
+<tr>
+<th>时间进度</th>
+<th>进度概览</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>第八周</td>
+<td>系统学习rust</td>
+</tr>
+<tr>
+<td>第九周</td>
+<td>编译，测试vega模块</td>
+</tr>
+<tr>
+<td>第十周</td>
+<td>定位vega模块</td>
+</tr>
+<tr>
+<td>第十一周~第十四周</td>
+<td>编写优化对象模块</td>
+</tr>
+<tr>
+<td>第十五周</td>
+<td>添加拓展模块</td>
+</tr>
+<tr>
+<td>第十六周</td>
+<td>跑benchmark,部署测试</td>
+</tr>
+</tbody>
+</table>
+<p>[^spark_optimize]:王家林. Spark内核机制解析及性能调优. 2017.
+[^jni]:Rust jni crate https://crates.io/crates/jni
+[^capnp]: Cap’n Proto is an insanely fast data interchange format and capability-based RPC system. https://capnproto.org/</p>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.74e28a9f.min.js", "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.220ee61c.min.js"></script>
+      
+    
+  </body>
+</html>
